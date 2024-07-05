@@ -32,6 +32,15 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	runtimeOnly 'com.mysql:mysql-connector-j'
+
+	implementation group: 'org.modelmapper', name: 'modelmapper', version: '2.1.1'
+	implementation group: 'io.jsonwebtoken', name: 'jjwt-impl', version: '0.12.3'
+	implementation group: 'io.jsonwebtoken', name: 'jjwt-api', version: '0.12.3'
+	implementation group: 'io.jsonwebtoken', name: 'jjwt-jackson', version: '0.12.3'
+
+	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-client'
 }
 
 tasks.named('test') {
