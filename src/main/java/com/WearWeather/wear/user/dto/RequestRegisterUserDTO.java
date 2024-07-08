@@ -1,6 +1,7 @@
 package com.WearWeather.wear.user.dto;
 
 import com.WearWeather.wear.user.entity.User;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
@@ -24,6 +25,12 @@ public class RequestRegisterUserDTO {
     private final String nickname;
 
     private final boolean isSocial;
+
+    @AssertTrue(message = "이메일 인증은 필수입니다.")
+    private final boolean checkEmail;
+
+    @AssertTrue(message = "닉네임 중복 확인은 필수입니다.")
+    private final boolean checkNickname;
 
     public User toEntity(){
         return User.builder()
