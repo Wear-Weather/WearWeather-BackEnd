@@ -1,13 +1,19 @@
 package com.WearWeather.wear.user.service;
 
 import com.WearWeather.wear.global.exception.CustomException;
+import com.WearWeather.wear.global.exception.ErrorCode;
 import com.WearWeather.wear.user.dto.RequestRegisterUserDTO;
-import com.WearWeather.wear.user.dto.ResponseDuplicateCheckDTO;
 import com.WearWeather.wear.user.entity.User;
 import com.WearWeather.wear.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.util.Optional;
+import java.util.Random;
 
 import static com.WearWeather.wear.global.exception.ErrorCode.NICKNAME_ALREADY_EXIST;
 
@@ -17,6 +23,8 @@ import static com.WearWeather.wear.global.exception.ErrorCode.NICKNAME_ALREADY_E
 public class UserService {
 
     private final UserRepository userRepository;
+
+    private final MailService mailService;
 
     @Transactional
     public void registerUser(RequestRegisterUserDTO requestRegisterUserDTO){
@@ -36,10 +44,46 @@ public class UserService {
 
     public void checkDuplicateNickname(String nickname){
 
-        boolean nicknameExist = userRepository.findByNickname(nickname).isPresent();
+        Optional<User> user = userRepository.findByNickname(nickname);
 
-        if(nicknameExist){
+        if(user.isPresent()){
             throw new CustomException(NICKNAME_ALREADY_EXIST);
+        }
+    }
+
+    public void verifyEmail(String email){
+
+        checkDuplicatedEmail(email);
+
+        String title = "[WearWeather] 인증 번호 발송";
+        String authCode =
+                "WearWeather 회원가입을 위한 " +
+                "이메일 인증 번호는 " + createCode() + "입니다." ;
+
+        mailService.sendEmail(email, title, authCode);
+
+    }
+
+    private void checkDuplicatedEmail(String email) {
+        Optional<User> user = userRepository.findByEmail(email);
+
+        if (user.isPresent()) {
+            throw new CustomException(ErrorCode.EMAIL_ALREADY_EXIST);
+        }
+    }
+
+    private String createCode() {
+        int length = 6;
+
+        try {
+            Random random = SecureRandom.getInstanceStrong();
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0; i < length; i++) {
+                builder.append(random.nextInt(10));
+            }
+            return builder.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new CustomException(ErrorCode.NO_SUCH_ALGORITHM);
         }
     }
 
