@@ -24,6 +24,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final TokenProvider tokenProvider;
+    private final RedisService  redisService;
 
     public LoginResponse checkLogin(LoginRequest request) {
         User user = userRepository.findOneWithAuthoritiesByEmail(request.getEmail())
@@ -34,6 +35,8 @@ public class AuthService {
         Authentication authentication = getAuthentication(request.getEmail(), request.getPassword());
         String accessToken = tokenProvider.createToken(authentication);
         String refreshToken = tokenProvider.createRefreshToken(request.getEmail());
+
+        redisService.setValues(request.getEmail(), refreshToken);
 
         return LoginResponse.of(user, accessToken, refreshToken);
     }
