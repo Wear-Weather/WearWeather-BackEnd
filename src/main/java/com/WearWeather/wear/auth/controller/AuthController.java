@@ -2,6 +2,7 @@ package com.WearWeather.wear.auth.controller;
 
 import static com.WearWeather.wear.global.jwt.JwtFilter.AUTHORIZATION_HEADER;
 
+import com.WearWeather.wear.auth.dto.TokenDto;
 import com.WearWeather.wear.auth.dto.request.LoginRequest;
 import com.WearWeather.wear.auth.dto.response.LoginResponse;
 import com.WearWeather.wear.auth.service.AuthService;
@@ -34,4 +35,11 @@ public class AuthController {
         authService.logout(userEmail, token);
         return new ResponseEntity<>(HttpStatus.OK);
     }
+
+    @PostMapping("/reissue")
+    public ResponseEntity<TokenDto> reissue(@RequestBody TokenDto tokenDto) {
+        TokenDto newToken = authService.reissue(tokenDto);
+        return new ResponseEntity<>(newToken, HttpStatus.OK);
+    }
+
 }

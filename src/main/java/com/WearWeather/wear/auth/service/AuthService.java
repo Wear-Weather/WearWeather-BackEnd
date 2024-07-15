@@ -1,5 +1,6 @@
 package com.WearWeather.wear.auth.service;
 
+import com.WearWeather.wear.auth.dto.TokenDto;
 import com.WearWeather.wear.global.exception.CustomException;
 import com.WearWeather.wear.global.exception.ErrorCode;
 import com.WearWeather.wear.global.jwt.TokenProvider;
@@ -15,6 +16,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -47,6 +49,30 @@ public class AuthService {
         Long accessTokenExpiration = tokenProvider.getExpiration(accessToken);
         redisService.logoutFromRedis(email,accessToken, accessTokenExpiration);
     }
+
+    public TokenDto reissue(TokenDto tokenDto) {
+        String accessToken = tokenDto.getAccessToken();
+        String refreshToken = tokenDto.getRefreshToken();
+
+        Authentication authentication = tokenProvider.getAuthentication(accessToken);
+        String userEmail = authentication.getName();
+
+        validateRefreshToken(userEmail, refreshToken);
+
+        String newAccessToken = tokenProvider.createToken(authentication);
+        String newRefreshToken = tokenProvider.createRefreshToken(userEmail);
+        redisService.setValues(userEmail, newRefreshToken);
+
+        return new TokenDto(newAccessToken, newRefreshToken);
+    }
+
+    private void validateRefreshToken(String userEmail, String RefreshToken) {
+        String storedRefreshToken = redisService.getValues(userEmail);
+        if (!storedRefreshToken.equals(RefreshToken)) {
+            throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
+        }
+    }
+
     private void validateExistedUserEmail(String email) {
         userRepository.findByEmail(email)
             .orElseThrow(() -> new CustomException(ErrorCode.EMAIL_IS_NULL_EXCEPTION));
