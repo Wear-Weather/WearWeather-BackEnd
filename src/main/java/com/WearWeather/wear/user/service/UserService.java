@@ -6,7 +6,6 @@ import com.WearWeather.wear.user.dto.RequestRegisterUserDTO;
 import com.WearWeather.wear.user.entity.User;
 import com.WearWeather.wear.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,18 +41,18 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public void checkDuplicateNickname(String nickname){
+    public void checkDuplicateUserNickname(String nickname){
 
-        Optional<User> user = userRepository.findByNickname(nickname);
+        Optional<User> existsByNickname = userRepository.findByNickname(nickname);
 
-        if(user.isPresent()){
+        if(existsByNickname.isPresent()){
             throw new CustomException(NICKNAME_ALREADY_EXIST);
         }
     }
 
     public void verifyEmail(String email){
 
-        checkDuplicatedEmail(email);
+        checkDuplicatedUserEmail(email);
 
         String title = "[WearWeather] 인증 번호 발송";
         String authCode =
@@ -64,10 +63,10 @@ public class UserService {
 
     }
 
-    private void checkDuplicatedEmail(String email) {
-        Optional<User> user = userRepository.findByEmail(email);
+    private void checkDuplicatedUserEmail(String email) {
+        Optional<User> existsByEmail = userRepository.findByEmail(email);
 
-        if (user.isPresent()) {
+        if (existsByEmail.isPresent()) {
             throw new CustomException(ErrorCode.EMAIL_ALREADY_EXIST);
         }
     }
