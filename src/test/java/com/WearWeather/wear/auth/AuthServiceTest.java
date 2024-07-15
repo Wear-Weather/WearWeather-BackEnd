@@ -15,6 +15,7 @@ import com.WearWeather.wear.global.jwt.TokenProvider;
 import com.WearWeather.wear.auth.dto.request.LoginRequest;
 import com.WearWeather.wear.auth.dto.response.LoginResponse;
 import com.WearWeather.wear.auth.service.AuthService;
+import com.WearWeather.wear.global.redis.RedisService;
 import com.WearWeather.wear.user.entity.User;
 import com.WearWeather.wear.user.repository.UserRepository;
 import java.util.Optional;
@@ -48,6 +49,9 @@ public class AuthServiceTest {
 
     @Mock
     private TokenProvider tokenProvider;
+
+    @Mock
+    private RedisService redisService;
 
     @InjectMocks
     private AuthService authService;
@@ -141,4 +145,31 @@ public class AuthServiceTest {
         verify(tokenProvider).createRefreshToken("user@example.com");
     }
 
+    @Test
+    @DisplayName("로그인 성공 시 refresh token이 Redis에 저장된다")
+    public void testRedisRefreshTokenStorage() {
+        // given
+        User user = User.builder()
+            .email("user@example.com")
+            .password("encodedPassword")
+            .build();
+        LoginRequest request = new LoginRequest("user@example.com", "correctPassword");
+
+        when(userRepository.findOneWithAuthoritiesByEmail(request.getEmail())).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches(request.getPassword(), user.getPassword())).thenReturn(true);
+
+        when(authenticationManagerBuilder.getObject()).thenReturn(authenticationManager);
+        Authentication authentication = mock(Authentication.class);
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+            .thenReturn(authentication);
+
+        when(tokenProvider.createToken(any(Authentication.class))).thenReturn("accessToken");
+        when(tokenProvider.createRefreshToken(anyString())).thenReturn("refreshToken");
+
+        // when
+        authService.checkLogin(request);
+
+        // then
+        verify(redisService).setValues("user@example.com", "refreshToken");
+    }
 }
