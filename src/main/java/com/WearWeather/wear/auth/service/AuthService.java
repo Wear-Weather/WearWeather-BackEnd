@@ -41,6 +41,17 @@ public class AuthService {
         return LoginResponse.of(user, accessToken, refreshToken);
     }
 
+    public void logout(String email, String accessToken) {
+        validateExistedUserEmail(email);
+
+        Long accessTokenExpiration = tokenProvider.getExpiration(accessToken);
+        redisService.logoutFromRedis(email,accessToken, accessTokenExpiration);
+    }
+    private void validateExistedUserEmail(String email) {
+        userRepository.findByEmail(email)
+            .orElseThrow(() -> new CustomException(ErrorCode.EMAIL_IS_NULL_EXCEPTION));
+    }
+
     private void validatePassword(String password, String encodePassword) {
         if (!passwordEncoder.matches(password, encodePassword)) {
             throw new CustomException(ErrorCode.PASSWORD_INVALID_EXCEPTION);
