@@ -24,7 +24,8 @@ public enum ErrorCode {
     NOT_EXIST_USER(BAD_REQUEST, "일치하는 계정이 없습니다."),
     NO_SUCH_ALGORITHM(BAD_REQUEST, "해당 알고리즘이 존재하지 않습니다."),
 
-    UNABLE_TO_SEND_EMAIL(BAD_REQUEST,"해당 이메일로 코드를 발송하지 못했습니다.")
+    UNABLE_TO_SEND_EMAIL(BAD_REQUEST,"해당 이메일로 코드를 발송하지 못했습니다."),
+    FAIL_EMAIL_VERIFICATION(BAD_REQUEST, "이메일 검증이 실패하였습니다.")
     ;
 
     private final HttpStatus httpStatus;

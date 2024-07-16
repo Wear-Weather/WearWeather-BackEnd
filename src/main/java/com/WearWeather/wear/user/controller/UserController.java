@@ -3,6 +3,7 @@ package com.WearWeather.wear.user.controller;
 import com.WearWeather.wear.global.common.ResponseMessage;
 import com.WearWeather.wear.global.common.dto.ResponseCommonDTO;
 import com.WearWeather.wear.user.dto.RequestRegisterUserDTO;
+import com.WearWeather.wear.user.dto.RequestVerifyCodeDTO;
 import com.WearWeather.wear.user.dto.RequestVerifyEmailDTO;
 import com.WearWeather.wear.user.dto.ResponseDuplicateCheckDTO;
 import com.WearWeather.wear.user.service.UserService;
@@ -30,7 +31,7 @@ public class UserController {
     @GetMapping("/users/nickname-check/{nickname}")
     public ResponseEntity<ResponseDuplicateCheckDTO> checkDuplicateNickname(@PathVariable("nickname") String nickname){
 
-        userService.checkDuplicateUserNickname(nickname);
+        userService.checkDuplicatedUserNickName(nickname);
         return ResponseEntity.ok(new ResponseDuplicateCheckDTO(true, ResponseMessage.NICKNAME_AVAILABLE));
     }
 
@@ -38,5 +39,11 @@ public class UserController {
     public ResponseEntity<ResponseCommonDTO> verifyEmail(@Validated @RequestBody RequestVerifyEmailDTO verifyEmailDTO){
         userService.verifyEmail(verifyEmailDTO.getEmail());
         return ResponseEntity.ok(new ResponseCommonDTO(true, ResponseMessage.SEND_EMAIL));
+    }
+
+    @PostMapping("/email/verify-code")
+    public ResponseEntity<ResponseCommonDTO> verifyEmail(@Validated @RequestBody RequestVerifyCodeDTO verifyCodeDTO){
+        userService.checkEmailAuthCode(verifyCodeDTO.getEmail(), verifyCodeDTO.getCode());
+        return ResponseEntity.ok(new ResponseCommonDTO(true, ResponseMessage.SUCCESS_EMAIL_VERIFICATION));
     }
 }
