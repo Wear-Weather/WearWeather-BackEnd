@@ -25,6 +25,26 @@ public class MailService {
     private final JavaMailSender emailSender;
     private final RedisConfig redisConfig;
 
+    private final UserService userService;
+
+    public void verifyEmail(String email){
+
+        userService.checkDuplicatedUserEmail(email);
+
+        sendEmail(email);
+
+    }
+
+    public void checkEmailAuthCode(String email, String authCode){
+        ValueOperations<String, String> valOperations = redisConfig.redisTemplate().opsForValue();
+        String code = valOperations.get(email);
+
+        if(!authCode.equals(code)){
+            throw new CustomException(ErrorCode.NICKNAME_ALREADY_EXIST);
+        }
+
+    }
+
     public void sendEmail(String toEmail) {
 
         String authCode = createCode();
