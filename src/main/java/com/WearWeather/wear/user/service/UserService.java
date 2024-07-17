@@ -2,14 +2,12 @@ package com.WearWeather.wear.user.service;
 
 import com.WearWeather.wear.global.exception.CustomException;
 import com.WearWeather.wear.global.exception.ErrorCode;
-import com.WearWeather.wear.user.dto.RequestRegisterUserDTO;
+import com.WearWeather.wear.user.dto.request.RegisterUserRequest;
 import com.WearWeather.wear.user.entity.User;
 import com.WearWeather.wear.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
 
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -19,15 +17,15 @@ public class UserService {
     private final UserRepository userRepository;
 
     @Transactional
-    public void registerUser(RequestRegisterUserDTO requestRegisterUserDTO){
+    public void registerUser(RegisterUserRequest registerUserRequest){
 
-        User user = requestRegisterUserDTO.toEntity();
+        User user = registerUserRequest.toEntity();
 
-        if(requestRegisterUserDTO.isSocial()){
+        if(registerUserRequest.isSocial()){
             user.isSocialLogin();
         }
 
-        if(!requestRegisterUserDTO.isSocial()){
+        if(!registerUserRequest.isSocial()){
             user.isRegularLogin();
         }
 
@@ -38,9 +36,9 @@ public class UserService {
 
     public void checkDuplicatedUserEmail(String email) {
 
-        Optional<User> existByEmail = userRepository.findByEmail(email);
+        boolean user = userRepository.existByEmail(email);
 
-        if (existByEmail.isPresent()) {
+        if (user) {
             throw new CustomException(ErrorCode.EMAIL_ALREADY_EXIST);
         }
     }
@@ -48,9 +46,9 @@ public class UserService {
 
     public void checkDuplicatedUserNickName(String nickname) {
 
-        Optional<User> existByNickName = userRepository.findByNickname(nickname);
+        boolean user = userRepository.existByNickName(nickname);
 
-        if (existByNickName.isPresent()) {
+        if (user) {
             throw new CustomException(ErrorCode.NICKNAME_ALREADY_EXIST);
         }
     }
