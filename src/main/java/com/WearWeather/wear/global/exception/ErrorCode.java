@@ -22,6 +22,7 @@ public enum ErrorCode {
     EMAIL_ALREADY_EXIST(BAD_REQUEST, "이메일이 중복되었습니다."),
     NOT_EXIST_EMAIL(BAD_REQUEST, "일치하는 이메일이 없습니다."),
     NOT_EXIST_USER(BAD_REQUEST, "일치하는 계정이 없습니다."),
+    NOT_MATCH_EMAIL(BAD_REQUEST, "일치하는 이메일이 없습니다."),
     NO_SUCH_ALGORITHM(BAD_REQUEST, "해당 알고리즘이 존재하지 않습니다."),
 
     UNABLE_TO_SEND_EMAIL(BAD_REQUEST,"해당 이메일로 코드를 발송하지 못했습니다."),

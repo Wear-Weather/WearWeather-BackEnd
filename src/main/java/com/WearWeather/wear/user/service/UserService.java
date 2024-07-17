@@ -9,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 @Service
@@ -53,5 +55,22 @@ public class UserService {
         }
     }
 
+    public String findUserEmail(String name, String nickname){
+        Optional<User> user = userRepository.findByNameAndNickname(name, nickname);
+
+        if (user.isEmpty()) {
+            throw new CustomException(ErrorCode.NOT_MATCH_EMAIL);
+        }
+
+        return user.get().getEmail();
+    }
+
+    public void findUserPassword(String email, String name, String nickname){
+        boolean user = userRepository.existByEmailAndNameAndNickname(email, name, nickname);
+
+        if (user) {
+            throw new CustomException(ErrorCode.NOT_EXIST_USER);
+        }
+    }
 
 }
