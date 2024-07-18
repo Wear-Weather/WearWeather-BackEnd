@@ -44,9 +44,6 @@ public class User {
    @Column(name = "is_social", nullable = false)
    private boolean isSocial;
 
-   @Column(name = "activated")
-   private boolean activated;
-
    @ManyToMany
    @JoinTable(
        name = "user_authority",

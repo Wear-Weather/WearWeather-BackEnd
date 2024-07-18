@@ -29,9 +29,6 @@ public class CustomUserDetailsService implements UserDetailsService {
     }
 
     private org.springframework.security.core.userdetails.User createUser(String userEmail, User user) {
-        if (!user.isActivated()) {
-            throw new RuntimeException(userEmail + " -> 활성화되어 있지 않습니다.");
-        }
 
         // 유저의 권한 정보들
         List<GrantedAuthority> grantedAuthorities = user.getAuthorities().stream()

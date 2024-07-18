@@ -18,7 +18,6 @@ public class LoginResponse {
         private String username;
         private String nickName;
         private boolean isSocial;
-        private boolean activated;
         private Set<Authority> authorities;
         private String accessToken;
         private String refreshToken;
@@ -30,8 +29,7 @@ public class LoginResponse {
                 .username(user.getName())
                 .nickName(user.getNickname())
                 .isSocial(user.isSocial())
-                .activated(user.isActivated())
-                .authorities(user.getAuthorities())  // 권한 정보 포함
+                .authorities(user.getAuthorities())
                 .accessToken(atk)
                 .refreshToken(rtk)
                 .build();

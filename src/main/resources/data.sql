@@ -1,5 +1,5 @@
-insert into "user" (email, password, name, nickname, is_social, activated) values ('admin@naver.com', '$2a$12$4EbNBPJzszu/DQ11QEgdTuBoxPjZFV0EhOPWusw7FzSYt3.WMjMvK', 'admin', 'admin',1, 1);
-insert into "user" (email, password, name, nickname, is_social, activated) values ('geonHui@naver.com', '$2a$12$kwmjJetpHfDH9IV2843.suBCzpiL.AIyfdKCAG/syMsP.P3KFx/2m', 'geonHui', 'geonHui', 1,1);
+insert into "user" (email, password, name, nickname, is_social) values ('admin@naver.com', '$2a$12$4EbNBPJzszu/DQ11QEgdTuBoxPjZFV0EhOPWusw7FzSYt3.WMjMvK', 'admin', 'admin',1);
+insert into "user" (email, password, name, nickname, is_social) values ('geonHui@naver.com', '$2a$12$kwmjJetpHfDH9IV2843.suBCzpiL.AIyfdKCAG/syMsP.P3KFx/2m', 'geonHui', 'geonHui',1);
 
 insert into authority (authority_name) values ('ROLE_USER');
 insert into authority (authority_name) values ('ROLE_ADMIN');
