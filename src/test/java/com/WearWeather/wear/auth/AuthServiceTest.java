@@ -58,7 +58,7 @@ public class AuthServiceTest {
 
     @Test
     @DisplayName("로그인 시도 시 존재하지 않는 이메일이면 예외를 발생시킨다")
-    public void testLoginWithNonexistentEmail() {
+    public void loginWithNonexistentEmail() {
         // given
         LoginRequest request = new LoginRequest("nonexistent@example.com", "password");
         when(userRepository.findOneWithAuthoritiesByEmail(anyString())).thenReturn(Optional.empty());
@@ -70,7 +70,7 @@ public class AuthServiceTest {
 
     @Test
     @DisplayName("로그인 시 비밀번호가 올바르지 않아서 예외를 발생시킨다")
-    public void testLoginWithIncorrectPassword() {
+    public void loginWithIncorrectPassword() {
         // given
         User user = User.builder()
             .email("user@example.com")
@@ -88,7 +88,7 @@ public class AuthServiceTest {
 
     @Test
     @DisplayName("로그인 성공 시 올바른 응답을 반환한다")
-    public void testSuccessfulLogin() {
+    public void successfulLogin() {
         // given
         User user = User.builder()
             .email("user@example.com")
@@ -118,7 +118,7 @@ public class AuthServiceTest {
 
     @Test
     @DisplayName("로그인 성공 시 AccessToken, RefreshToken이 생성된다")
-    public void testTokenCreation() {
+    public void tokenCreationOnLogin() {
         // given
         User user = User.builder()
             .email("user@example.com")
@@ -147,7 +147,7 @@ public class AuthServiceTest {
 
     @Test
     @DisplayName("로그인 성공 시 refresh token이 Redis에 저장된다")
-    public void testRedisRefreshTokenStorage() {
+    public void redisRefreshTokenStorageOnLogin() {
         // given
         User user = User.builder()
             .email("user@example.com")
