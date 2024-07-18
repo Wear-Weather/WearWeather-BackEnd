@@ -1,5 +1,6 @@
 package com.WearWeather.wear.auth;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -10,6 +11,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.WearWeather.wear.auth.dto.TokenDto;
+import com.WearWeather.wear.fixture.UserFixture;
 import com.WearWeather.wear.global.exception.CustomException;
 import com.WearWeather.wear.global.exception.ErrorCode;
 import com.WearWeather.wear.global.jwt.TokenProvider;
@@ -31,7 +33,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
 
 @ExtendWith(MockitoExtension.class)
 public class AuthServiceTest {
@@ -73,10 +74,7 @@ public class AuthServiceTest {
     @DisplayName("예외 테스트 : 로그인 시 이메일에 맞는 올바르지 않은 비밀번호")
     public void loginWithIncorrectPassword() {
         // given
-        User user = User.builder()
-            .email("user@example.com")
-            .password("encodedPassword")
-            .build();
+        User user = UserFixture.createUser("user@example.com", "encodedPassword");
         LoginRequest request = new LoginRequest("user@example.com", "wrongPassword");
 
         when(userRepository.findOneWithAuthoritiesByEmail(request.getEmail())).thenReturn(Optional.of(user));
@@ -91,10 +89,32 @@ public class AuthServiceTest {
     @DisplayName("정상 테스트 : 이메일과 패스워드가 일치하여 로그인에 성공한다. ")
     public void successfulLogin() {
         // given
-        User user = User.builder()
-            .email("user@example.com")
-            .password("encodedPassword")
-            .build();
+        LoginRequest request = new LoginRequest("user@example.com", "correctPassword");
+        User userFixture = UserFixture.createUser(request.getEmail(), request.getPassword());
+
+        when(userRepository.findOneWithAuthoritiesByEmail(request.getEmail())).thenReturn(Optional.of(userFixture));
+        when(passwordEncoder.matches(request.getPassword(), userFixture.getPassword())).thenReturn(true);
+
+        when(authenticationManagerBuilder.getObject()).thenReturn(authenticationManager);
+        Authentication authentication = mock(Authentication.class);
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+            .thenReturn(authentication);
+
+        when(tokenProvider.createToken(any(Authentication.class))).thenReturn("accessToken");
+        when(tokenProvider.createRefreshToken(anyString())).thenReturn("refreshToken");
+
+        // when
+        LoginResponse result = authService.checkLogin(request);
+
+        // then
+        assertNotNull(result);
+    }
+
+    @Test
+    @DisplayName("정상 테스트 : 로그인 성공 시 AccessToken, RefreshToken이 생성된다.")
+    public void tokenCreationOnLogin() {
+        // given
+        User user = UserFixture.createUser("user@example.com", "encodedPassword");
         LoginRequest request = new LoginRequest("user@example.com", "correctPassword");
 
         when(userRepository.findOneWithAuthoritiesByEmail(request.getEmail())).thenReturn(Optional.of(user));
@@ -112,36 +132,8 @@ public class AuthServiceTest {
         LoginResponse response = authService.checkLogin(request);
 
         // then
-        assertNotNull(response);
         assertEquals("accessToken", response.getAccessToken());
         assertEquals("refreshToken", response.getRefreshToken());
-    }
-
-    @Test
-    @DisplayName("정상 테스트 : 로그인 성공 시 AccessToken, RefreshToken이 생성된다.")
-    public void tokenCreationOnLogin() {
-        // given
-        User user = User.builder()
-            .email("user@example.com")
-            .password("encodedPassword")
-            .build();
-        LoginRequest request = new LoginRequest("user@example.com", "correctPassword");
-
-        when(userRepository.findOneWithAuthoritiesByEmail(request.getEmail())).thenReturn(Optional.of(user));
-        when(passwordEncoder.matches(request.getPassword(), user.getPassword())).thenReturn(true);
-
-        when(authenticationManagerBuilder.getObject()).thenReturn(authenticationManager);
-        Authentication authentication = mock(Authentication.class);
-        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
-            .thenReturn(authentication);
-
-        when(tokenProvider.createToken(any(Authentication.class))).thenReturn("accessToken");
-        when(tokenProvider.createRefreshToken(anyString())).thenReturn("refreshToken");
-
-        // when
-        authService.checkLogin(request);
-
-        // then
         verify(tokenProvider).createToken(authentication);
         verify(tokenProvider).createRefreshToken("user@example.com");
     }
@@ -150,10 +142,7 @@ public class AuthServiceTest {
     @DisplayName("정상 테스트 : 로그인 성공 시 refresh token이 Redis에 저장되는지 검증한다.")
     public void redisRefreshTokenStorageOnLogin() {
         // given
-        User user = User.builder()
-            .email("user@example.com")
-            .password("encodedPassword")
-            .build();
+        User user = UserFixture.createUser("user@example.com", "encodedPassword");
         LoginRequest request = new LoginRequest("user@example.com", "correctPassword");
 
         when(userRepository.findOneWithAuthoritiesByEmail(request.getEmail())).thenReturn(Optional.of(user));
@@ -191,12 +180,9 @@ public class AuthServiceTest {
     @DisplayName("정상 테스트 :  로그아웃 시 Redis에서 로그아웃 처리하는지 검증한다.")
     public void successfulLogout() {
         // given
-        String accessToken = "someAccessToken";
+        String accessToken = "AccessToken";
         Long expiration = 3600L;
-        User user = User.builder()
-            .email("user@example.com")
-            .password("encodedPassword")
-            .build();
+        User user = UserFixture.createUser("user@example.com", "encodedPassword");
 
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
         when(tokenProvider.getExpiration(anyString())).thenReturn(expiration);
