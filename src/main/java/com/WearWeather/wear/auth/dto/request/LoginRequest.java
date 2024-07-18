@@ -1,6 +1,7 @@
 package com.WearWeather.wear.auth.dto.request;
 
 import com.WearWeather.wear.user.entity.User;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -14,11 +15,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class LoginRequest {
 
-    @NotNull
+    @NotBlank
     @Size(min = 3, max = 50)
     private String email;
 
-    @NotNull
+    @NotBlank
     @Size(min = 3, max = 100)
     private String password;
 
