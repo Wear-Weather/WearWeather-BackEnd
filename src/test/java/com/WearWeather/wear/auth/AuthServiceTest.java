@@ -9,6 +9,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.WearWeather.wear.auth.dto.TokenDto;
 import com.WearWeather.wear.global.exception.CustomException;
 import com.WearWeather.wear.global.exception.ErrorCode;
 import com.WearWeather.wear.global.jwt.TokenProvider;
@@ -172,4 +173,80 @@ public class AuthServiceTest {
         // then
         verify(redisService).setValues("user@example.com", "refreshToken");
     }
+
+    @Test
+    @DisplayName("존재하지 않는 이메일로 로그아웃 시 예외를 발생시킨다")
+    public void logoutWithNonexistentEmail() {
+        // given
+        String email = "nonexistent@example.com";
+        String accessToken = "someAccessToken";
+        when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
+
+        // when & then
+        CustomException exception = assertThrows(CustomException.class, () -> authService.logout(email, accessToken));
+        assertEquals(ErrorCode.EMAIL_IS_NULL_EXCEPTION, exception.getErrorCode());
+    }
+
+    @Test
+    @DisplayName("정상적인 로그아웃 시 Redis에서 로그아웃 처리한다")
+    public void successfulLogout() {
+        // given
+        String accessToken = "someAccessToken";
+        Long expiration = 3600L;
+        User user = User.builder()
+            .email("user@example.com")
+            .password("encodedPassword")
+            .build();
+
+        when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
+        when(tokenProvider.getExpiration(anyString())).thenReturn(expiration);
+
+        // when
+        authService.logout(user.getEmail(), accessToken);
+
+        // then
+        verify(redisService).logoutFromRedis(user.getEmail(), accessToken, expiration);
+    }
+
+    @Test
+    @DisplayName("유효하지 않은 refresh token으로 재발급 시 예외를 발생시킨다")
+    public void reissueWithInvalidRefreshToken() {
+        // given
+        String email = "user@example.com";
+        TokenDto tokenDto = new TokenDto("AccessToken", "invalidRefreshToken");
+
+        Authentication authentication = mock(Authentication.class);
+        when(tokenProvider.getAuthentication(anyString())).thenReturn(authentication);
+        when(authentication.getName()).thenReturn(email);
+        when(redisService.getValues(anyString())).thenReturn("validRefreshToken");
+
+        // when & then
+        CustomException exception = assertThrows(CustomException.class, () -> authService.reissue(tokenDto));
+        assertEquals(ErrorCode.INVALID_REFRESH_TOKEN, exception.getErrorCode());
+    }
+
+    @Test
+    @DisplayName("정상적인 토큰 재발급 시 새로운 access token과 refresh token을 생성한다")
+    public void successfulReissueTokens() {
+        // given
+        String email = "user@example.com";
+        TokenDto tokenDto = new TokenDto("AccessToken", "validRefreshToken");
+
+        Authentication authentication = mock(Authentication.class);
+        when(tokenProvider.getAuthentication(anyString())).thenReturn(authentication);
+        when(authentication.getName()).thenReturn(email);
+        when(redisService.getValues(anyString())).thenReturn(tokenDto.getRefreshToken());
+        when(tokenProvider.createToken(any(Authentication.class))).thenReturn("newAccessToken");
+        when(tokenProvider.createRefreshToken(anyString())).thenReturn("newRefreshToken");
+
+        // when
+        TokenDto newTokenDto = authService.reissue(tokenDto);
+
+        // then
+        assertNotNull(newTokenDto);
+        assertEquals("newAccessToken", newTokenDto.getAccessToken());
+        assertEquals("newRefreshToken", newTokenDto.getRefreshToken());
+        verify(redisService).setValues(email, "newRefreshToken");
+    }
+
 }
