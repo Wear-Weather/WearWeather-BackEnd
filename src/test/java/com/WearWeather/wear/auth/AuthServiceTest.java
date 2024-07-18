@@ -58,7 +58,7 @@ public class AuthServiceTest {
     private AuthService authService;
 
     @Test
-    @DisplayName("로그인 시도 시 존재하지 않는 이메일이면 예외를 발생시킨다")
+    @DisplayName("예외 테스트 : 로그인 시 존재하지 않는 이메일")
     public void loginWithNonexistentEmail() {
         // given
         LoginRequest request = new LoginRequest("nonexistent@example.com", "password");
@@ -70,7 +70,7 @@ public class AuthServiceTest {
     }
 
     @Test
-    @DisplayName("로그인 시 비밀번호가 올바르지 않아서 예외를 발생시킨다")
+    @DisplayName("예외 테스트 : 로그인 시 이메일에 맞는 올바르지 않은 비밀번호")
     public void loginWithIncorrectPassword() {
         // given
         User user = User.builder()
@@ -88,7 +88,7 @@ public class AuthServiceTest {
     }
 
     @Test
-    @DisplayName("로그인 성공 시 올바른 응답을 반환한다")
+    @DisplayName("정상 테스트 : 이메일과 패스워드가 일치하여 로그인에 성공한다. ")
     public void successfulLogin() {
         // given
         User user = User.builder()
@@ -118,7 +118,7 @@ public class AuthServiceTest {
     }
 
     @Test
-    @DisplayName("로그인 성공 시 AccessToken, RefreshToken이 생성된다")
+    @DisplayName("정상 테스트 : 로그인 성공 시 AccessToken, RefreshToken이 생성된다.")
     public void tokenCreationOnLogin() {
         // given
         User user = User.builder()
@@ -147,7 +147,7 @@ public class AuthServiceTest {
     }
 
     @Test
-    @DisplayName("로그인 성공 시 refresh token이 Redis에 저장된다")
+    @DisplayName("정상 테스트 : 로그인 성공 시 refresh token이 Redis에 저장되는지 검증한다.")
     public void redisRefreshTokenStorageOnLogin() {
         // given
         User user = User.builder()
@@ -175,7 +175,7 @@ public class AuthServiceTest {
     }
 
     @Test
-    @DisplayName("존재하지 않는 이메일로 로그아웃 시 예외를 발생시킨다")
+    @DisplayName("예외 테스트 : 로그아웃 시 존재하지 않는 이메일")
     public void logoutWithNonexistentEmail() {
         // given
         String email = "nonexistent@example.com";
@@ -188,7 +188,7 @@ public class AuthServiceTest {
     }
 
     @Test
-    @DisplayName("정상적인 로그아웃 시 Redis에서 로그아웃 처리한다")
+    @DisplayName("정상 테스트 :  로그아웃 시 Redis에서 로그아웃 처리하는지 검증한다.")
     public void successfulLogout() {
         // given
         String accessToken = "someAccessToken";
@@ -209,7 +209,7 @@ public class AuthServiceTest {
     }
 
     @Test
-    @DisplayName("유효하지 않은 refresh token으로 재발급 시 예외를 발생시킨다")
+    @DisplayName("예외 테스트 : 유효하지 않은 refresh token으로 재발급 시도하여 예외가 발생한다.")
     public void reissueWithInvalidRefreshToken() {
         // given
         String email = "user@example.com";
@@ -226,7 +226,7 @@ public class AuthServiceTest {
     }
 
     @Test
-    @DisplayName("정상적인 토큰 재발급 시 새로운 access token과 refresh token을 생성한다")
+    @DisplayName("정상 테스트 : 정상적인 토큰 재발급 시 새로운 access token과 refresh token이 생성된다.")
     public void successfulReissueTokens() {
         // given
         String email = "user@example.com";
