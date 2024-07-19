@@ -38,7 +38,7 @@ public class UserService {
 
     public void checkDuplicatedUserEmail(String email) {
 
-        boolean user = userRepository.existByEmail(email);
+        boolean user = userRepository.existsByEmail(email);
 
         if (user) {
             throw new CustomException(ErrorCode.EMAIL_ALREADY_EXIST);
@@ -48,7 +48,7 @@ public class UserService {
 
     public void checkDuplicatedUserNickName(String nickname) {
 
-        boolean user = userRepository.existByNickName(nickname);
+        boolean user = userRepository.existsByNickname(nickname);
 
         if (user) {
             throw new CustomException(ErrorCode.NICKNAME_ALREADY_EXIST);
@@ -66,7 +66,7 @@ public class UserService {
     }
 
     public void findUserPassword(String email, String name, String nickname){
-        boolean user = userRepository.existByEmailAndNameAndNickname(email, name, nickname);
+        boolean user = userRepository.existsByEmailAndNameAndNickname(email, name, nickname);
 
         if (user) {
             throw new CustomException(ErrorCode.NOT_EXIST_USER);
