@@ -45,7 +45,7 @@ public class MailService {
 
     }
 
-    public void sendEmail(String toEmail) {
+    public String sendEmail(String toEmail) {
 
         String authCode = createCode();
 
@@ -64,6 +64,7 @@ public class MailService {
         ValueOperations<String, String> valOperations = redisConfig.redisTemplate().opsForValue();
         valOperations.set(toEmail, authCode, 180, TimeUnit.SECONDS);
 
+        return authCode;
     }
 
     private SimpleMailMessage createEmailForm(String toEmail,String emailFormTitle, String emailFormContent) {
