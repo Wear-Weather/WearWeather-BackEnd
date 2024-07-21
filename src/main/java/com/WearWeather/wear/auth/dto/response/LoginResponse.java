@@ -1,8 +1,9 @@
 package com.WearWeather.wear.auth.dto.response;
 
-import com.WearWeather.wear.auth.entity.Authority;
+import com.WearWeather.wear.auth.dto.TokenInfo;
+import com.WearWeather.wear.oauth.domain.oauth.OAuthProvider;
+import com.WearWeather.wear.user.entity.Role;
 import com.WearWeather.wear.user.entity.User;
-import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,25 +14,27 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LoginResponse {
-        private Long userId;
-        private String email;
-        private String username;
-        private String nickName;
-        private boolean isSocial;
-        private Set<Authority> authorities;
-        private String accessToken;
-        private String refreshToken;
 
-        public static LoginResponse of (User user, String atk, String rtk) {
-            return LoginResponse.builder()
-                .userId(user.getUserId())
-                .email(user.getEmail())
-                .username(user.getName())
-                .nickName(user.getNickname())
-                .isSocial(user.isSocial())
-                .authorities(user.getAuthorities())
-                .accessToken(atk)
-                .refreshToken(rtk)
-                .build();
-        }
+    private long userId;
+    private String email;
+    private String name;
+    private String nickName;
+    private boolean isSocial;
+    private Role role;
+    private OAuthProvider provider;
+    private TokenInfo tokenInfo;
+
+    public static LoginResponse of(User user, TokenInfo tokenInfo) {
+        return LoginResponse.builder()
+            .userId(user.getUserId())
+            .email(user.getEmail())
+            .name(user.getName())
+            .nickName(user.getNickname())
+            .isSocial(user.isSocial())
+            .role(user.getRole())
+            .provider(user.getProvider())
+            .tokenInfo(tokenInfo)
+            .build();
     }
+}
+
