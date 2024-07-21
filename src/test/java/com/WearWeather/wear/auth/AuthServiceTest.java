@@ -10,7 +10,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.WearWeather.wear.auth.dto.TokenDto;
+import com.WearWeather.wear.auth.dto.TokenInfo;
 import com.WearWeather.wear.fixture.UserFixture;
 import com.WearWeather.wear.global.exception.CustomException;
 import com.WearWeather.wear.global.exception.ErrorCode;
@@ -199,7 +199,7 @@ public class AuthServiceTest {
     public void reissueWithInvalidRefreshToken() {
         // given
         String email = "user@example.com";
-        TokenDto tokenDto = new TokenDto("AccessToken", "invalidRefreshToken");
+        TokenInfo tokenDto = new TokenInfo("AccessToken", "invalidRefreshToken");
 
         Authentication authentication = mock(Authentication.class);
         when(tokenProvider.getAuthentication(anyString())).thenReturn(authentication);
@@ -216,7 +216,7 @@ public class AuthServiceTest {
     public void successfulReissueTokens() {
         // given
         String email = "user@example.com";
-        TokenDto tokenDto = new TokenDto("AccessToken", "validRefreshToken");
+        TokenInfo tokenDto = new TokenInfo("AccessToken", "validRefreshToken");
 
         Authentication authentication = mock(Authentication.class);
         when(tokenProvider.getAuthentication(anyString())).thenReturn(authentication);
@@ -226,12 +226,12 @@ public class AuthServiceTest {
         when(tokenProvider.createRefreshToken(anyString())).thenReturn("newRefreshToken");
 
         // when
-        TokenDto newTokenDto = authService.reissue(tokenDto);
+        TokenInfo newTokenInfo = authService.reissue(tokenDto);
 
         // then
-        assertNotNull(newTokenDto);
-        assertEquals("newAccessToken", newTokenDto.getAccessToken());
-        assertEquals("newRefreshToken", newTokenDto.getRefreshToken());
+        assertNotNull(newTokenInfo);
+        assertEquals("newAccessToken", newTokenInfo.getAccessToken());
+        assertEquals("newRefreshToken", newTokenInfo.getRefreshToken());
         verify(redisService).setValues(email, "newRefreshToken");
     }
 

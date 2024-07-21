@@ -2,7 +2,7 @@ package com.WearWeather.wear.auth.controller;
 
 import static com.WearWeather.wear.global.jwt.JwtFilter.AUTHORIZATION_HEADER;
 
-import com.WearWeather.wear.auth.dto.TokenDto;
+import com.WearWeather.wear.auth.dto.TokenInfo;
 import com.WearWeather.wear.auth.dto.request.LoginRequest;
 import com.WearWeather.wear.auth.dto.response.LoginResponse;
 import com.WearWeather.wear.auth.service.AuthService;
@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
+
     private final AuthService authService;
 
     public AuthController(AuthService authService) {
@@ -25,7 +26,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login (@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         return new ResponseEntity<>(authService.checkLogin(request), HttpStatus.OK);
     }
 
@@ -37,8 +38,8 @@ public class AuthController {
     }
 
     @PostMapping("/reissue")
-    public ResponseEntity<TokenDto> reissue(@RequestBody TokenDto tokenDto) {
-        TokenDto newToken = authService.reissue(tokenDto);
+    public ResponseEntity<TokenInfo> reissue(@RequestBody TokenInfo tokenDto) {
+        TokenInfo newToken = authService.reissue(tokenDto);
         return new ResponseEntity<>(newToken, HttpStatus.OK);
     }
 

@@ -5,15 +5,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Getter
-@Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class TokenDto {
+public class TokenInfo {
 
     private String accessToken;
     private String refreshToken;
