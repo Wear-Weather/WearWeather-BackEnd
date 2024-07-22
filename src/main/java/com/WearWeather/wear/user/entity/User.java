@@ -1,112 +1,58 @@
 package com.WearWeather.wear.user.entity;
 
 import com.WearWeather.wear.global.common.BaseTimeEntity;
-import com.WearWeather.wear.global.exception.ErrorCode;
-import jakarta.persistence.*;
-import lombok.*;
-
 import java.io.Serializable;
+import com.WearWeather.wear.auth.entity.Authority;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.Table;
+import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @Getter
 @Entity
+@Table(name = "`user`")
 public class User extends BaseTimeEntity implements Serializable {
 
     @Id
+    @Column(name = "user_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long userId;
 
     @Column(nullable = false)
     private String email;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 100)
     private String password;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     private String name;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     private String nickname;
 
     @Column(nullable = false)
     private boolean isSocial;
 
-    @Column(nullable = false)
-    private String role;
+    @ManyToMany
+    @JoinTable(
+            name = "user_authority",
+            joinColumns = {@JoinColumn(name = "user_id", referencedColumnName = "user_id")},
+            inverseJoinColumns = {@JoinColumn(name = "authority_name", referencedColumnName = "authority_name")})
+    private Set<Authority> authorities;
 
-    @Transient
-    public static final String EMAIL_REG = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$\n";
-    @Transient
-    public static final String PASSWORD_REG = "^(?=.*[A-Za-z])(?=.*\\d|.*[!@#$%^&*])[A-Za-z\\d!@#$%^&*]{8,10}$|^(?=.*[!@#$%^&*])(?=.*\\d)[A-Za-z\\d!@#$%^&*]{8,10}$\n";
-    @Transient
-    public static final String NICKNAME_REG = "^[가-힣a-zA-Z]{1,10}$";
-
-
-    public User(String email, String password, String name, String nickname, boolean isSocial, String role){
-        validation(email, password, name, nickname);
-        this.email = email;
-        this.password = password;
-        this.name = name;
-        this.nickname = nickname;
-        this.isSocial = isSocial;
-        this.role = role;
-    }
-    public void validation(String email, String password, String name, String nickname){
-        isEmailNull(email);
-        checkEmailRegex(email);
-
-        isPasswordNull(password);
-        checkPasswordRegex(password);
-
-        isNameNull(name);
-
-        isNickNameNull(nickname);
-        checkNickNameRegex(nickname);
-    }
-
-    public void isEmailNull(String email){
-        if(email == null){
-            throw new IllegalArgumentException(ErrorCode.EMAIL_IS_NULL_EXCEPTION.getMessage());
-        }
-    }
-
-    public void checkEmailRegex(String email){
-        if(!email.matches(EMAIL_REG)){
-            throw new IllegalArgumentException(ErrorCode.EMAIL_INVALID_EXCEPTION.getMessage());
-        }
-    }
-
-    public void isPasswordNull(String password){
-        if(password == null){
-            throw new IllegalArgumentException(ErrorCode.PASSWORD_IS_NULL_EXCEPTION.getMessage());
-        }
-    }
-
-    public void checkPasswordRegex(String password){
-        if(!password.matches(PASSWORD_REG)){
-            throw new IllegalArgumentException(ErrorCode.PASSWORD_INVALID_EXCEPTION.getMessage());
-        }
-    }
-
-    public void isNameNull(String name){
-        if(name == null){
-            throw new IllegalArgumentException(ErrorCode.NAME_IS_NULL_EXCEPTION.getMessage());
-        }
-    }
-
-    public void isNickNameNull(String nickname){
-        if(nickname == null){
-            throw new IllegalArgumentException(ErrorCode.NICKNAME_IS_NULL_EXCEPTION.getMessage());
-        }
-    }
-
-    public void checkNickNameRegex(String nickname){
-        if(!nickname.matches(NICKNAME_REG)){
-            throw new IllegalArgumentException(ErrorCode.NICKNAME_INVALID_EXCEPTION.getMessage());
-        }
-    }
 
     public void isRegularLogin(){
         this.isSocial = false;
@@ -125,3 +71,5 @@ public class User extends BaseTimeEntity implements Serializable {
                 && name.equals(user.name);
     }
 }
+
+

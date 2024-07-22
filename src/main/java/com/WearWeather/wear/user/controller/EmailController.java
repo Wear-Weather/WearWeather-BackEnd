@@ -10,7 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-@RequestMapping("/api/v1/email")
+@RequestMapping("/email")
 @Validated
 @RestController
 @RequiredArgsConstructor

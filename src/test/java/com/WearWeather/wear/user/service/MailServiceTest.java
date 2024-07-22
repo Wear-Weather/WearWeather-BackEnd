@@ -25,9 +25,8 @@ public class MailServiceTest {
     @Autowired
     UserService userService;
 
-
     @Autowired
-    private RedisConfig redisConfig;
+    RedisConfig redisConfig;
 
     @Test
     @DisplayName("예외 테스트 : 이미 등록된 이메일로 인증할 때")

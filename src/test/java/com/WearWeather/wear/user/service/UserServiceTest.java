@@ -18,7 +18,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-@DisplayName("MemberService 테스트")
+@DisplayName("UserService 테스트")
 public class UserServiceTest {
 
     @Autowired

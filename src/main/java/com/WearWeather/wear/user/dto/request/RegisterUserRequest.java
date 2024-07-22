@@ -39,7 +39,6 @@ public class RegisterUserRequest {
                 .name(name)
                 .nickname(nickname)
                 .isSocial(isSocial)
-                .role("USER")
                 .build();
     }
 }
