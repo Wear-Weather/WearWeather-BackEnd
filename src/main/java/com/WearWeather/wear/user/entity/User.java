@@ -1,6 +1,5 @@
 package com.WearWeather.wear.user.entity;
 
-import com.WearWeather.wear.oauth.domain.oauth.OAuthProvider;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -41,9 +40,6 @@ public class User {
 
     @Column(name = "is_social", nullable = false)
     private boolean isSocial;
-
-    @Enumerated(EnumType.STRING)
-    private OAuthProvider provider;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)

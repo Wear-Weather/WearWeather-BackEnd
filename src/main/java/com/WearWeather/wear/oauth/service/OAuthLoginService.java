@@ -38,7 +38,7 @@ public class OAuthLoginService {
             .name(oAuthUserInfo.getName())
             .nickname(oAuthUserInfo.getNickname())
             .isSocial(true)
-            .provider(oAuthUserInfo.getOAuthProvider())
+            //            .provider(oAuthUserInfo.getOAuthProvider())
             .role(Role.USER)
             .build();
 
