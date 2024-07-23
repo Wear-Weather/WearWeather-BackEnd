@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -19,9 +20,9 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.filter.CorsFilter;
 
+@Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-@Configuration
 public class SecurityConfig {
 
     private final TokenProvider tokenProvider;
@@ -46,33 +47,47 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(AbstractHttpConfigurer::disable)
+                .csrf(AbstractHttpConfigurer::disable) // CSRF 비활성화 (테스트 환경에서만)
+                .addFilterBefore(corsFilter, UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(exceptionHandling -> exceptionHandling
+                                .accessDeniedHandler(jwtAccessDeniedHandler)
+                                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                )
 
-            .addFilterBefore(corsFilter, UsernamePasswordAuthenticationFilter.class)
-            .exceptionHandling(exceptionHandling -> exceptionHandling
-                .accessDeniedHandler(jwtAccessDeniedHandler)
-                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
-            )
+                .authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
+                .requestMatchers("/auth/login", "/auth/reissue", "/api/v1/users/register", "/api/v1/email/**", "/")
+                .permitAll()
+                .anyRequest().authenticated())
 
-            .authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
-                .requestMatchers("/auth/login", "/auth/reissue", "/api/user/signup", "/").permitAll()
-                .requestMatchers(PathRequest.toH2Console()).permitAll()
-                .anyRequest().authenticated()
-            )
-
-            .sessionManagement(sessionManagement ->
-                sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
-
-            .headers(headers ->
-                headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
-            )
-
-            .with(new JwtSecurityConfig(tokenProvider), customizer -> {
-            });
+         ;
+//            .csrf(AbstractHttpConfigurer::disable)
+//
+//            .addFilterBefore(corsFilter, UsernamePasswordAuthenticationFilter.class)
+//            .exceptionHandling(exceptionHandling -> exceptionHandling
+//                .accessDeniedHandler(jwtAccessDeniedHandler)
+//                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+//            )
+//
+//            .authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
+//                .requestMatchers("/auth/login", "/auth/reissue", "/api/v1/users/register", "/api/v1/email/**","/").permitAll()
+//                .requestMatchers(PathRequest.toH2Console()).permitAll()
+//                .anyRequest().authenticated()
+//            )
+//
+//            .sessionManagement(sessionManagement ->
+//                sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+//            )
+//
+//            .headers(headers ->
+//                headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
+//            )
+//
+//            .with(new JwtSecurityConfig(tokenProvider), customizer -> {
+//            });
         return http.build();
     }
 }

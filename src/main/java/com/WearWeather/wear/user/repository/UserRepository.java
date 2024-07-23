@@ -1,15 +1,21 @@
 package com.WearWeather.wear.user.repository;
 
 import com.WearWeather.wear.user.entity.User;
-import java.util.Optional;
-import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.EntityGraph;
 
-@Repository
+import java.util.Optional;
+
 public interface UserRepository extends JpaRepository<User, Long> {
-   @EntityGraph(attributePaths = "authorities")
-   Optional<User> findOneWithAuthoritiesByEmail(String email);
 
-   Optional<User> findByEmail(String email);
+    @EntityGraph(attributePaths = "authorities")
+    Optional<User> findOneWithAuthoritiesByEmail(String email);
+
+    boolean existsByNickname(String nickname);
+    boolean existsByEmail(String email);
+
+    Optional<User> findByNameAndNickname(String name, String nickname);
+    boolean existsByEmailAndNameAndNickname(String email, String name, String nickname);
+
+    Optional<User> findByEmail(String email);
 }

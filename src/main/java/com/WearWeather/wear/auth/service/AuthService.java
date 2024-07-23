@@ -1,6 +1,7 @@
 package com.WearWeather.wear.auth.service;
 
 import com.WearWeather.wear.auth.dto.TokenDto;
+import com.WearWeather.wear.global.config.SecurityConfig;
 import com.WearWeather.wear.global.exception.CustomException;
 import com.WearWeather.wear.global.exception.ErrorCode;
 import com.WearWeather.wear.global.jwt.TokenProvider;
@@ -26,6 +27,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final TokenProvider tokenProvider;
+    private final SecurityConfig securityConfig;
     private final RedisService  redisService;
 
     public LoginResponse checkLogin(LoginRequest request) {
