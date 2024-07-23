@@ -72,14 +72,6 @@ public class KaKaoApiClient implements OAuthClient {
 
         KaKaoUserInfo userInfo = restTemplate.postForObject(url, request, KaKaoUserInfo.class);
 
-        if (userInfo != null && userInfo.getKakaouAccount() != null && userInfo.getKakaouAccount().getProfile() != null) {
-            log.info("[Kakao Service] Auth ID ---> {}", userInfo.getEmail()); // Assuming email is used as ID
-            log.info("[Kakao Service] NickName ---> {}", userInfo.getKakaouAccount().getProfile().getNickname());
-            log.info("[Kakao Service] ProfileImageUrl ---> {}", userInfo.getKakaouAccount().getProfile().getProfileImageUrl());
-        } else {
-            log.warn("[Kakao Service] Failed to retrieve user info.");
-        }
-
         return userInfo;
     }
 

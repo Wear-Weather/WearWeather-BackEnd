@@ -22,12 +22,8 @@ public class OAuthController {
 
     @GetMapping("/kakao")
     public ResponseEntity<LoginResponse> kakaoLogin(@RequestParam("code") String code) {
-        log.info("Received code: {}", code);
-
         KakaoLoginParam param = new KakaoLoginParam(code);
         LoginResponse response = oAuthLoginService.login(param);
-
-        log.info("LoginResponse: {}", response);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
