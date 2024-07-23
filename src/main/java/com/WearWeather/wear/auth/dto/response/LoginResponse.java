@@ -1,7 +1,5 @@
 package com.WearWeather.wear.auth.dto.response;
 
-import com.WearWeather.wear.auth.dto.TokenInfo;
-import com.WearWeather.wear.oauth.domain.oauth.OAuthProvider;
 import com.WearWeather.wear.user.entity.Role;
 import com.WearWeather.wear.user.entity.User;
 import lombok.AllArgsConstructor;
@@ -21,10 +19,10 @@ public class LoginResponse {
     private String nickName;
     private boolean isSocial;
     private Role role;
-    private OAuthProvider provider;
-    private TokenInfo tokenInfo;
+    private String accessToken;
+    private String refreshToken;
 
-    public static LoginResponse of(User user, TokenInfo tokenInfo) {
+    public static LoginResponse of(User user, String at, String rt) {
         return LoginResponse.builder()
             .userId(user.getUserId())
             .email(user.getEmail())
@@ -32,8 +30,8 @@ public class LoginResponse {
             .nickName(user.getNickname())
             .isSocial(user.isSocial())
             .role(user.getRole())
-            .provider(user.getProvider())
-            .tokenInfo(tokenInfo)
+            .accessToken(at)
+            .refreshToken(rt)
             .build();
     }
 }

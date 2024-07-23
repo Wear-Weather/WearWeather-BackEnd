@@ -1,6 +1,5 @@
 package com.WearWeather.wear.global.jwt;
 
-import com.WearWeather.wear.auth.dto.TokenInfo;
 import com.WearWeather.wear.global.redis.RedisService;
 import com.WearWeather.wear.user.entity.Role;
 import io.jsonwebtoken.Claims;
@@ -33,7 +32,7 @@ import org.springframework.stereotype.Component;
 public class TokenProvider implements InitializingBean {
 
     private final Logger logger = LoggerFactory.getLogger(TokenProvider.class);
-    private static final String AUTHORITIES_KEY = "auth";
+    private static final String ROLE = "role";
     private final String secret;
     private final long tokenValidityInMilliseconds;
     private final long refreshTokenValidityInMilliseconds;
@@ -73,59 +72,36 @@ public class TokenProvider implements InitializingBean {
         return false;
     }
 
-    // JWT 토큰 생성
-    public TokenInfo createToken2(String userEmail, Role roles) {
-        Claims claims = Jwts.claims().setSubject(userEmail); // JWT payload 에 저장되는 정보단위
-        claims.put("roles", "ROLE_" + roles.name()); // 정보는 key / value 쌍으로 저장된다.
-        Date now = new Date();
-        long accessTokenValidTime = now.getTime() + 30 * 60 * 1000L;
-        long refreshTokenValidTime = now.getTime() + 14 * 24 * 60 * 60 * 1000L;
+    public String createAccessToken(String userEmail, Role roles) {
+        Claims claims = Jwts.claims().setSubject(userEmail);
+        claims.put(ROLE, roles.name());
 
-        String accessToken = Jwts.builder()
+        Date now = new Date();
+        Date validity = new Date(now.getTime() + this.tokenValidityInMilliseconds);
+
+        return Jwts.builder()
             .setClaims(claims)
-            .setIssuedAt(now) // 토큰 발행 시간 정보
-            .setExpiration(new Date(accessTokenValidTime))
+            .setIssuedAt(now)
+            .setExpiration(validity)
             .signWith(key, SignatureAlgorithm.HS512)
             .compact();
+    }
+
+    public String createRefreshToken(String userEmail, Role roles) {
+        Claims claims = Jwts.claims().setSubject(userEmail);
+        claims.put(ROLE, roles.name());
+
+        Date now = new Date();
+        Date validity = new Date(now.getTime() + this.refreshTokenValidityInMilliseconds);
 
         String refreshToken = Jwts.builder()
             .setClaims(claims)
             .setIssuedAt(now)
-            .setExpiration(new Date(refreshTokenValidTime))
+            .setExpiration(validity)
             .signWith(key, SignatureAlgorithm.HS512)
             .compact();
 
         redisService.setValues(userEmail, refreshToken);
-
-        return new TokenInfo(accessToken, refreshToken);
-    }
-
-
-    public String createToken(Authentication authentication) {
-        String authorities = authentication.getAuthorities().stream()
-            .map(GrantedAuthority::getAuthority)
-            .collect(Collectors.joining(","));
-
-        long now = (new Date()).getTime();
-        Date validity = new Date(now + this.tokenValidityInMilliseconds);
-
-        return Jwts.builder()
-            .setSubject(authentication.getName())
-            .claim(AUTHORITIES_KEY, authorities)
-            .setExpiration(validity)
-            .signWith(key, SignatureAlgorithm.HS512)
-            .compact();
-    }
-
-    public String createRefreshToken(String email) {
-        long now = (new Date()).getTime();
-        Date validity = new Date(now + this.refreshTokenValidityInMilliseconds);
-
-        String refreshToken = Jwts.builder()
-            .setSubject(email)
-            .setExpiration(validity)
-            .signWith(key, SignatureAlgorithm.HS512)
-            .compact();
 
         return refreshToken;
     }
@@ -138,9 +114,18 @@ public class TokenProvider implements InitializingBean {
             .parseClaimsJws(accessToken)
             .getBody()
             .getExpiration();// 현재 시간
-        Long now = new Date().getTime();
+        long now = new Date().getTime();
 
         return (expiration.getTime() - now);
+    }
+
+    // 토큰에서 회원 정보 추출
+    public Claims parseClaims(String token) {
+        return Jwts.parserBuilder()
+            .setSigningKey(key)
+            .build()
+            .parseClaimsJws(token)
+            .getBody();
     }
 
     public Authentication getAuthentication(String token) {
@@ -151,8 +136,13 @@ public class TokenProvider implements InitializingBean {
             .parseClaimsJws(token)
             .getBody();
 
+        if (claims.get(ROLE) == null) {
+            //TODO:: Change Custom Exception
+            throw new RuntimeException("권한 정보가 없는 토큰입니다.");
+        }
+
         Collection<? extends GrantedAuthority> authorities =
-            Arrays.stream(claims.get(AUTHORITIES_KEY).toString().split(","))
+            Arrays.stream(claims.get(ROLE).toString().split(","))
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toList());
 

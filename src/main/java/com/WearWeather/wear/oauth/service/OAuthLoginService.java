@@ -1,6 +1,5 @@
 package com.WearWeather.wear.oauth.service;
 
-import com.WearWeather.wear.auth.dto.TokenInfo;
 import com.WearWeather.wear.auth.dto.response.LoginResponse;
 import com.WearWeather.wear.global.jwt.TokenProvider;
 import com.WearWeather.wear.oauth.domain.oauth.OAuthLoginParams;
@@ -26,9 +25,10 @@ public class OAuthLoginService {
 
         User user = userRepository.findByEmail(oAuthUserInfo.getEmail())
             .orElseGet(() -> registerNewUser(oAuthUserInfo));
-        TokenInfo tokenInfo = tokenProvider.createToken2(user.getEmail(), Role.USER);
+        String accessToken = tokenProvider.createAccessToken(user.getEmail(), Role.USER);
+        String refreshToken = tokenProvider.createRefreshToken(user.getEmail(), Role.USER);
 
-        return LoginResponse.of(user, tokenInfo);
+        return LoginResponse.of(user, accessToken, refreshToken);
     }
 
     private User registerNewUser(OAuthUserInfo oAuthUserInfo) {

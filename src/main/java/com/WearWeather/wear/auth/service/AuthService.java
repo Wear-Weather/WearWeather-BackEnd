@@ -10,8 +10,8 @@ import com.WearWeather.wear.global.redis.RedisService;
 import com.WearWeather.wear.user.entity.Role;
 import com.WearWeather.wear.user.entity.User;
 import com.WearWeather.wear.user.repository.UserRepository;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -29,43 +29,41 @@ public class AuthService {
             .orElseThrow(() -> new CustomException(ErrorCode.EMAIL_IS_NULL_EXCEPTION));
 
         validatePassword(request.getPassword(), user.getPassword());
-        TokenInfo tokenInfo = tokenProvider.createToken2(user.getEmail(), Role.USER);
 
-        return LoginResponse.of(user, tokenInfo);
+        String accessToken = tokenProvider.createAccessToken(user.getEmail(), Role.USER);
+        String refreshToken = tokenProvider.createRefreshToken(user.getEmail(), Role.USER);
+
+        return LoginResponse.of(user, accessToken, refreshToken);
     }
 
     public void logout(String email, String accessToken) {
-        validateExistedUserEmail(email);
+        findByUserEmail(email);
 
         Long accessTokenExpiration = tokenProvider.getExpiration(accessToken);
         redisService.logoutFromRedis(email, accessToken, accessTokenExpiration);
     }
 
-    public TokenInfo reissue(TokenInfo tokenDto) {
-        String accessToken = tokenDto.getAccessToken();
-        String refreshToken = tokenDto.getRefreshToken();
+    public TokenInfo reissue(String refreshToken) {
+        Claims claims = tokenProvider.parseClaims(refreshToken);
+        User user = findByUserEmail(claims.getSubject());
 
-        Authentication authentication = tokenProvider.getAuthentication(accessToken);
-        String userEmail = authentication.getName();
+        findRefreshTokenInRedis(user.getEmail(), refreshToken);
 
-        validateRefreshToken(userEmail, refreshToken);
-
-        String newAccessToken = tokenProvider.createToken(authentication);
-        String newRefreshToken = tokenProvider.createRefreshToken(userEmail);
-        redisService.setValues(userEmail, newRefreshToken);
+        String newAccessToken = tokenProvider.createAccessToken(user.getEmail(), Role.USER);
+        String newRefreshToken = tokenProvider.createRefreshToken(user.getEmail(), Role.USER);
 
         return new TokenInfo(newAccessToken, newRefreshToken);
     }
 
-    private void validateRefreshToken(String userEmail, String RefreshToken) {
+    private void findRefreshTokenInRedis(String userEmail, String RefreshToken) {
         String storedRefreshToken = redisService.getValues(userEmail);
         if (!storedRefreshToken.equals(RefreshToken)) {
             throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
     }
 
-    private void validateExistedUserEmail(String email) {
-        userRepository.findByEmail(email)
+    private User findByUserEmail(String email) {
+        return userRepository.findByEmail(email)
             .orElseThrow(() -> new CustomException(ErrorCode.EMAIL_IS_NULL_EXCEPTION));
     }
 

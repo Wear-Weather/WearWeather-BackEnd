@@ -38,8 +38,8 @@ public class AuthController {
     }
 
     @PostMapping("/reissue")
-    public ResponseEntity<TokenInfo> reissue(@RequestBody TokenInfo tokenDto) {
-        TokenInfo newToken = authService.reissue(tokenDto);
+    public ResponseEntity<TokenInfo> reissue(@RequestBody String refreshToken) {
+        TokenInfo newToken = authService.reissue(refreshToken);
         return new ResponseEntity<>(newToken, HttpStatus.OK);
     }
 
