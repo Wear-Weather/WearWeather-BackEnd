@@ -1,7 +1,7 @@
 package com.WearWeather.wear.global.jwt;
 
+import com.WearWeather.wear.domain.user.entity.Role;
 import com.WearWeather.wear.global.redis.RedisService;
-import com.WearWeather.wear.user.entity.Role;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
