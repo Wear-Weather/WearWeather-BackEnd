@@ -4,15 +4,22 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Component;
 
 @Component
-@RequiredArgsConstructor
 public class RedisDao {
     private final RedisTemplate<String, String> redisTemplate;
+    private final StringRedisTemplate stringRedisTemplate;
 
+    public RedisDao(@Qualifier("redisTemplate") RedisTemplate<String, String> redisTemplate,
+                    @Qualifier("stringRedisTemplate") StringRedisTemplate stringRedisTemplate) {
+        this.redisTemplate = redisTemplate;
+        this.stringRedisTemplate = stringRedisTemplate;
+    }
     public void setValues(String key, String data) {
         ValueOperations<String, String> values = redisTemplate.opsForValue();
         values.set(key, data);
