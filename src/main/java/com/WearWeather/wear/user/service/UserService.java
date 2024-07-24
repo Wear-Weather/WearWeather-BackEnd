@@ -6,6 +6,7 @@ import com.WearWeather.wear.user.dto.request.RegisterUserRequest;
 import com.WearWeather.wear.user.entity.User;
 import com.WearWeather.wear.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,10 +19,12 @@ public class UserService {
 
     private final UserRepository userRepository;
 
+    private final PasswordEncoder passwordEncoder;
     @Transactional
     public void registerUser(RegisterUserRequest registerUserRequest){
 
-        User user = registerUserRequest.toEntity();
+        String encodePassword = passwordEncoder.encode(registerUserRequest.getPassword());
+        User user = registerUserRequest.toEntity(encodePassword);
 
         if(registerUserRequest.isSocial()){
             user.isSocialLogin();
