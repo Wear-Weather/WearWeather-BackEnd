@@ -51,43 +51,30 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable) // CSRF 비활성화 (테스트 환경에서만)
-                .addFilterBefore(corsFilter, UsernamePasswordAuthenticationFilter.class)
-                .exceptionHandling(exceptionHandling -> exceptionHandling
-                                .accessDeniedHandler(jwtAccessDeniedHandler)
-                                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
-                )
+            .csrf(AbstractHttpConfigurer::disable)
 
-                .authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
-                .requestMatchers("/auth/login", "/auth/reissue", "/api/v1/users/register", "/api/v1/email/**", "/")
-                .permitAll()
-                .anyRequest().authenticated())
+            .addFilterBefore(corsFilter, UsernamePasswordAuthenticationFilter.class)
+            .exceptionHandling(exceptionHandling -> exceptionHandling
+                .accessDeniedHandler(jwtAccessDeniedHandler)
+                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+            )
 
-         ;
-//            .csrf(AbstractHttpConfigurer::disable)
-//
-//            .addFilterBefore(corsFilter, UsernamePasswordAuthenticationFilter.class)
-//            .exceptionHandling(exceptionHandling -> exceptionHandling
-//                .accessDeniedHandler(jwtAccessDeniedHandler)
-//                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
-//            )
-//
-//            .authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
-//                .requestMatchers("/auth/login", "/auth/reissue", "/api/v1/users/register", "/api/v1/email/**","/").permitAll()
-//                .requestMatchers(PathRequest.toH2Console()).permitAll()
-//                .anyRequest().authenticated()
-//            )
-//
-//            .sessionManagement(sessionManagement ->
-//                sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-//            )
-//
-//            .headers(headers ->
-//                headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
-//            )
-//
-//            .with(new JwtSecurityConfig(tokenProvider), customizer -> {
-//            });
+            .authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
+                .requestMatchers("/auth/login", "/auth/reissue", "/api/v1/users/register", "/api/v1/email/**","/").permitAll()
+                .requestMatchers(PathRequest.toH2Console()).permitAll()
+                .anyRequest().authenticated()
+            )
+
+            .sessionManagement(sessionManagement ->
+                sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+
+            .headers(headers ->
+                headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
+            )
+
+            .with(new JwtSecurityConfig(tokenProvider), customizer -> {
+            });
         return http.build();
     }
 }
