@@ -69,7 +69,7 @@ processResources.dependsOn('copySecret')
 tasks.register('copySecret', Copy) {
     from 'BE-submodule'
     include "application*.properties"  // 복사할 파일들
-    into ' srsrc/main/resources'  // 복사 위치
+    into ' src/main/resources'  // 복사 위치
     doLast {
         println "Copied application properties files to src/main/resources"
     }
