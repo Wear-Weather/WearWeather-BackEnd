@@ -1,7 +1,7 @@
 package com.WearWeather.wear.global.jwt;
 
-import com.WearWeather.wear.user.entity.User;
-import com.WearWeather.wear.user.repository.UserRepository;
+import com.WearWeather.wear.domain.user.entity.User;
+import com.WearWeather.wear.domain.user.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

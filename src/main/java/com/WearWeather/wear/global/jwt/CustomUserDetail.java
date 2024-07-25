@@ -1,6 +1,6 @@
 package com.WearWeather.wear.global.jwt;
 
-import com.WearWeather.wear.user.entity.User;
+import com.WearWeather.wear.domain.user.entity.User;
 import java.util.Collection;
 import java.util.Collections;
 import org.springframework.security.core.GrantedAuthority;
