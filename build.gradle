@@ -58,6 +58,9 @@ dependencies {
     runtimeOnly("com.h2database:h2")
     implementation("org.springframework.boot:spring-boot-devtools")
 
+    // 임시 카카오 로그인 페이지를 위한 빌드 구성
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 }
 
 tasks.named('test') {
@@ -69,7 +72,7 @@ processResources.dependsOn('copySecret')
 tasks.register('copySecret', Copy) {
     from 'BE-submodule'
     include "application*.properties"  // 복사할 파일들
-    into ' srsrc/main/resources'  // 복사 위치
+    into 'src/main/resources'  // 복사 위치
     doLast {
         println "Copied application properties files to src/main/resources"
     }

@@ -1,9 +1,9 @@
 package com.WearWeather.wear.global.config;
 
 
+import com.WearWeather.wear.global.jwt.TokenProvider;
 import com.WearWeather.wear.global.jwt.handler.JwtAccessDeniedHandler;
 import com.WearWeather.wear.global.jwt.handler.JwtAuthenticationEntryPoint;
-import com.WearWeather.wear.global.jwt.TokenProvider;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -60,7 +60,9 @@ public class SecurityConfig {
             )
 
             .authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
-                .requestMatchers("/auth/login", "/auth/reissue", "/api/v1/users/register", "/api/v1/email/**","/").permitAll()
+                .requestMatchers("/auth/login", "/auth/reissue",
+                    "/api/users/register", "/", "/oauth/kakao",
+                    "/login/page", "/api/v1/email/**").permitAll()
                 .requestMatchers(PathRequest.toH2Console()).permitAll()
                 .anyRequest().authenticated()
             )
