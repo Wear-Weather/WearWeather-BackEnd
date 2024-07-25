@@ -1,7 +1,8 @@
 package com.WearWeather.wear.domain.auth.dto.response;
 
-import com.WearWeather.wear.domain.user.entity.Role;
+import com.WearWeather.wear.domain.user.entity.Authority;
 import com.WearWeather.wear.domain.user.entity.User;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,7 +19,7 @@ public class LoginResponse {
     private String name;
     private String nickName;
     private boolean isSocial;
-    private Role role;
+    private Set<Authority> authorities;
     private String accessToken;
     private String refreshToken;
 
@@ -29,7 +30,7 @@ public class LoginResponse {
             .name(user.getName())
             .nickName(user.getNickname())
             .isSocial(user.isSocial())
-            .role(user.getRole())
+            .authorities(user.getAuthorities())
             .accessToken(at)
             .refreshToken(rt)
             .build();
