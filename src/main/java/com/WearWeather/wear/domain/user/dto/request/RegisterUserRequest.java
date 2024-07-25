@@ -32,13 +32,13 @@ public class RegisterUserRequest {
     @AssertTrue(message = "닉네임 중복 확인은 필수입니다.")
     private final boolean checkNickname;
 
-    public User toEntity() {
+    public User toEntity(String encodePassword){
         return User.builder()
-            .email(email)
-            .password(password)
-            .name(name)
-            .nickname(nickname)
-            .isSocial(isSocial)
-            .build();
+                .email(email)
+                .password(encodePassword)
+                .name(name)
+                .nickname(nickname)
+                .isSocial(isSocial)
+                .build();
     }
 }
