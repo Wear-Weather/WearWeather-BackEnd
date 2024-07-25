@@ -1,7 +1,7 @@
 package com.WearWeather.wear.fixture;
 
-import com.WearWeather.wear.user.dto.request.RegisterUserRequest;
-import com.WearWeather.wear.user.entity.User;
+import com.WearWeather.wear.domain.user.dto.request.RegisterUserRequest;
+import com.WearWeather.wear.domain.user.entity.User;
 
 public class UserFixture {
 
@@ -15,12 +15,12 @@ public class UserFixture {
 
     public static User createUser(String email, String password) {
         return User.builder()
-                .email(email)
-                .password(password)
-                .build();
+            .email(email)
+            .password(password)
+            .build();
     }
 
-    public static RegisterUserRequest createRegisterUserRequest(){
+    public static RegisterUserRequest createRegisterUserRequest() {
 
         return new RegisterUserRequest(email, password, name, nickname, isSocial, checkEmail, checkNickname);
 
