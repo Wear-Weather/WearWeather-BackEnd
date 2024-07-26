@@ -24,7 +24,9 @@ public enum ErrorCode {
     FAIL_EMAIL_VERIFICATION(BAD_REQUEST, "이메일 검증이 실패하였습니다."),
     INVALID_REFRESH_TOKEN(BAD_REQUEST,"리프레시 토큰 값이 일치하지 않습니다."),
 
-    REDIS_VALUE_NOT_FOUND(NOT_FOUND,"Redis에 저장된 값을 찾을 수 없습니다.")
+    REDIS_VALUE_NOT_FOUND(NOT_FOUND,"Redis에 저장된 값을 찾을 수 없습니다."),
+
+    FAIL_UPDATE_PASSWORD(BAD_REQUEST, "비밀번호 수정 실패하였습니다.")
 
     ;
 

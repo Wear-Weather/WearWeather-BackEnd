@@ -5,5 +5,8 @@ public class ResponseMessage {
     public static final String SEND_EMAIL = "이메일로 코드를 발송하였습니다.";
     public static final String SUCCESS_EMAIL_VERIFICATION = "이메일 인증이 완료되었습니다.";
     public static final String EXIST_USER = "일치하는 계정이 있습니다.";
+    public static final String SUCCESS_USER = "회원가입 완료";
+    public static final String MODIFY_PASSWORD = "비밀번호 변경 완료하였습니다.";
+
 
 }

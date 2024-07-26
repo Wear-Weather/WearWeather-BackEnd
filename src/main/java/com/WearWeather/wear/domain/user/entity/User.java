@@ -1,14 +1,10 @@
 package com.WearWeather.wear.domain.user.entity;
 
 import com.WearWeather.wear.global.common.BaseTimeEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.WearWeather.wear.global.exception.CustomException;
+import com.WearWeather.wear.global.exception.ErrorCode;
+import jakarta.persistence.*;
+
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -56,6 +52,15 @@ public class User extends BaseTimeEntity implements Serializable {
     public void isSocialLogin() {
         this.isSocial = true;
 
+    }
+
+    public void updatePassword(String password) {
+
+        if (password == null || password.isEmpty()){
+            throw new CustomException(ErrorCode.PASSWORD_INVALID_EXCEPTION);
+        }
+
+        this.password = password;
     }
 
     @Override

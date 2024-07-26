@@ -74,4 +74,16 @@ public class UserService {
         }
     }
 
+    @Transactional
+    public void modifyPassword(String userEmail, String password) {
+
+        User user = userRepository.findByEmail(userEmail)
+                        .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_EMAIL));
+
+        try {
+            user.updatePassword(passwordEncoder.encode(password));
+        } catch (CustomException e) {
+            throw new CustomException(ErrorCode.FAIL_UPDATE_PASSWORD);
+        }
+    }
 }
