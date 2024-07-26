@@ -1,5 +1,6 @@
 package com.WearWeather.wear.domain.user.dto.request;
 
+import com.WearWeather.wear.domain.user.entity.Role;
 import com.WearWeather.wear.domain.user.entity.User;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;
@@ -39,6 +40,7 @@ public class RegisterUserRequest {
                 .name(name)
                 .nickname(nickname)
                 .isSocial(isSocial)
+                .role(Role.USER)
                 .build();
     }
 }
