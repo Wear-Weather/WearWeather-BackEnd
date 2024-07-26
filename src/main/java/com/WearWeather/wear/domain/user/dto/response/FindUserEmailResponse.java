@@ -1,4 +1,4 @@
-package com.WearWeather.wear.domain.mail.dto.response;
+package com.WearWeather.wear.domain.user.dto.response;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
