@@ -10,6 +10,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.io.Serializable;
+import java.util.Objects;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -67,6 +69,11 @@ public class User extends BaseTimeEntity implements Serializable {
         User user = (User) o;
         return email.equals(user.email)
             && name.equals(user.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(email, name);
     }
 }
 
