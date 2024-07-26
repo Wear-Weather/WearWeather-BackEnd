@@ -6,8 +6,9 @@ import com.WearWeather.wear.domain.oauth.domain.oauth.OAuthUserInfo;
 import com.WearWeather.wear.domain.user.entity.Authority;
 import com.WearWeather.wear.domain.user.entity.User;
 import com.WearWeather.wear.domain.user.repository.UserRepository;
+import com.WearWeather.wear.global.exception.CustomException;
+import com.WearWeather.wear.global.exception.ErrorCode;
 import com.WearWeather.wear.global.jwt.TokenProvider;
-import jakarta.transaction.Transactional;
 import java.util.Collections;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,24 +30,25 @@ public class OAuthLoginService {
     private final PasswordEncoder passwordEncoder;
 
     public LoginResponse login(OAuthLoginParams params) {
-        OAuthUserInfo oAuthUserInfo = requestOAuthInfoService.request(params);
+        try {
+            OAuthUserInfo oAuthUserInfo = requestOAuthInfoService.request(params);
+            User user = userRepository.findByEmail(oAuthUserInfo.getEmail())
+                .orElseGet(() -> registerNewUser(oAuthUserInfo));
 
-        User user = userRepository.findByEmail(oAuthUserInfo.getEmail())
-            .orElseGet(() -> registerNewUser(oAuthUserInfo));
+            UsernamePasswordAuthenticationToken authenticationToken =
+                new UsernamePasswordAuthenticationToken(user.getEmail(), user.getEmail());
+            Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
 
-        UsernamePasswordAuthenticationToken authenticationToken =
-            new UsernamePasswordAuthenticationToken(user.getEmail(), user.getEmail());
-        Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
+            String accessToken = tokenProvider.createAccessToken(authentication);
+            String refreshToken = tokenProvider.createRefreshToken(authentication.getName());
 
-        String accessToken = tokenProvider.createAccessToken(authentication);
-        String refreshToken = tokenProvider.createRefreshToken(authentication.getName());
-
-        return LoginResponse.of(user, accessToken, refreshToken);
+            return LoginResponse.of(user, accessToken, refreshToken);
+        } catch (Exception ex) {
+            throw new CustomException(ErrorCode.KAKAO_LOGIN_FAIL);
+        }
     }
 
-    @Transactional
     protected User registerNewUser(OAuthUserInfo oAuthUserInfo) {
-
         Authority authority = Authority.builder()
             .authorityName("ROLE_USER")
             .build();
@@ -61,5 +63,6 @@ public class OAuthLoginService {
             .build();
 
         return userRepository.save(newUser);
+
     }
 }

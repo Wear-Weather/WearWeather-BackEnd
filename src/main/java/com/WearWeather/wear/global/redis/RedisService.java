@@ -22,7 +22,7 @@ public class RedisService {
     public String getValues(String key) {
         String values = redisDao.getValues(key);
 
-        if (values.isBlank()) {
+        if (values != null && values.isBlank()) {
             throw new CustomException(REDIS_VALUE_NOT_FOUND);
         }
 
@@ -41,12 +41,9 @@ public class RedisService {
 
     public Boolean logoutFromRedis(String email, String accessToken, Long accessTokenExpiration) {
         redisDao.deleteValues(email);
-        redisDao.setValues(accessToken, "BlackList" , Duration.ofMillis(accessTokenExpiration));
+        redisDao.setValues(accessToken, "BlackList", Duration.ofMillis(accessTokenExpiration));
         return true;
     }
-
-
-
 
 
 }
