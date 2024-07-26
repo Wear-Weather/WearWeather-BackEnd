@@ -6,6 +6,7 @@ import com.WearWeather.wear.domain.user.dto.request.FindUserEmailRequest;
 import com.WearWeather.wear.domain.user.dto.request.FindUserPasswordRequest;
 import com.WearWeather.wear.domain.user.dto.request.RegisterUserRequest;
 import com.WearWeather.wear.domain.user.dto.response.NicknameDuplicateCheckResponse;
+import com.WearWeather.wear.domain.user.dto.response.UserInfoResponse;
 import com.WearWeather.wear.domain.user.service.UserService;
 import com.WearWeather.wear.global.common.ResponseMessage;
 import com.WearWeather.wear.global.common.dto.ResponseCommonDTO;
@@ -57,6 +58,13 @@ public class UserController {
 
         userService.modifyPassword(userDetail.getUsername(), request.getPassword());
         return ResponseEntity.ok(new ResponseCommonDTO(true, ResponseMessage.MODIFY_PASSWORD));
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserInfoResponse> getUserInfo(@AuthenticationPrincipal UserDetails userDetail) {
+
+        UserInfoResponse userInfoResponse = userService.getUserInfo(userDetail.getUsername());
+        return ResponseEntity.ok(userInfoResponse);
     }
 
 }
