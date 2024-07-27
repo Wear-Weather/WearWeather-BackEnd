@@ -25,20 +25,23 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
         response.setCharacterEncoding("UTF-8");
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 
-        String errorMessage = objectMapper.writeValueAsString(new CustomErrorResponse(
-            HttpStatus.UNAUTHORIZED.name(),
-            "INVALID_CREDENTIALS",
-            "인증에 실패했습니다."
-        ));
+        CustomErrorResponse customErrorResponse;
 
         if (authException instanceof BadCredentialsException) {
-            errorMessage = objectMapper.writeValueAsString(new CustomErrorResponse(
+            customErrorResponse = new CustomErrorResponse(
                 HttpStatus.UNAUTHORIZED.name(),
                 "INVALID_PASSWORD",
                 "잘못된 비밀번호입니다."
-            ));
+            );
+        } else {
+            customErrorResponse = new CustomErrorResponse(
+                HttpStatus.UNAUTHORIZED.name(),
+                "INVALID_CREDENTIALS",
+                "인증에 실패했습니다."
+            );
         }
 
+        String errorMessage = objectMapper.writeValueAsString(customErrorResponse);
         response.getWriter().write(errorMessage);
     }
 }
