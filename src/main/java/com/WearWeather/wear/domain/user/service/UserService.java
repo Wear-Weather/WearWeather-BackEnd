@@ -96,4 +96,17 @@ public class UserService {
         return UserInfoResponse.of(user);
 
     }
+
+    @Transactional
+    public void modifyUserInfo(String userEmail, String password, String nickname) {
+
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_EMAIL));
+
+        try {
+            user.updateUserInfo(passwordEncoder.encode(password), nickname);
+        } catch (CustomException e) {
+            throw new CustomException(ErrorCode.FAIL_UPDATE_USER_INFO);
+        }
+    }
 }

@@ -26,8 +26,9 @@ public enum ErrorCode {
 
     REDIS_VALUE_NOT_FOUND(NOT_FOUND,"Redis에 저장된 값을 찾을 수 없습니다."),
 
-    FAIL_UPDATE_PASSWORD(BAD_REQUEST, "비밀번호 수정 실패하였습니다.")
-
+    FAIL_UPDATE_PASSWORD(BAD_REQUEST, "비밀번호 수정 실패하였습니다."),
+    INVALID_NICKNAME(BAD_REQUEST,"유효하지 않은 닉네임 값 입니다."),
+    FAIL_UPDATE_USER_INFO(BAD_REQUEST, "회원정보 수정 실패하였습니다.")
     ;
 
     private final HttpStatus httpStatus;

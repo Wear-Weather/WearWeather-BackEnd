@@ -1,10 +1,7 @@
 package com.WearWeather.wear.domain.user.controller;
 
+import com.WearWeather.wear.domain.user.dto.request.*;
 import com.WearWeather.wear.domain.user.dto.response.FindUserEmailResponse;
-import com.WearWeather.wear.domain.user.dto.request.ModifyUserPasswordRequest;
-import com.WearWeather.wear.domain.user.dto.request.FindUserEmailRequest;
-import com.WearWeather.wear.domain.user.dto.request.FindUserPasswordRequest;
-import com.WearWeather.wear.domain.user.dto.request.RegisterUserRequest;
 import com.WearWeather.wear.domain.user.dto.response.NicknameDuplicateCheckResponse;
 import com.WearWeather.wear.domain.user.dto.response.UserInfoResponse;
 import com.WearWeather.wear.domain.user.service.UserService;
@@ -65,6 +62,14 @@ public class UserController {
 
         UserInfoResponse userInfoResponse = userService.getUserInfo(userDetail.getUsername());
         return ResponseEntity.ok(userInfoResponse);
+    }
+
+    @PatchMapping("/me")
+    public ResponseEntity<ResponseCommonDTO> modifyUserInfo(@AuthenticationPrincipal UserDetails userDetail, @Valid @RequestBody ModifyUserInfoRequest request) {
+
+        userService.modifyUserInfo(
+                userDetail.getUsername(), request.getPassword(), request.getNickname());
+        return ResponseEntity.ok(new ResponseCommonDTO(true, ResponseMessage.MODIFY_USERINFO));
     }
 
 }

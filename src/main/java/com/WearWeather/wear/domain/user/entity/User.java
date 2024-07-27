@@ -63,6 +63,21 @@ public class User extends BaseTimeEntity implements Serializable {
         this.password = password;
     }
 
+    public void updateNickname(String nickname) {
+
+        if (nickname == null || nickname.isEmpty()){
+            throw new CustomException(ErrorCode.INVALID_NICKNAME);
+        }
+
+        this.nickname = nickname;
+    }
+
+    public void updateUserInfo(String password, String nickname) {
+
+        updatePassword(password);
+        updateNickname(nickname);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
