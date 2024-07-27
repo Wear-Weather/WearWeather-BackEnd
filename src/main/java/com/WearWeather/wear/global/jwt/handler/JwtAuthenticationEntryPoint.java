@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
@@ -29,6 +30,14 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
             "INVALID_CREDENTIALS",
             "인증에 실패했습니다."
         ));
+
+        if (authException instanceof BadCredentialsException) {
+            errorMessage = objectMapper.writeValueAsString(new CustomErrorResponse(
+                HttpStatus.UNAUTHORIZED.name(),
+                "INVALID_PASSWORD",
+                "잘못된 비밀번호입니다."
+            ));
+        }
 
         response.getWriter().write(errorMessage);
     }
