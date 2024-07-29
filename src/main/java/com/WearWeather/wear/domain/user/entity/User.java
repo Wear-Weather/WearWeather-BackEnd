@@ -11,6 +11,7 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -72,5 +73,10 @@ public class User extends BaseTimeEntity implements Serializable {
         User user = (User) o;
         return email.equals(user.email)
             && name.equals(user.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(email, name);
     }
 }

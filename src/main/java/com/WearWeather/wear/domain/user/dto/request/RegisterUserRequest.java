@@ -1,13 +1,15 @@
 package com.WearWeather.wear.domain.user.dto.request;
 
+import com.WearWeather.wear.domain.user.entity.Role;
 import com.WearWeather.wear.domain.user.entity.User;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor
+
 @Getter
 public class RegisterUserRequest {
 
@@ -32,6 +34,24 @@ public class RegisterUserRequest {
     @AssertTrue(message = "닉네임 중복 확인은 필수입니다.")
     private final boolean checkNickname;
 
+    @JsonCreator
+    public RegisterUserRequest(
+            @JsonProperty("email") String email,
+            @JsonProperty("password") String password,
+            @JsonProperty("name") String name,
+            @JsonProperty("nickname") String nickname,
+            @JsonProperty("isSocial") boolean isSocial,
+            @JsonProperty("checkEmail") boolean checkEmail,
+            @JsonProperty("checkNickname") boolean checkNickname) {
+        this.email = email;
+        this.password = password;
+        this.name = name;
+        this.nickname = nickname;
+        this.isSocial = isSocial;
+        this.checkEmail = checkEmail;
+        this.checkNickname = checkNickname;
+    }
+
     public User toEntity(String encodePassword){
         return User.builder()
                 .email(email)
@@ -39,6 +59,7 @@ public class RegisterUserRequest {
                 .name(name)
                 .nickname(nickname)
                 .isSocial(isSocial)
+                .role(Role.USER)
                 .build();
     }
 }
