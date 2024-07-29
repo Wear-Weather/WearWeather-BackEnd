@@ -1,4 +1,4 @@
-package com.WearWeather.wear.domain.auth.entity;
+package com.WearWeather.wear.domain.auth.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,10 +9,9 @@ import lombok.NoArgsConstructor;
 @Getter
 @Builder
 @AllArgsConstructor
-@NoArgsConstructor
+@NoArgsConstructor(force = true)
 @Data
-public class TokenInfo {
+public class RefresehTokenRequest {
 
-    private String accessToken;
-    private String refreshToken;
+    private final String refreshToken;
 }

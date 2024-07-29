@@ -2,8 +2,9 @@ package com.WearWeather.wear.global.jwt;
 
 import com.WearWeather.wear.domain.user.entity.User;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.stream.Collectors;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 public class CustomUserDetail implements UserDetails {
@@ -16,12 +17,14 @@ public class CustomUserDetail implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.emptyList();
+        return user.getAuthorities().stream()
+            .map(authority -> new SimpleGrantedAuthority(authority.getAuthorityName()))
+            .collect(Collectors.toList());
     }
 
     @Override
     public String getPassword() {
-        return null;
+        return user.getPassword();
     }
 
     @Override
