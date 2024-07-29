@@ -20,6 +20,16 @@ public class UserFixture {
             .build();
     }
 
+    public static User createUser() {
+        return User.builder()
+                .email(email)
+                .password(password)
+                .name(name)
+                .nickname(nickname)
+                .isSocial(false)
+                .build();
+    }
+
     public static RegisterUserRequest createRegisterUserRequest() {
 
         return new RegisterUserRequest(email, password, name, nickname, isSocial, checkEmail, checkNickname);
