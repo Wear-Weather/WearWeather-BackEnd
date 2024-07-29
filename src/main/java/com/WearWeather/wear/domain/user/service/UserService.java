@@ -1,6 +1,7 @@
 package com.WearWeather.wear.domain.user.service;
 
 import com.WearWeather.wear.domain.user.dto.request.RegisterUserRequest;
+import com.WearWeather.wear.domain.user.dto.response.UserInfoResponse;
 import com.WearWeather.wear.domain.user.entity.User;
 import com.WearWeather.wear.domain.user.repository.UserRepository;
 import com.WearWeather.wear.global.exception.CustomException;
@@ -74,4 +75,38 @@ public class UserService {
         }
     }
 
+    @Transactional
+    public void modifyPassword(String userEmail, String password) {
+
+        User user = userRepository.findByEmail(userEmail)
+                        .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_EMAIL));
+
+        try {
+            user.updatePassword(passwordEncoder.encode(password), user.isSocial());
+        } catch (CustomException e) {
+            throw new CustomException(ErrorCode.FAIL_UPDATE_PASSWORD);
+        }
+    }
+
+    public UserInfoResponse getUserInfo(String userEmail) {
+
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_EMAIL));
+
+        return UserInfoResponse.of(user);
+
+    }
+
+    @Transactional
+    public void modifyUserInfo(String userEmail, String password, String nickname) {
+
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_EMAIL));
+
+        try {
+            user.updateUserInfo(passwordEncoder.encode(password), nickname, user.isSocial());
+        } catch (CustomException e) {
+            throw new CustomException(ErrorCode.FAIL_UPDATE_USER_INFO);
+        }
+    }
 }

@@ -1,6 +1,8 @@
 package com.WearWeather.wear.domain.user.entity;
 
 import com.WearWeather.wear.global.common.BaseTimeEntity;
+import com.WearWeather.wear.global.exception.CustomException;
+import com.WearWeather.wear.global.exception.ErrorCode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -10,6 +12,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.*;
+
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.Set;
@@ -60,6 +64,34 @@ public class User extends BaseTimeEntity implements Serializable {
     public void isSocialLogin() {
         this.isSocial = true;
 
+    }
+
+    public void updatePassword(String password, boolean isSocial) {
+
+        if(isSocial){
+            throw new CustomException(ErrorCode.SOCIAL_ACCOUNT_CANNOT_BE_MODIFIED);
+        }
+
+        if (password == null || password.isEmpty()){
+            throw new CustomException(ErrorCode.PASSWORD_INVALID_EXCEPTION);
+        }
+
+        this.password = password;
+    }
+
+    public void updateNickname(String nickname) {
+
+        if (nickname == null || nickname.isEmpty()){
+            throw new CustomException(ErrorCode.INVALID_NICKNAME);
+        }
+
+        this.nickname = nickname;
+    }
+
+    public void updateUserInfo(String password, String nickname, boolean isSocial) {
+
+        updatePassword(password, isSocial);
+        updateNickname(nickname);
     }
 
     @Override
