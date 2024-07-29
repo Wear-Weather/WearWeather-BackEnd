@@ -1,6 +1,6 @@
 package com.WearWeather.wear.domain.user.dto.request;
 
-import com.WearWeather.wear.domain.user.entity.Role;
+import com.WearWeather.wear.domain.user.entity.Authority;
 import com.WearWeather.wear.domain.user.entity.User;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -8,6 +8,8 @@ import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
+
+import java.util.Collections;
 
 
 @Getter
@@ -53,13 +55,18 @@ public class RegisterUserRequest {
     }
 
     public User toEntity(String encodePassword){
+
+        Authority authority = Authority.builder()
+                .authorityName("ROLE_USER")
+                .build();
+
         return User.builder()
                 .email(email)
                 .password(encodePassword)
                 .name(name)
                 .nickname(nickname)
                 .isSocial(isSocial)
-                .role(Role.USER)
+                .authorities(Collections.singleton(authority))
                 .build();
     }
 }
