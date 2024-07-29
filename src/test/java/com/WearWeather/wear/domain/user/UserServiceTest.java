@@ -112,7 +112,7 @@ public class UserServiceTest {
     }
 
     @Test
-    @DisplayName("정상 테스트 : 비밀번호 변경이 완료된다.")
+    @DisplayName("정상 테스트 : 비밀번호 변경 완료")
     public void modifyPasswordTest() {
 
         String newPassword = "newPassword";
@@ -124,7 +124,7 @@ public class UserServiceTest {
 
         userService.modifyPassword(UserFixture.email, UserFixture.password);
 
-        verify(user).updatePassword(newPassword);
+        verify(user).updatePassword(newPassword, UserFixture.isSocial);
 
     }
 
@@ -140,10 +140,29 @@ public class UserServiceTest {
         when(passwordEncoder.encode(UserFixture.password)).thenReturn(newPassword);
 
         doThrow(new CustomException(ErrorCode.FAIL_UPDATE_PASSWORD))
-                .when(user).updatePassword(anyString());
+                .when(user).updatePassword(anyString(), anyBoolean());
 
         CustomException exception = assertThrows(CustomException.class, () ->
                 userService.modifyPassword(UserFixture.email, UserFixture.password));
+        assertEquals(ErrorCode.FAIL_UPDATE_PASSWORD, exception.getErrorCode());
+    }
+
+    @Test
+    @DisplayName("예외 테스트 : 카카오 로그인 사용자는 비밀번호 변경 불가")
+    public void modifyPasswordWithKakaoLoginUserTest() {
+
+        User user = mock(User.class);
+
+        when(user.isSocial()).thenReturn(true);
+        when(passwordEncoder.encode(UserFixture.password)).thenReturn(UserFixture.password);
+        when(userRepository.findByEmail(UserFixture.email)).thenReturn(Optional.of(user));
+
+        doThrow(new CustomException(ErrorCode.SOCIAL_ACCOUNT_CANNOT_BE_MODIFIED))
+                .when(user).updatePassword(anyString(), eq(true));
+
+        CustomException exception = assertThrows(CustomException.class, () ->
+                userService.modifyPassword(UserFixture.email, UserFixture.password));
+
         assertEquals(ErrorCode.FAIL_UPDATE_PASSWORD, exception.getErrorCode());
     }
 
@@ -187,7 +206,7 @@ public class UserServiceTest {
 
         userService.modifyUserInfo(UserFixture.email, UserFixture.password, UserFixture.nickname);
 
-        verify(user).updateUserInfo(UserFixture.password, UserFixture.nickname);
+        verify(user).updateUserInfo(UserFixture.password, UserFixture.nickname, UserFixture.isSocial);
 
     }
 
@@ -212,7 +231,7 @@ public class UserServiceTest {
         when(passwordEncoder.encode(UserFixture.password)).thenReturn(UserFixture.password);
 
         doThrow(new CustomException(ErrorCode.INVALID_NICKNAME))
-                .when(user).updateUserInfo(anyString(), anyString());
+                .when(user).updateUserInfo(anyString(), anyString(), anyBoolean());
 
         CustomException exception = assertThrows(CustomException.class, () ->
                 userService.modifyUserInfo(UserFixture.email, UserFixture.password, UserFixture.nickname));

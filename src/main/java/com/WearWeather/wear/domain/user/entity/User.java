@@ -54,7 +54,11 @@ public class User extends BaseTimeEntity implements Serializable {
 
     }
 
-    public void updatePassword(String password) {
+    public void updatePassword(String password, boolean isSocial) {
+
+        if(isSocial){
+            throw new CustomException(ErrorCode.SOCIAL_ACCOUNT_CANNOT_BE_MODIFIED);
+        }
 
         if (password == null || password.isEmpty()){
             throw new CustomException(ErrorCode.PASSWORD_INVALID_EXCEPTION);
@@ -72,9 +76,9 @@ public class User extends BaseTimeEntity implements Serializable {
         this.nickname = nickname;
     }
 
-    public void updateUserInfo(String password, String nickname) {
+    public void updateUserInfo(String password, String nickname, boolean isSocial) {
 
-        updatePassword(password);
+        updatePassword(password, isSocial);
         updateNickname(nickname);
     }
 

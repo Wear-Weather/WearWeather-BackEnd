@@ -82,7 +82,7 @@ public class UserService {
                         .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_EMAIL));
 
         try {
-            user.updatePassword(passwordEncoder.encode(password));
+            user.updatePassword(passwordEncoder.encode(password), user.isSocial());
         } catch (CustomException e) {
             throw new CustomException(ErrorCode.FAIL_UPDATE_PASSWORD);
         }
@@ -104,7 +104,7 @@ public class UserService {
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_EMAIL));
 
         try {
-            user.updateUserInfo(passwordEncoder.encode(password), nickname);
+            user.updateUserInfo(passwordEncoder.encode(password), nickname, user.isSocial());
         } catch (CustomException e) {
             throw new CustomException(ErrorCode.FAIL_UPDATE_USER_INFO);
         }
