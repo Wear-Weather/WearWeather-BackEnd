@@ -1,6 +1,7 @@
 package com.WearWeather.wear.domain.post.entity;
 
 
+import com.WearWeather.wear.domain.postImage.entity.PostImage;
 import com.WearWeather.wear.domain.tag.entity.Tag;
 import com.WearWeather.wear.global.common.BaseTimeEntity;
 import jakarta.persistence.CascadeType;
@@ -20,6 +21,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.BatchSize;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -57,6 +59,16 @@ public class Post extends BaseTimeEntity implements Serializable {
     @Builder.Default
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Tag> tags = new ArrayList<>();
+
+    @BatchSize(size = 100)
+    @Builder.Default
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PostImage> postImages = new ArrayList<>();
+
+    public void addPostFiles(PostImage postImage) {
+        this.postImages.add(postImage);
+        postImage.addPost(this);
+    }
 
     public void addTag(Tag tag) {
         this.tags.add(tag);

@@ -9,6 +9,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import lombok.Builder;
 import lombok.Getter;
@@ -32,6 +34,8 @@ public class PostCreateRequest {
 
     private final Set<Weather> weatherTags;
     private final Set<Temperature> temperatureTags;
+
+    private final List<Long> fileIds = new ArrayList<>();
 
     @JsonCreator
     public PostCreateRequest(
