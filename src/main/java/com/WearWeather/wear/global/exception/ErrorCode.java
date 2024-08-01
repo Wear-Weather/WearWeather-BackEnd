@@ -34,7 +34,8 @@ public enum ErrorCode {
     FAIL_UPDATE_USER_INFO(BAD_REQUEST, "회원정보 수정 실패하였습니다."),
     SOCIAL_ACCOUNT_CANNOT_BE_MODIFIED(BAD_REQUEST, "카카오 로그인 사용자는 비밀번호 수정이 불가합니다."),
 
-    NOT_EXIST_POST(BAD_REQUEST, "존재하지 않는 게시글입니다.")
+    NOT_EXIST_POST(BAD_REQUEST, "존재하지 않는 게시글입니다."),
+    ALREADY_LIKED_POST(BAD_REQUEST, "이미 좋아요된 게시글입니다."),
     ;
 
     private final HttpStatus httpStatus;

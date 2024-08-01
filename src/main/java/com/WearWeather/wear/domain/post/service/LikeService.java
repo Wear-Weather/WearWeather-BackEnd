@@ -25,6 +25,7 @@ public class LikeService {
 
         validatePostExists(postId);
         User user = getUserByEmail(userEmail);
+        checkIfAlreadyLiked(postId, user.getUserId());
 
         Like like = Like.builder()
                         .userId(user.getUserId())
@@ -42,4 +43,11 @@ public class LikeService {
         return userService.getUserByEmail(userEmail);
     }
 
+    public void checkIfAlreadyLiked(Long postId, Long userId) {
+        boolean checkLike = likeRepository.existsByPostIdAndUserId(postId, userId);
+
+        if (checkLike) {
+            throw new CustomException(ErrorCode.ALREADY_LIKED_POST);
+        }
+    }
 }
