@@ -21,6 +21,6 @@ public class LikeController {
     @PostMapping
     public ResponseEntity<ResponseCommonDTO> addLike(@PathVariable("postId") Long postId, @AuthenticationPrincipal UserDetails userDetail) {
         likeService.addLike(postId, userDetail.getUsername());
-        return ResponseEntity.ok(new ResponseCommonDTO(true, ResponseMessage.EXIST_USER));
+        return ResponseEntity.ok(new ResponseCommonDTO(true, ResponseMessage.SUCCESS_POST_LIKE));
     }
 }

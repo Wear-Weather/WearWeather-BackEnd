@@ -8,6 +8,7 @@ public class ResponseMessage {
     public static final String SUCCESS_USER = "회원가입 완료";
     public static final String MODIFY_PASSWORD = "비밀번호 변경 완료하였습니다.";
     public static final String MODIFY_USERINFO = "회원정보 수정 완료하였습니다.";
+    public static final String SUCCESS_POST_LIKE = "게시글 좋아요 등록 성공하였습니다.";
 
 
 }
