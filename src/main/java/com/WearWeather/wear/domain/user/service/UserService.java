@@ -78,8 +78,7 @@ public class UserService {
     @Transactional
     public void modifyPassword(String userEmail, String password) {
 
-        User user = userRepository.findByEmail(userEmail)
-                        .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_EMAIL));
+        User user = getUserByEmail(userEmail);
 
         try {
             user.updatePassword(passwordEncoder.encode(password), user.isSocial());
@@ -90,8 +89,7 @@ public class UserService {
 
     public UserInfoResponse getUserInfo(String userEmail) {
 
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_EMAIL));
+        User user = getUserByEmail(userEmail);
 
         return UserInfoResponse.of(user);
 
@@ -100,13 +98,19 @@ public class UserService {
     @Transactional
     public void modifyUserInfo(String userEmail, String password, String nickname) {
 
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_EMAIL));
+        User user = getUserByEmail(userEmail);
 
         try {
             user.updateUserInfo(passwordEncoder.encode(password), nickname, user.isSocial());
         } catch (CustomException e) {
             throw new CustomException(ErrorCode.FAIL_UPDATE_USER_INFO);
         }
+    }
+
+    public User getUserByEmail(String userEmail){
+
+        return userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_EMAIL));
+
     }
 }
