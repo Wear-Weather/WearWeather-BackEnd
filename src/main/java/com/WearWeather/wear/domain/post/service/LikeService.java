@@ -23,15 +23,23 @@ public class LikeService {
     @Transactional
     public void addLike(Long postId, String userEmail) {
 
-        postService.validatePostExists(postId);
-
-        User user = userService.getUserByEmail(userEmail);
+        validatePostExists(postId);
+        User user = getUserByEmail(userEmail);
 
         Like like = Like.builder()
-                .userId(user.getUserId())
-                .postId(postId)
-                .build();
+                        .userId(user.getUserId())
+                        .postId(postId)
+                        .build();
 
         likeRepository.save(like);
     }
+
+    public void validatePostExists(Long postId) {
+        postService.validatePostExists(postId);
+    }
+
+    public User getUserByEmail(String userEmail) {
+        return userService.getUserByEmail(userEmail);
+    }
+
 }
