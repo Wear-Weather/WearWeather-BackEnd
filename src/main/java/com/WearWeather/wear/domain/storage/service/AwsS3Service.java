@@ -59,12 +59,6 @@ public class AwsS3Service {
         return ImageInfoDto.of(fileName, url, bufferedImage.getWidth(), bufferedImage.getHeight());
     }
 
-    //        // s3에 저장된 파일 path 얻어옴.
-    //        String path = amazonS3.getUrl(bucket, fileName).getPath();
-    //
-    //        return FileInfoDto.of(path, createUrlName(path), bufferedImage.getWidth(), bufferedImage.getHeight());
-    //    }
-
     /**
      * 이미지 유효성 체크 후 BufferedImage 반환
      */
@@ -87,17 +81,8 @@ public class AwsS3Service {
         } catch (IOException e) {
             throw new CustomException(ErrorCode.SERVER_ERROR);
         }
-        //        catch (NullPointerException e) {
-        //            throw new FileNotFoundException();
-        //        }
     }
 
-    /**
-     * cdn 호스트 붙인 url 반환 ex) https://dmpoeindaa9de.cloudfront.net + /post-image/filename.jpg
-     */
-    //    private String createUrlName(String path) {
-    //        return cdnDomain + path;
-    //    }
     private String createFileName(String fileName, String dirName) {
         // 파일명을 다르게 하기 위해 UUID 를 붙임
         return dirName + "/" + UUID.randomUUID() + fileName;
