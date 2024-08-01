@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @Getter
 @Entity
+@Table(name = "posts")
 public class Post extends BaseTimeEntity {
 
     @Id
@@ -20,18 +21,18 @@ public class Post extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long postId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @Column(name = "userId", nullable = false)
+    private Long userId;
 
     @Column(name = "title", length = 300, nullable = false)
     private String title;
 
+    @Embedded
+    @JoinColumn(unique = true)
+    private Location location;
+
     @Column(name = "content", length = 300, nullable = false)
     private String content;
-
-    @Column(name = "location", nullable = false)
-    private String location;
 
     @Column(name = "likeCount", nullable = false)
     private int likeCount;
