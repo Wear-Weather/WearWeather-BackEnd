@@ -29,6 +29,12 @@ public class PostService {
         post.updateLikeCount();
     }
 
+    @Transactional
+    public void removeLikeCount(Long postId) {
+        Post post = findById(postId);
+        post.removeLikeCount();
+    }
+
     public Post findById(Long postId){
         return postRepository.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_POST));

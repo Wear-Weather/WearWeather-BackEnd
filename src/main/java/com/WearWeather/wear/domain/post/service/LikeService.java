@@ -37,6 +37,19 @@ public class LikeService {
         postService.incrementLikeCount(postId);
     }
 
+    @Transactional
+    public void removeLike(Long postId, String userEmail) {
+
+        validatePostExists(postId);
+        User user = getUserByEmail(userEmail);
+
+        Like like = findLike(postId, user.getUserId());
+        likeRepository.delete(like);
+
+        postService.removeLikeCount(postId);
+
+    }
+
     public void validatePostExists(Long postId) {
         postService.validatePostExists(postId);
     }
@@ -52,4 +65,10 @@ public class LikeService {
             throw new CustomException(ErrorCode.ALREADY_LIKED_POST);
         }
     }
+
+    public Like findLike(Long postId, Long userId) {
+        return likeRepository.findByPostIdAndUserId(postId, userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_LIKED_POST));
+    }
+
 }

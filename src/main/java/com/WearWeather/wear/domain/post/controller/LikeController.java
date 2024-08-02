@@ -23,4 +23,10 @@ public class LikeController {
         likeService.addLike(postId, userDetail.getUsername());
         return ResponseEntity.ok(new ResponseCommonDTO(true, ResponseMessage.SUCCESS_POST_LIKE));
     }
+
+    @DeleteMapping
+    public ResponseEntity<ResponseCommonDTO> removeLike(@PathVariable("postId") Long postId, @AuthenticationPrincipal UserDetails userDetail) {
+        likeService.removeLike(postId, userDetail.getUsername());
+        return ResponseEntity.ok(new ResponseCommonDTO(true, ResponseMessage.SUCCESS_POST_LIKE_CANCEL));
+    }
 }
