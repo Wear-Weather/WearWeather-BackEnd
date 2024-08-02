@@ -37,8 +37,7 @@ public class Post extends BaseTimeEntity implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long postId;
 
-    //    @ManyToOne(fetch = FetchType.LAZY)
-    //    @JoinColumn(name = "user_id", nullable = false)
+    @Column(name = "user_id", nullable = false)
     private Long userId;
 
     @Column(name = "title", length = 300, nullable = false)
@@ -65,7 +64,7 @@ public class Post extends BaseTimeEntity implements Serializable {
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PostImage> postImages = new ArrayList<>();
 
-    public void addPostFiles(PostImage postImage) {
+    public void addPostImages(PostImage postImage) {
         this.postImages.add(postImage);
         postImage.addPost(this);
     }
