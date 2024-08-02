@@ -10,8 +10,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -61,5 +64,13 @@ public class PostCreateRequest {
             .content(content)
             .location(location)
             .build();
+    }
+
+    public Map<String, Set<String>> getTagsMap() {
+        Map<String, Set<String>> tagsMap = new HashMap<>();
+        tagsMap.put("weather", weatherTags.stream().map(Enum::name).collect(Collectors.toSet()));
+        tagsMap.put("temperature", temperatureTags.stream().map(Enum::name).collect(Collectors.toSet()));
+        tagsMap.put("season", Set.of(season.name()));
+        return tagsMap;
     }
 }
