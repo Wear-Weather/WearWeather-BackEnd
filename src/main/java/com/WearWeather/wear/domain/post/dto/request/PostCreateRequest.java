@@ -33,7 +33,7 @@ public class PostCreateRequest {
     private final Location location;
 
     // 최대 1개 선택이기 때문에 Set 사용 X
-    private final Season season;
+    private final Season seasonTag;
 
     private final Set<Weather> weatherTags;
     private final Set<Temperature> temperatureTags;
@@ -45,14 +45,14 @@ public class PostCreateRequest {
         @JsonProperty("title") String title,
         @JsonProperty("content") String content,
         @JsonProperty("location") Location location,
-        @JsonProperty("seasonTag") Season season,
+        @JsonProperty("seasonTag") Season seasonTag,
         @JsonProperty("weatherTag") Set<Weather> weatherTags,
         @JsonProperty("temperatureTag") Set<Temperature> temperatureTags
     ) {
         this.title = title;
         this.content = content;
         this.location = location;
-        this.season = season;
+        this.seasonTag = seasonTag;
         this.weatherTags = weatherTags;
         this.temperatureTags = temperatureTags;
     }
@@ -70,7 +70,7 @@ public class PostCreateRequest {
         Map<String, Set<String>> tagsMap = new HashMap<>();
         tagsMap.put("weather", weatherTags.stream().map(Enum::name).collect(Collectors.toSet()));
         tagsMap.put("temperature", temperatureTags.stream().map(Enum::name).collect(Collectors.toSet()));
-        tagsMap.put("season", Set.of(season.name()));
+        tagsMap.put("season", Set.of(seasonTag.name()));
         return tagsMap;
     }
 }
