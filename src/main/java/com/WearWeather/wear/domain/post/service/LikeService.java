@@ -33,6 +33,8 @@ public class LikeService {
                         .build();
 
         likeRepository.save(like);
+
+        postService.incrementLikeCount(postId);
     }
 
     public void validatePostExists(Long postId) {

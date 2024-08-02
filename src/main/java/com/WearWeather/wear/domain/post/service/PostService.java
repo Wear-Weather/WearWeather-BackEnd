@@ -1,5 +1,6 @@
 package com.WearWeather.wear.domain.post.service;
 
+import com.WearWeather.wear.domain.post.entity.Post;
 import com.WearWeather.wear.domain.post.repository.PostRepository;
 import com.WearWeather.wear.global.exception.CustomException;
 import com.WearWeather.wear.global.exception.ErrorCode;
@@ -20,6 +21,16 @@ public class PostService {
         if (!postRepository.existsById(postId)) {
             throw new CustomException(ErrorCode.NOT_EXIST_POST);
         }
+    }
 
+    @Transactional
+    public void incrementLikeCount(Long postId){
+        Post post = findById(postId);
+        post.updateLikeCount();
+    }
+
+    public Post findById(Long postId){
+        return postRepository.findById(postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_POST));
     }
 }

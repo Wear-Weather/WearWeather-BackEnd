@@ -35,9 +35,12 @@ public class Post extends BaseTimeEntity {
     private String content;
 
     @Column(name = "likeCount", nullable = false)
-    private int likeCount;
+    private int likeCount = 0;
 
     @Column(name = "isDelete", nullable = false)
-    private boolean isDelete;
+    private boolean isDelete = false;
 
+    public void updateLikeCount(){
+        this.likeCount ++;
+    }
 }
