@@ -15,7 +15,7 @@ public class PostImageService {
     private final PostImageRepository postImageRepository;
 
     @Transactional
-    public Long createPostFile(MultipartFile multipartFile, ImageInfoDto imageInfoDto) {
+    public Long createPostImage(MultipartFile multipartFile, ImageInfoDto imageInfoDto) {
 
         PostImage postImage = PostImage.builder()
             .post(null)

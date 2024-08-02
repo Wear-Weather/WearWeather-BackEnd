@@ -35,7 +35,7 @@ public class PostCreateRequest {
     private final Set<Weather> weatherTags;
     private final Set<Temperature> temperatureTags;
 
-    private final List<Long> fileIds = new ArrayList<>();
+    private final List<Long> imageId = new ArrayList<>();
 
     @JsonCreator
     public PostCreateRequest(
