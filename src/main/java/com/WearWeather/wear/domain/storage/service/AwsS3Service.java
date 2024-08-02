@@ -69,12 +69,12 @@ public class AwsS3Service {
 
             // 업로드된 파일이 이미지가 아닐 경우를 체크한다.
             if (read == null) {
-                throw new CustomException(ErrorCode.INVALID_IMAGE_FILE);
+                throw new CustomException(ErrorCode.INVALID_IMAGE_IMAGE);
             }
 
             // 파일 확장자 체크 [jpeg, jpg, png, gif]
             if (!isValidImageExtension(multipartFile.getContentType())) {
-                throw new CustomException(ErrorCode.INVALID_IMAGE_FILE);
+                throw new CustomException(ErrorCode.INVALID_IMAGE_IMAGE);
             }
 
             return read;

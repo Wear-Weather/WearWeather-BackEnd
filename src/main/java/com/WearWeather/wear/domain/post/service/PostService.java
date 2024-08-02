@@ -42,7 +42,7 @@ public class PostService {
 
         for (PostImage postImage : postImages) {
             if (postImage.getPost() != null) {
-                throw new CustomException(ErrorCode.INVALID_IMAGE_FILE);
+                throw new CustomException(ErrorCode.INVALID_IMAGE_IMAGE);
             }
             post.addPostImages(postImage);
         }
