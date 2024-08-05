@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +36,12 @@ public class PostCreateRequest {
     // 최대 1개 선택이기 때문에 Set 사용 X
     private final Season seasonTag;
 
+    @NotBlank
+    @Size(max = 2)
     private final Set<Weather> weatherTags;
+
+    @NotBlank
+    @Size(max = 2)
     private final Set<Temperature> temperatureTags;
 
     private final List<Long> imageId = new ArrayList<>();
@@ -70,7 +76,7 @@ public class PostCreateRequest {
         Map<String, Set<String>> tagsMap = new HashMap<>();
         tagsMap.put("weather", weatherTags.stream().map(Enum::name).collect(Collectors.toSet()));
         tagsMap.put("temperature", temperatureTags.stream().map(Enum::name).collect(Collectors.toSet()));
-        tagsMap.put("season", Set.of(seasonTag.name()));
+        tagsMap.put("season", seasonTag != null ? Set.of(seasonTag.name()) : Collections.emptySet());
         return tagsMap;
     }
 }
