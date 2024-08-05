@@ -1,6 +1,6 @@
-package com.WearWeather.wear.domain.post.controller;
+package com.WearWeather.wear.domain.postLike.controller;
 
-import com.WearWeather.wear.domain.post.service.LikeService;
+import com.WearWeather.wear.domain.postLike.service.LikeService;
 import com.WearWeather.wear.global.common.ResponseMessage;
 import com.WearWeather.wear.global.common.dto.ResponseCommonDTO;
 import lombok.RequiredArgsConstructor;

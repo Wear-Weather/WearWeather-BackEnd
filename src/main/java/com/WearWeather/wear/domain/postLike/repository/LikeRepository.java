@@ -1,4 +1,4 @@
-package com.WearWeather.wear.domain.post.repository;
+package com.WearWeather.wear.domain.postLike.repository;
 
 import com.WearWeather.wear.domain.post.entity.Like;
 import org.springframework.data.jpa.repository.JpaRepository;

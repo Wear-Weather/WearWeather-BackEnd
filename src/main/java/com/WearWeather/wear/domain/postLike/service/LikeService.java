@@ -1,7 +1,8 @@
-package com.WearWeather.wear.domain.post.service;
+package com.WearWeather.wear.domain.postLike.service;
 
 import com.WearWeather.wear.domain.post.entity.Like;
-import com.WearWeather.wear.domain.post.repository.LikeRepository;
+import com.WearWeather.wear.domain.post.service.PostService;
+import com.WearWeather.wear.domain.postLike.repository.LikeRepository;
 import com.WearWeather.wear.domain.user.entity.User;
 import com.WearWeather.wear.domain.user.service.UserService;
 import com.WearWeather.wear.global.exception.CustomException;
