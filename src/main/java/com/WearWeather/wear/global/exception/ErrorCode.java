@@ -27,13 +27,16 @@ public enum ErrorCode {
     INVALID_REFRESH_TOKEN(UNAUTHORIZED, "RefreshToekn이 유효하지 않습니다."),
     INVALID_ACCESS_TOKEN(UNAUTHORIZED, "AccessToken이 유효하지 않습니다."),
     KAKAO_LOGIN_FAIL(BAD_REQUEST, "카카오 로그인 실패"),
-    REDIS_VALUE_NOT_FOUND(NOT_FOUND,"Redis에 저장된 값을 찾을 수 없습니다."),
+    REDIS_VALUE_NOT_FOUND(NOT_FOUND, "Redis에 저장된 값을 찾을 수 없습니다."),
 
     FAIL_UPDATE_PASSWORD(BAD_REQUEST, "비밀번호 수정 실패하였습니다."),
-    INVALID_NICKNAME(BAD_REQUEST,"유효하지 않은 닉네임 값 입니다."),
+    INVALID_NICKNAME(BAD_REQUEST, "유효하지 않은 닉네임 값 입니다."),
     FAIL_UPDATE_USER_INFO(BAD_REQUEST, "회원정보 수정 실패하였습니다."),
-    SOCIAL_ACCOUNT_CANNOT_BE_MODIFIED(BAD_REQUEST, "카카오 로그인 사용자는 비밀번호 수정이 불가합니다.")
-    ;
+    SOCIAL_ACCOUNT_CANNOT_BE_MODIFIED(BAD_REQUEST, "카카오 로그인 사용자는 비밀번호 수정이 불가합니다."),
+
+    SERVER_ERROR(BAD_REQUEST, "이미지 업로드 실패"),
+    INVALID_IMAGE_IMAGE(BAD_REQUEST, "이미지 파일이 유효하지 않습니다"),
+    IMAGE_NOT_FOUND(NOT_FOUND, "이미지를 찾을 수 없습니다.");;
 
     private final HttpStatus httpStatus;
     private final String message;
