@@ -23,17 +23,20 @@ import org.springframework.transaction.annotation.Transactional;
 public class PostService {
 
     private final PostRepository postRepository;
-    private final TagRepository tagRepository;
+    private final TagService tagService;
+
     private final PostImageRepository postImageRepository;
     private final UserService userService;
 
+    @Transactional
     public Long createPost(String email, PostCreateRequest request) {
         User user = userService.getUserByEmail(email);
         Post post = request.toEntity(user.getUserId());
 
-        addImagesToPost(request, post);
         postRepository.save(post);
-        saveAllTags(post, request.getTagsMap());
+
+        addImagesToPost(request, post);
+        tagService.saveTags(post, request);
 
         return post.getPostId();
     }
