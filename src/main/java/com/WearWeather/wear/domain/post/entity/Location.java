@@ -1,5 +1,6 @@
 package com.WearWeather.wear.domain.post.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.Getter;
 
@@ -7,9 +8,12 @@ import lombok.Getter;
 @Embeddable
 public class Location {
 
+    @Column(nullable = false)
     private String city;
+
+    @Column(nullable = false)
     private String district;
-    
+
     public Location() {
     }
 

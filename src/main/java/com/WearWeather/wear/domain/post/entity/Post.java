@@ -1,9 +1,10 @@
 package com.WearWeather.wear.domain.post.entity;
 
+import com.WearWeather.wear.global.common.BaseTimeEntity;
+import jakarta.persistence.*;
 
 import com.WearWeather.wear.domain.postImage.entity.PostImage;
 import com.WearWeather.wear.domain.tag.entity.Tag;
-import com.WearWeather.wear.global.common.BaseTimeEntity;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
@@ -29,7 +30,7 @@ import org.hibernate.annotations.BatchSize;
 @Getter
 @Entity
 @Setter
-@Table(name = "post")
+@Table(name = "posts")
 public class Post extends BaseTimeEntity implements Serializable {
 
     @Id
@@ -47,13 +48,14 @@ public class Post extends BaseTimeEntity implements Serializable {
     private String content;
 
     @Embedded
+    @JoinColumn(unique = true)
     private Location location;
 
     @Column(name = "likeCount", nullable = false)
-    private int likeCount;
+    private int likeCount = 0;
 
     @Column(name = "isDelete", nullable = false)
-    private boolean isDelete;
+    private boolean isDelete = false;
 
     @Builder.Default
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -72,5 +74,13 @@ public class Post extends BaseTimeEntity implements Serializable {
     public void addTag(Tag tag) {
         this.tags.add(tag);
         tag.setPost(this);
+    }
+
+    public void updateLikeCount(){
+        this.likeCount ++;
+    }
+
+    public void removeLikeCount() {
+        this.likeCount --;
     }
 }

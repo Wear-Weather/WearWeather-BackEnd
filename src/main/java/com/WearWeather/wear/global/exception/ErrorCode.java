@@ -36,7 +36,12 @@ public enum ErrorCode {
 
     SERVER_ERROR(BAD_REQUEST, "이미지 업로드 실패"),
     INVALID_IMAGE_IMAGE(BAD_REQUEST, "이미지 파일이 유효하지 않습니다"),
-    IMAGE_NOT_FOUND(NOT_FOUND, "이미지를 찾을 수 없습니다.");;
+    IMAGE_NOT_FOUND(NOT_FOUND, "이미지를 찾을 수 없습니다."),
+
+    NOT_EXIST_POST(BAD_REQUEST, "존재하지 않는 게시글입니다."),
+    ALREADY_LIKED_POST(BAD_REQUEST, "이미 좋아요된 게시글입니다."),
+    NOT_LIKED_POST(BAD_REQUEST, "좋아요한 게시글이 아닙니다."),
+    ;
 
     private final HttpStatus httpStatus;
     private final String message;
