@@ -6,6 +6,8 @@ import com.WearWeather.wear.domain.storage.dto.ImageInfoResponse;
 import com.WearWeather.wear.domain.storage.service.AwsS3Service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -25,5 +27,11 @@ public class AwsS3Controller {
         ImageInfoDto imageInfoDto = awsS3Service.upload(multipartFile, "post-image");
         Long postImageId = postImageService.createPostImage(multipartFile, imageInfoDto);
         return ResponseEntity.ok(ImageInfoResponse.of(postImageId, imageInfoDto.getUrl()));
+    }
+
+    @DeleteMapping("/post-image/{imageId}")
+    public ResponseEntity<Void> delete(@PathVariable Long imageId) {
+        postImageService.deletePostImage(imageId);
+        return ResponseEntity.noContent().build();
     }
 }
