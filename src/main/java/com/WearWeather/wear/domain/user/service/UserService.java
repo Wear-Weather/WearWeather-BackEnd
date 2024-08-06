@@ -20,6 +20,7 @@ public class UserService {
     private final UserRepository userRepository;
 
     private final PasswordEncoder passwordEncoder;
+
     @Transactional
     public void registerUser(RegisterUserRequest registerUserRequest) {
 

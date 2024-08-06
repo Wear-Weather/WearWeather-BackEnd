@@ -1,6 +1,7 @@
 package com.WearWeather.wear.global.common;
 
 public class ResponseMessage {
+
     public static final String NICKNAME_AVAILABLE = "닉네임 사용 가능합니다.";
     public static final String SEND_EMAIL = "이메일로 코드를 발송하였습니다.";
     public static final String SUCCESS_EMAIL_VERIFICATION = "이메일 인증이 완료되었습니다.";
@@ -10,6 +11,7 @@ public class ResponseMessage {
     public static final String MODIFY_USERINFO = "회원정보 수정 완료하였습니다.";
     public static final String SUCCESS_POST_LIKE = "게시글 좋아요 등록 성공하였습니다.";
     public static final String SUCCESS_POST_LIKE_CANCEL = "게시글 좋아요 취소하였습니다.";
+    public static final String SUCCESS_POST = "게시물 생성 완료";
 
 
 }
