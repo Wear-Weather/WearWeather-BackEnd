@@ -8,3 +8,19 @@ insert into authority (authority_name) values ('ROLE_ADMIN');
 insert into user_authority (user_id, authority_name) values (1, 'ROLE_USER');
 insert into user_authority (user_id, authority_name) values (1, 'ROLE_ADMIN');
 insert into user_authority (user_id, authority_name) values (2, 'ROLE_USER');
+
+
+INSERT INTO tag (category, name) VALUES ('WEATHER', 'SUNNY');
+INSERT INTO tag (category, name) VALUES ('WEATHER', 'CLOUDY');
+INSERT INTO tag (category, name) VALUES ('WEATHER', 'RAINY');
+INSERT INTO tag (category, name) VALUES ('WEATHER', 'SNOWY');
+INSERT INTO tag (category, name) VALUES ('WEATHER', 'WINDY');
+INSERT INTO tag (category, name) VALUES ('TEMPERATURE', 'HOT');
+INSERT INTO tag (category, name) VALUES ('TEMPERATURE', 'COLD');
+INSERT INTO tag (category, name) VALUES ('TEMPERATURE', 'WARM');
+INSERT INTO tag (category, name) VALUES ('TEMPERATURE', 'COOL');
+INSERT INTO tag (category, name) VALUES ('TEMPERATURE', 'MILD');
+INSERT INTO tag (category, name) VALUES ('SEASON', 'SPRING');
+INSERT INTO tag (category, name) VALUES ('SEASON', 'SUMMER');
+INSERT INTO tag (category, name) VALUES ('SEASON', 'FALL');
+INSERT INTO tag (category, name) VALUES ('SEASON', 'WINTER');
