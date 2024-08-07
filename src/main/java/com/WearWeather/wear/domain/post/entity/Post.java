@@ -75,8 +75,8 @@ public class Post extends BaseTimeEntity implements Serializable {
         this.postTags.add(postTag);
     }
 
-    public void setThumbnailImageId(Long thumbnailImageId) {
-        this.thumbnailImageId = thumbnailImageId;
+    public void addThumbnailImageId(Long postImageId) {
+        this.thumbnailImageId = postImageId;
     }
 
     public void updateLikeCount() {

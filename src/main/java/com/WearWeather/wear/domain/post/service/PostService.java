@@ -21,7 +21,6 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final TagService tagService;
-
     private final PostImageRepository postImageRepository;
     private final UserService userService;
 
@@ -50,7 +49,7 @@ public class PostService {
 
             // 첫 번째 이미지를 대표 이미지로 설정
             if (i == 0) {
-                post.setThumbnailImageId(postImage.getId());
+                post.addThumbnailImageId(postImage.getId());
             }
         }
     }
