@@ -24,12 +24,12 @@ public class Tag {
     @Column(name = "category", nullable = false)
     private String category;
 
-    @Column(name = "name", length = 100, nullable = false)
-    private String name;
+    @Column(name = "content", length = 100, nullable = false)
+    private String content;
 
     @Builder
-    public Tag(String category, String name) {
+    public Tag(String category, String content) {
         this.category = category;
-        this.name = name;
+        this.content = content;
     }
 }
