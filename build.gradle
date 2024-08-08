@@ -64,6 +64,19 @@ dependencies {
 
     implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
 
+    implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
+    annotationProcessor "com.querydsl:querydsl-apt:${dependencyManagement.importedProperties['querydsl.version']}:jakarta"
+    annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+    annotationProcessor "jakarta.persistence:jakarta.persistence-api"
+
+}
+
+def querydslSrcDir = 'src/main/generated'
+clean {
+    delete file(querydslSrcDir)
+}
+tasks.withType(JavaCompile) {
+    options.generatedSourceOutputDirectory = file(querydslSrcDir)
 }
 
 tasks.named('test') {
@@ -74,8 +87,9 @@ processResources.dependsOn('copySecret')
 
 tasks.register('copySecret', Copy) {
     from 'BE-submodule'
-    include "application*.properties"  // 복사할 파일들
-    into 'src/main/resources'  // 복사 위치
+    include "application*.properties"
+    include "application*.yml"
+    into 'src/main/resources'
     doLast {
         println "Copied application properties files to src/main/resources"
     }

@@ -1,4 +1,4 @@
-package com.WearWeather.wear.domain.post.entity;
+package com.WearWeather.wear.domain.postLike.entity;
 
 import com.WearWeather.wear.global.common.BaseTimeEntity;
 import jakarta.persistence.*;
