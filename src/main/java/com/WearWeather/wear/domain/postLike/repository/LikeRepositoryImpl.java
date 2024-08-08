@@ -1,6 +1,6 @@
 package com.WearWeather.wear.domain.postLike.repository;
 
-import com.WearWeather.wear.domain.post.entity.QLike;
+import com.WearWeather.wear.domain.postLike.entity.QLike;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 

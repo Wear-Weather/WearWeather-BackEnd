@@ -1,19 +1,10 @@
 package com.WearWeather.wear.domain.post.entity;
 
+import com.WearWeather.wear.domain.postImage.entity.PostImage;
+import com.WearWeather.wear.domain.postTag.entity.PostTag;
 import com.WearWeather.wear.global.common.BaseTimeEntity;
 import jakarta.persistence.*;
 
-import com.WearWeather.wear.domain.postImage.entity.PostImage;
-import com.WearWeather.wear.domain.tag.entity.Tag;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Embedded;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +12,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
 
 @AllArgsConstructor
@@ -29,7 +19,6 @@ import org.hibernate.annotations.BatchSize;
 @Builder
 @Getter
 @Entity
-@Setter
 @Table(name = "posts")
 public class Post extends BaseTimeEntity implements Serializable {
 
@@ -57,9 +46,12 @@ public class Post extends BaseTimeEntity implements Serializable {
     @Column(name = "isDelete", nullable = false)
     private boolean isDelete = false;
 
+    @Column(name = "thumbnail_image_id")
+    private Long thumbnailImageId; // 대표 이미지 ID 필드
+
     @Builder.Default
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Tag> tags = new ArrayList<>();
+    private List<PostTag> postTags = new ArrayList<>();
 
     @BatchSize(size = 100)
     @Builder.Default
@@ -71,16 +63,19 @@ public class Post extends BaseTimeEntity implements Serializable {
         postImage.addPost(this);
     }
 
-    public void addTag(Tag tag) {
-        this.tags.add(tag);
-        tag.setPost(this);
+    public void addPostTag(PostTag postTag) {
+        this.postTags.add(postTag);
     }
 
-    public void updateLikeCount(){
-        this.likeCount ++;
+    public void setThumbnailImageId(Long thumbnailImageId) {
+        this.thumbnailImageId = thumbnailImageId;
+    }
+
+    public void updateLikeCount() {
+        this.likeCount++;
     }
 
     public void removeLikeCount() {
-        this.likeCount --;
+        this.likeCount--;
     }
 }

@@ -41,7 +41,8 @@ public enum ErrorCode {
     NOT_EXIST_POST(BAD_REQUEST, "존재하지 않는 게시글입니다."),
     ALREADY_LIKED_POST(BAD_REQUEST, "이미 좋아요된 게시글입니다."),
     NOT_LIKED_POST(BAD_REQUEST, "좋아요한 게시글이 아닙니다."),
-    ;
+    NOT_EXIST_POST_IMAGE(BAD_REQUEST, "존재하지 않는 게시글 이미지입니다."),
+   ;
 
     private final HttpStatus httpStatus;
     private final String message;
