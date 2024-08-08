@@ -3,8 +3,16 @@ package com.WearWeather.wear.domain.post.entity;
 import com.WearWeather.wear.domain.postImage.entity.PostImage;
 import com.WearWeather.wear.domain.postTag.entity.PostTag;
 import com.WearWeather.wear.global.common.BaseTimeEntity;
-import jakarta.persistence.*;
-
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -67,8 +75,8 @@ public class Post extends BaseTimeEntity implements Serializable {
         this.postTags.add(postTag);
     }
 
-    public void setThumbnailImageId(Long thumbnailImageId) {
-        this.thumbnailImageId = thumbnailImageId;
+    public void addThumbnailImageId(Long postImageId) {
+        this.thumbnailImageId = postImageId;
     }
 
     public void updateLikeCount() {

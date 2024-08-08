@@ -59,6 +59,10 @@ public class AwsS3Service {
         return ImageInfoDto.of(fileName, url, bufferedImage.getWidth(), bufferedImage.getHeight());
     }
 
+    public void delete(String fileName) {
+        amazonS3.deleteObject(bucket, fileName);
+    }
+
     public String getUrl(String fileName) {
         return amazonS3.getUrl(bucket, fileName).toString();
     }
