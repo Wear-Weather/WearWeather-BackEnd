@@ -1,16 +1,26 @@
 package com.WearWeather.wear.domain.post.service;
 
 import com.WearWeather.wear.domain.post.dto.request.PostCreateRequest;
+import com.WearWeather.wear.domain.post.dto.response.PostDetailResponse;
 import com.WearWeather.wear.domain.post.entity.Post;
 import com.WearWeather.wear.domain.post.repository.PostRepository;
 import com.WearWeather.wear.domain.postImage.entity.PostImage;
 import com.WearWeather.wear.domain.postImage.repository.PostImageRepository;
+import com.WearWeather.wear.domain.postLike.repository.LikeRepository;
+import com.WearWeather.wear.domain.postTag.entity.PostTag;
+import com.WearWeather.wear.domain.storage.service.AwsS3Service;
+import com.WearWeather.wear.domain.tag.entity.Tag;
+import com.WearWeather.wear.domain.tag.repository.TagRepository;
 import com.WearWeather.wear.domain.tag.service.TagService;
 import com.WearWeather.wear.domain.user.entity.User;
 import com.WearWeather.wear.domain.user.service.UserService;
 import com.WearWeather.wear.global.exception.CustomException;
 import com.WearWeather.wear.global.exception.ErrorCode;
 import java.util.List;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,9 +30,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class PostService {
 
     private final PostRepository postRepository;
+    private final TagRepository tagRepository;
     private final TagService tagService;
     private final PostImageRepository postImageRepository;
     private final UserService userService;
+    private final LikeRepository likeRepository;
+    private final AwsS3Service awsS3Service;
 
     @Transactional
     public Long createPost(String email, PostCreateRequest request) {
@@ -76,5 +89,63 @@ public class PostService {
     public Post findById(Long postId){
         return postRepository.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_POST));
+    }
+
+    public PostDetailResponse getPostDetail(String email, Long postId) {
+
+        User user = userService.getUserByEmail(email);
+
+        Post post = findById(postId);
+        String postNickname = userService.getNicknameById(user.getUserId());
+
+        List<String> imageUrlList = getImageUrlList(post.getPostImages());
+
+        Map<String, List<String>> tags = getTagsByPostId(post.getPostTags());
+        String seasonTag = tags.get("SEASON").get(0);
+        List<String> weatherTags = tags.get("WEATHER");
+        List<String> temperatureTags = tags.get("TEMPERATURE");
+
+        boolean like = checkLikeByPostAndUser(post.getPostId(), user.getUserId());
+
+        return PostDetailResponse.of(
+                postNickname,
+                post,
+                imageUrlList,
+                seasonTag,
+                weatherTags,
+                temperatureTags,
+                like);
+    }
+
+    public List<String> getImageUrlList(List<PostImage> postImages){
+        return postImages.stream()
+                .map(image -> getImageUrl(image.getId()))
+                .toList();
+    }
+
+    public String getImageUrl(Long thumbnailId){
+        PostImage postImage = postImageRepository.findById(thumbnailId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_POST_IMAGE));
+
+        return awsS3Service.getUrl(postImage.getName());
+    }
+
+    public Map<String, List<String>> getTagsByPostId(List<PostTag> postTags) {
+
+        List<Long> tagIds = postTags.stream()
+                .map(postTag -> postTag.getTag().getTagId())
+                .collect(Collectors.toList());
+
+        List<Tag> tags = tagRepository.findAllById(tagIds);
+
+        return tags.stream()
+                .collect(Collectors.groupingBy(
+                        Tag::getCategory,
+                        Collectors.mapping(Tag::getContent, Collectors.toList())
+                ));
+    }
+
+    public boolean checkLikeByPostAndUser(Long postId, Long userId){
+        return likeRepository.existsByPostIdAndUserId(postId, userId);
     }
 }
