@@ -10,7 +10,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Getter
 @Builder
-public class GetPostDetailResponse {
+public class TopLikedPostDetailResponse {
 
     private final Long postId;
     private final String thumbnail;
@@ -20,8 +20,8 @@ public class GetPostDetailResponse {
     private final List<Long> temperatureTags;
     private final boolean likeByUser;
 
-    public static GetPostDetailResponse of(Post post, String url, Long seasonTag, List<Long> weatherTags, List<Long> temperatureTags, boolean like){
-        return GetPostDetailResponse.builder()
+    public static TopLikedPostDetailResponse of(Post post, String url, Long seasonTag, List<Long> weatherTags, List<Long> temperatureTags, boolean like){
+        return TopLikedPostDetailResponse.builder()
                 .postId(post.getPostId())
                 .thumbnail(url) //TODO : URL 만드는 법 확인
                 .location(post.getLocation())

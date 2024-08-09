@@ -7,7 +7,7 @@ import java.util.List;
 
 @RequiredArgsConstructor
 @Getter
-public class GetPostListResponse {
+public class TopLikedPostsResponse {
 
-    private final List<GetPostDetailResponse> getPostDetailResponse;
+    private final List<TopLikedPostDetailResponse> topLikedPostDetailResponse;
 }

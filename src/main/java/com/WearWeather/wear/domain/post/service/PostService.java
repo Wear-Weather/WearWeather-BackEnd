@@ -1,7 +1,7 @@
 package com.WearWeather.wear.domain.post.service;
 
 import com.WearWeather.wear.domain.post.dto.request.PostCreateRequest;
-import com.WearWeather.wear.domain.post.dto.response.GetPostDetailResponse;
+import com.WearWeather.wear.domain.post.dto.response.TopLikedPostDetailResponse;
 import com.WearWeather.wear.domain.post.entity.Post;
 import com.WearWeather.wear.domain.post.repository.PostRepository;
 import com.WearWeather.wear.domain.postImage.entity.PostImage;
@@ -91,7 +91,7 @@ public class PostService {
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_POST));
     }
 
-    public List<GetPostDetailResponse> getTopLikedPosts(String email){
+    public List<TopLikedPostDetailResponse> getTopLikedPosts(String email){
 
         User user = userService.getUserByEmail(email);
 
@@ -108,7 +108,7 @@ public class PostService {
         return postRepository.findAllByPostIdInOrderByLikeCountDesc(postIds);
     }
 
-    public GetPostDetailResponse toGetPostDetailResponse(Post post, Long userId){
+    public TopLikedPostDetailResponse toGetPostDetailResponse(Post post, Long userId){
 
         String url = getImageUrl(post.getThumbnailImageId());
 
@@ -119,7 +119,7 @@ public class PostService {
 
         boolean like = checkLikeByPostAndUser(post.getPostId(), userId);
 
-        return GetPostDetailResponse.of(
+        return TopLikedPostDetailResponse.of(
                 post,
                 url,
                 seasonTag,
