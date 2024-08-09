@@ -104,18 +104,18 @@ public class PostService {
 
     public List<Post> getPostsOrderByLikeCountDesc(){
 
-        List<Long> postIdList = likeRepository.findMostLikedPostIdForDay();
-        return postRepository.findAllByPostIdInOrderByLikeCountDesc(postIdList);
+        List<Long> postIds = likeRepository.findMostLikedPostIdForDay();
+        return postRepository.findAllByPostIdInOrderByLikeCountDesc(postIds);
     }
 
     public GetPostDetailResponse toGetPostDetailResponse(Post post, Long userId){
 
         String url = getImageUrl(post.getThumbnailImageId());
 
-        Map<String, List<String>> tags = getTagsByPostId(post.getPostTags());
-        String seasonTag = tags.get("SEASON").get(0);
-        List<String> weatherTags = tags.get("WEATHER");
-        List<String> temperatureTags = tags.get("TEMPERATURE");
+        Map<String, List<Long>> tags = getTagsByPostId(post.getPostTags());
+        Long seasonTag = tags.get("SEASON").get(0);
+        List<Long> weatherTags = tags.get("WEATHER");
+        List<Long> temperatureTags = tags.get("TEMPERATURE");
 
         boolean like = checkLikeByPostAndUser(post.getPostId(), userId);
 
@@ -135,7 +135,7 @@ public class PostService {
         return awsS3Service.getUrl(postImage.getName());
     }
 
-    public Map<String, List<String>> getTagsByPostId(List<PostTag> postTags) {
+    public Map<String, List<Long>> getTagsByPostId(List<PostTag> postTags) {
 
         List<Long> tagIds = postTags.stream()
                 .map(postTag -> postTag.getTag().getTagId())
@@ -146,7 +146,7 @@ public class PostService {
         return tags.stream()
                 .collect(Collectors.groupingBy(
                         Tag::getCategory,
-                        Collectors.mapping(Tag::getContent, Collectors.toList())
+                        Collectors.mapping(Tag::getTagId, Collectors.toList())
                 ));
     }
 
