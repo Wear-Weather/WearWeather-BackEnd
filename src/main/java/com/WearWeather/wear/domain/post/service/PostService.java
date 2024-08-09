@@ -49,6 +49,11 @@ public class PostService {
         postTagService.saveAllTag(post, request);
     }
 
+    public void deletePost(Long postId) {
+        Post post = findById(postId);
+        postRepository.delete(post);
+    }
+
     private void addImagesToPost(PostImageRequest request, Post post) {
         List<PostImage> postImages = postImageRepository.findByIdIn(request.getImageId());
 
