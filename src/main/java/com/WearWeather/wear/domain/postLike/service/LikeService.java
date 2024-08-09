@@ -1,6 +1,6 @@
 package com.WearWeather.wear.domain.postLike.service;
 
-import com.WearWeather.wear.domain.post.entity.Like;
+import com.WearWeather.wear.domain.postLike.entity.Like;
 import com.WearWeather.wear.domain.post.service.PostService;
 import com.WearWeather.wear.domain.postLike.repository.LikeRepository;
 import com.WearWeather.wear.domain.user.entity.User;
@@ -10,7 +10,6 @@ import com.WearWeather.wear.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -71,5 +70,5 @@ public class LikeService {
         return likeRepository.findByPostIdAndUserId(postId, userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_LIKED_POST));
     }
-
 }
+
