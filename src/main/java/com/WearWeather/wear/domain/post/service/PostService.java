@@ -100,10 +100,10 @@ public class PostService {
 
         List<String> imageUrlList = getImageUrlList(post.getPostImages());
 
-        Map<String, List<String>> tags = getTagsByPostId(post.getPostTags());
-        String seasonTag = tags.get("SEASON").get(0);
-        List<String> weatherTags = tags.get("WEATHER");
-        List<String> temperatureTags = tags.get("TEMPERATURE");
+        Map<String, List<Long>> tags = getTagsByPostId(post.getPostTags());
+        Long seasonTag = tags.get("SEASON").get(0);
+        List<Long> weatherTags = tags.get("WEATHER");
+        List<Long> temperatureTags = tags.get("TEMPERATURE");
 
         boolean like = checkLikeByPostAndUser(post.getPostId(), user.getUserId());
 
@@ -130,7 +130,7 @@ public class PostService {
         return awsS3Service.getUrl(postImage.getName());
     }
 
-    public Map<String, List<String>> getTagsByPostId(List<PostTag> postTags) {
+    public Map<String, List<Long>> getTagsByPostId(List<PostTag> postTags) {
 
         List<Long> tagIds = postTags.stream()
                 .map(postTag -> postTag.getTag().getTagId())
@@ -141,7 +141,7 @@ public class PostService {
         return tags.stream()
                 .collect(Collectors.groupingBy(
                         Tag::getCategory,
-                        Collectors.mapping(Tag::getContent, Collectors.toList())
+                        Collectors.mapping(Tag::getTagId, Collectors.toList())
                 ));
     }
 

@@ -20,13 +20,13 @@ public class PostDetailResponse {
     private final String content;
     private final List<String> images;
     private final Location location;
-    private final String seasonTag;
-    private final List<String> weatherTags;
-    private final List<String> temperatureTags;
+    private final Long seasonTag;
+    private final List<Long> weatherTags;
+    private final List<Long> temperatureTags;
     private final boolean likeByUser;
     private final int likedCount;
 
-    public static PostDetailResponse of(String nickname, Post post, List<String> images, String seasonTag, List<String> weatherTags, List<String> temperatureTags, boolean like){
+    public static PostDetailResponse of(String nickname, Post post, List<String> images, Long seasonTag, List<Long> weatherTags, List<Long> temperatureTags, boolean like){
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm");
         String formattedDateTime = post.getCreateAt().format(formatter);
