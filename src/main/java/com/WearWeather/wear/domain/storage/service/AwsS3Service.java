@@ -63,6 +63,10 @@ public class AwsS3Service {
         amazonS3.deleteObject(bucket, fileName);
     }
 
+    public String getUrl(String fileName) {
+        return amazonS3.getUrl(bucket, fileName).toString();
+    }
+
     /**
      * 이미지 유효성 체크 후 BufferedImage 반환
      */
