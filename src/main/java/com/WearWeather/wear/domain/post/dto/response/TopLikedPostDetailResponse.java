@@ -20,14 +20,14 @@ public class TopLikedPostDetailResponse {
     private final List<Long> temperatureTagIds;
     private final boolean likeByUser;
 
-    public static TopLikedPostDetailResponse of(Post post, String url, Long seasonTag, List<Long> weatherTags, List<Long> temperatureTags, boolean like){
+    public static TopLikedPostDetailResponse of(Post post, String url, Long seasonTagId, List<Long> weatherTagIds, List<Long> temperatureTagIds, boolean like){
         return TopLikedPostDetailResponse.builder()
                 .postId(post.getPostId())
                 .thumbnail(url) //TODO : URL 만드는 법 확인
                 .location(post.getLocation())
-                .seasonTagId(seasonTag)
-                .weatherTagIds(weatherTags)
-                .temperatureTagIds(temperatureTags)
+                .seasonTagId(seasonTagId)
+                .weatherTagIds(weatherTagIds)
+                .temperatureTagIds(temperatureTagIds)
                 .likeByUser(like)
                 .build();
     }
