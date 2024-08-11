@@ -117,7 +117,7 @@ public class UserService {
 
     public String getNicknameById(Long userId){
         return userRepository.findByUserId(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_EMAIL))
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_USER))
                 .getNickname();
     }
 }

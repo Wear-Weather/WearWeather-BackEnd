@@ -2,8 +2,11 @@ package com.WearWeather.wear.domain.post.service;
 
 import com.WearWeather.wear.domain.post.dto.request.PostCreateRequest;
 import com.WearWeather.wear.domain.post.dto.response.TopLikedPostDetailResponse;
+import com.WearWeather.wear.domain.post.dto.request.PostsByLocationRequest;
+import com.WearWeather.wear.domain.post.dto.response.*;
 import com.WearWeather.wear.domain.post.dto.response.PostDetailResponse;
 import com.WearWeather.wear.domain.post.entity.Post;
+import com.WearWeather.wear.domain.post.entity.SortType;
 import com.WearWeather.wear.domain.post.repository.PostRepository;
 import com.WearWeather.wear.domain.postImage.entity.PostImage;
 import com.WearWeather.wear.domain.postImage.repository.PostImageRepository;
@@ -23,6 +26,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -155,6 +162,12 @@ public class PostService {
                 like);
     }
 
+    public List<String> getImageUrlList(List<PostImage> postImages){
+        return postImages.stream()
+                .map(image -> getImageUrl(image.getId()))
+                .toList();
+    }
+
     public String getImageUrl(Long thumbnailId){
         PostImage postImage = postImageRepository.findById(thumbnailId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_POST_IMAGE));
@@ -180,9 +193,71 @@ public class PostService {
     public boolean checkLikeByPostAndUser(Long postId, Long userId){
         return likeRepository.existsByPostIdAndUserId(postId, userId);
     }
-    public List<String> getImageUrlList(List<PostImage> postImages){
-        return postImages.stream()
-                .map(image -> getImageUrl(image.getId()))
+
+    public PostsByLocationResponse getPostsByLocation(String email, PostsByLocationRequest request) {
+
+        User user = userService.getUserByEmail(email);
+
+        List<PostDetailByLocationResponse> responses = getPostDetailByLocation(request, user.getUserId());
+
+        return PostsByLocationResponse.of(request.getLocation(), responses);
+    }
+
+    public List<PostDetailByLocationResponse> getPostDetailByLocation(PostsByLocationRequest request, Long userId){
+
+        String sortType = getSortColumnName(request.getSort());
+
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), Sort.by(sortType).descending());
+        Page<Post> posts = postRepository.findAllByLocation(pageable, request.getLocation());
+
+        return posts.stream()
+                .map(post -> getPostDetailByLocation(post, userId))
                 .toList();
     }
+
+    public String getSortColumnName(SortType sortType){
+
+        String latest = "createAt";
+        String recommended = "likeCount";
+
+        if(Objects.equals(sortType, SortType.LATEST)){
+            return latest;
+        }
+
+        if(Objects.equals(sortType, SortType.RECOMMENDED)){
+            return recommended;
+        }
+
+        return latest;
+    }
+
+    public PostDetailByLocationResponse getPostDetailByLocation(Post post, Long userId){
+
+        String url = getImageUrl(post.getThumbnailImageId());
+
+        Map<String, List<Long>> tags = getTagsByPostId(post.getPostTags());
+        Long seasonTagId = getTagId(tags, "SEASON");
+        List<Long> weatherTagIds = getTagIds(tags, "WEATHER");
+        List<Long> temperatureTagIds =  getTagIds(tags, "TEMPERATURE");
+
+        boolean like = checkLikeByPostAndUser(post.getPostId(), userId);
+
+        return PostDetailByLocationResponse.of(
+                post.getPostId(),
+                url,
+                seasonTagId,
+                weatherTagIds,
+                temperatureTagIds,
+                like
+        );
+    }
+
+    public Long getTagId(Map<String, List<Long>> tags, String category){
+        return tags.get(category).get(0);
+    }
+
+    public List<Long> getTagIds(Map<String, List<Long>> tags, String category){
+        return tags.get(category);
+    }
 }
+

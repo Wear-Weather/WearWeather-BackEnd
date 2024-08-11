@@ -1,7 +1,9 @@
 package com.WearWeather.wear.domain.post.controller;
 
+import com.WearWeather.wear.domain.post.dto.request.PostsByLocationRequest;
 import com.WearWeather.wear.domain.post.dto.request.PostCreateRequest;
 import com.WearWeather.wear.domain.post.dto.response.PostDetailResponse;
+import com.WearWeather.wear.domain.post.dto.response.PostsByLocationResponse;
 import com.WearWeather.wear.domain.post.dto.response.TopLikedPostDetailResponse;
 import com.WearWeather.wear.domain.post.dto.response.TopLikedPostsResponse;
 import com.WearWeather.wear.domain.post.service.PostService;
@@ -37,5 +39,10 @@ public class PostController {
     @GetMapping("/{postId}")
     public ResponseEntity<PostDetailResponse> getPostDetail(@AuthenticationPrincipal UserDetails userDetails, @PathVariable("postId") Long postId) {
         return ResponseEntity.ok(postService.getPostDetail(userDetails.getUsername(), postId));
+    }
+
+    @GetMapping
+    public ResponseEntity<PostsByLocationResponse> getPostsByLocation(@AuthenticationPrincipal UserDetails userDetails, @RequestBody PostsByLocationRequest request) {
+        return ResponseEntity.ok(postService.getPostsByLocation(userDetails.getUsername(), request));
     }
 }
