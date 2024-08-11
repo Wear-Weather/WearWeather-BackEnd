@@ -1,6 +1,6 @@
 package com.WearWeather.wear.domain.postLike;
 
-import com.WearWeather.wear.domain.post.entity.Like;
+import com.WearWeather.wear.domain.postLike.entity.Like;
 import com.WearWeather.wear.domain.post.entity.Post;
 import com.WearWeather.wear.domain.post.service.PostService;
 import com.WearWeather.wear.domain.postLike.repository.LikeRepository;
@@ -19,7 +19,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -43,37 +42,41 @@ public class LikeServiceTest {
     @DisplayName("정상 테스트 : 좋아요 테스트")
     public void addLikePostTest() {
 
+        Long userId = 1L;
+        Long postId = 1L;
+
         User user = mock(User.class);
-        Post post = mock(Post.class);
+        when(user.getUserId()).thenReturn(userId);
+
         String userEmail = UserFixture.email;
 
         when(userService.getUserByEmail(userEmail)).thenReturn(user);
-        when(likeRepository.existsByPostIdAndUserId(post.getPostId(), user.getUserId())).thenReturn(false);
-        when(postService.getLikeCount(user.getUserId(), post.getPostId())).thenReturn(1);
+        when(likeRepository.existsByPostIdAndUserId(postId, userId)).thenReturn(false);
 
-        likeService.addLike(post.getPostId(), userEmail);
+        likeService.addLike(postId, userEmail);
 
-        Optional<Like> like = likeRepository.findByPostIdAndUserId(post.getPostId(), user.getUserId());
-        int likeCount = postService.getLikeCount(user.getUserId(), post.getPostId());
-
-        assertNotNull(like);
-        assertThat(likeCount).isEqualTo(1);
-
+        verify(likeRepository).save(argThat(like ->
+                like.getUserId().equals(userId) &&
+                        like.getPostId().equals(postId)
+        ));
     }
 
     @Test
     @DisplayName("예외 테스트 : 이미 좋아요된 게시글 테스트")
     public void addLikePostWithAlreadyLikedPostTest() {
 
+        Long userId = 1L;
+        Long postId = 1L;
+
         User user = mock(User.class);
-        Post post = mock(Post.class);
         String userEmail = UserFixture.email;
 
+        when(user.getUserId()).thenReturn(userId);
         when(userService.getUserByEmail(userEmail)).thenReturn(user);
-        when(likeRepository.existsByPostIdAndUserId(post.getPostId(), user.getUserId())).thenReturn(true);
+        when(likeRepository.existsByPostIdAndUserId(postId, userId)).thenReturn(true);
 
         CustomException exception = assertThrows(CustomException.class, () ->
-                likeService.addLike(post.getPostId(), userEmail));
+                likeService.addLike(postId, userEmail));
         assertEquals(ErrorCode.ALREADY_LIKED_POST, exception.getErrorCode());
     }
 
@@ -81,21 +84,22 @@ public class LikeServiceTest {
     @DisplayName("정상 테스트 : 좋아요 취소 테스트")
     public void removeLikePostTest() {
 
+        Long userId = 1L;
+        Long postId = 1L;
+
         User user = mock(User.class);
-        Post post = mock(Post.class);
         Like like = mock(Like.class);
         String userEmail = UserFixture.email;
 
+        when(user.getUserId()).thenReturn(userId);
+
         when(userService.getUserByEmail(userEmail)).thenReturn(user);
-        when(likeRepository.findByPostIdAndUserId(post.getPostId(), user.getUserId())).thenReturn(Optional.ofNullable(like));
+        when(likeRepository.findByPostIdAndUserId(postId, userId)).thenReturn(Optional.of(like));
 
-        likeService.removeLike(post.getPostId(), userEmail);
+        likeService.removeLike(postId, userEmail);
 
-        Optional<Like> removeLike = likeRepository.findByPostIdAndUserId(post.getPostId(), user.getUserId());
-        int likeCount = postService.getLikeCount(user.getUserId(), post.getPostId());
-
-        assertNotNull(removeLike);
-        assertThat(likeCount).isEqualTo(0);
+        verify(likeRepository).delete(like);
+        verify(postService).removeLikeCount(postId);
     }
 
     @Test
@@ -112,8 +116,7 @@ public class LikeServiceTest {
         CustomException exception = assertThrows(CustomException.class, () ->
                 likeService.removeLike(post.getPostId(), userEmail));
         assertEquals(ErrorCode.NOT_LIKED_POST, exception.getErrorCode());
-
-
     }
 }
+
 

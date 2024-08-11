@@ -1,6 +1,8 @@
 package com.WearWeather.wear.domain.post.controller;
 
 import com.WearWeather.wear.domain.post.dto.request.PostCreateRequest;
+import com.WearWeather.wear.domain.post.dto.response.TopLikedPostDetailResponse;
+import com.WearWeather.wear.domain.post.dto.response.TopLikedPostsResponse;
 import com.WearWeather.wear.domain.post.dto.response.PostDetailResponse;
 import com.WearWeather.wear.domain.post.service.PostService;
 import com.WearWeather.wear.global.common.ResponseMessage;
@@ -9,6 +11,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -22,6 +27,12 @@ public class PostController {
     public ResponseEntity<ResponseCommonDTO> createPost(@AuthenticationPrincipal UserDetails userDetails, @RequestBody PostCreateRequest request) {
         Long postId = postService.createPost(userDetails.getUsername(), request);
         return ResponseEntity.ok(new ResponseCommonDTO(true, ResponseMessage.SUCCESS_POST));
+    }
+
+    @GetMapping("/top-liked")
+    public ResponseEntity<TopLikedPostsResponse> getTopLikedPosts(@AuthenticationPrincipal UserDetails userDetails) {
+        List<TopLikedPostDetailResponse> response = postService.getTopLikedPosts(userDetails.getUsername());
+        return ResponseEntity.ok(new TopLikedPostsResponse(response));
     }
 
     @GetMapping("/{postId}")

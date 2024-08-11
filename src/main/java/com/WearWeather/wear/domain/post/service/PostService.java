@@ -1,6 +1,7 @@
 package com.WearWeather.wear.domain.post.service;
 
 import com.WearWeather.wear.domain.post.dto.request.PostCreateRequest;
+import com.WearWeather.wear.domain.post.dto.response.TopLikedPostDetailResponse;
 import com.WearWeather.wear.domain.post.dto.response.PostDetailResponse;
 import com.WearWeather.wear.domain.post.entity.Post;
 import com.WearWeather.wear.domain.post.repository.PostRepository;
@@ -91,6 +92,43 @@ public class PostService {
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_POST));
     }
 
+    public List<TopLikedPostDetailResponse> getTopLikedPosts(String email){
+
+        User user = userService.getUserByEmail(email);
+
+        List<Post> posts = getPostsOrderByLikeCountDesc();
+
+        return posts.stream()
+                .map(post -> toGetPostDetailResponse(post, user.getUserId()))
+                .collect(Collectors.toList());
+    }
+
+    public TopLikedPostDetailResponse toGetPostDetailResponse(Post post, Long userId){
+
+        String url = getImageUrl(post.getThumbnailImageId());
+
+        Map<String, List<Long>> tags = getTagsByPostId(post.getPostTags());
+        Long seasonTag = tags.get("SEASON").get(0);
+        List<Long> weatherTags = tags.get("WEATHER");
+        List<Long> temperatureTags = tags.get("TEMPERATURE");
+
+        boolean like = checkLikeByPostAndUser(post.getPostId(), userId);
+
+        return TopLikedPostDetailResponse.of(
+                post,
+                url,
+                seasonTag,
+                weatherTags,
+                temperatureTags,
+                like);
+    }
+
+    public List<Post> getPostsOrderByLikeCountDesc(){
+
+        List<Long> postIds = likeRepository.findMostLikedPostIdForDay();
+        return postRepository.findAllByPostIdInOrderByLikeCountDesc(postIds);
+    }
+
     public PostDetailResponse getPostDetail(String email, Long postId) {
 
         User user = userService.getUserByEmail(email);
@@ -148,4 +186,5 @@ public class PostService {
     public boolean checkLikeByPostAndUser(Long postId, Long userId){
         return likeRepository.existsByPostIdAndUserId(postId, userId);
     }
+
 }

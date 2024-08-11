@@ -43,7 +43,7 @@ public enum ErrorCode {
     NOT_LIKED_POST(BAD_REQUEST, "좋아요한 게시글이 아닙니다."),
     TAG_NOT_FOUND(NOT_FOUND, "태그 아이디가 존재하지 않습니다."),
     NOT_EXIST_POST_IMAGE(BAD_REQUEST, "존재하지 않는 게시글 이미지입니다."),
-    ;
+   ;
 
     private final HttpStatus httpStatus;
     private final String message;
