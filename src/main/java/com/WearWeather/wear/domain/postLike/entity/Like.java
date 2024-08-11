@@ -26,5 +26,4 @@ public class Like extends BaseTimeEntity {
     @Column(name = "post_id", nullable = false)
     private Long postId;
 
-
 }
