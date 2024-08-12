@@ -106,7 +106,7 @@ public class PostService {
         List<Post> posts = getPostsOrderByLikeCountDesc();
 
         return posts.stream()
-                .map(post -> toGetPostDetailResponse(post, user.getUserId()))
+                .map(post -> getTopLikedPostDetail(post, user.getUserId()))
                 .collect(Collectors.toList());
     }
 
@@ -116,23 +116,23 @@ public class PostService {
         return postRepository.findAllByPostIdInOrderByLikeCountDesc(postIds);
     }
 
-    public TopLikedPostDetailResponse toGetPostDetailResponse(Post post, Long userId){
+    public TopLikedPostDetailResponse getTopLikedPostDetail(Post post, Long userId){
 
         String url = getImageUrl(post.getThumbnailImageId());
 
         Map<String, List<Long>> tags = getTagsByPostId(post.getPostTags());
-        Long seasonTag = tags.get("SEASON").get(0);
-        List<Long> weatherTags = tags.get("WEATHER");
-        List<Long> temperatureTags = tags.get("TEMPERATURE");
+        Long seasonTagId = getTagId(tags, "SEASON");
+        List<Long> weatherTagIds = getTagIds(tags, "WEATHER");
+        List<Long> temperatureTagIds =  getTagIds(tags, "TEMPERATURE");
 
         boolean like = checkLikeByPostAndUser(post.getPostId(), userId);
 
         return TopLikedPostDetailResponse.of(
                 post,
                 url,
-                seasonTag,
-                weatherTags,
-                temperatureTags,
+                seasonTagId,
+                weatherTagIds,
+                temperatureTagIds,
                 like);
     }
 
@@ -146,9 +146,9 @@ public class PostService {
         List<String> imageUrlList = getImageUrlList(post.getPostImages());
 
         Map<String, List<Long>> tags = getTagsByPostId(post.getPostTags());
-        Long seasonTag = tags.get("SEASON").get(0);
-        List<Long> weatherTags = tags.get("WEATHER");
-        List<Long> temperatureTags = tags.get("TEMPERATURE");
+        Long seasonTagId = getTagId(tags, "SEASON");
+        List<Long> weatherTagIds = getTagIds(tags, "WEATHER");
+        List<Long> temperatureTagIds =  getTagIds(tags, "TEMPERATURE");
 
         boolean like = checkLikeByPostAndUser(post.getPostId(), user.getUserId());
 
@@ -156,9 +156,9 @@ public class PostService {
                 postNickname,
                 post,
                 imageUrlList,
-                seasonTag,
-                weatherTags,
-                temperatureTags,
+                seasonTagId,
+                weatherTagIds,
+                temperatureTagIds,
                 like);
     }
 
