@@ -37,6 +37,7 @@ public class PostService {
         return post.getPostId();
     }
 
+    @Transactional
     public void updatePost(Long postId, PostUpdateRequest request) {
         Post post = findById(postId);
         post.modifyPostAttributes(request.getTitle(), request.getContent(), request.getLocation());
@@ -49,6 +50,7 @@ public class PostService {
         postTagService.saveAllTag(post, request);
     }
 
+    @Transactional
     public void deletePost(Long postId) {
         Post post = findById(postId);
         postRepository.delete(post);

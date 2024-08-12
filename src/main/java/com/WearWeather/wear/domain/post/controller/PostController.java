@@ -5,6 +5,7 @@ import com.WearWeather.wear.domain.post.dto.request.PostUpdateRequest;
 import com.WearWeather.wear.domain.post.service.PostService;
 import com.WearWeather.wear.global.common.ResponseMessage;
 import com.WearWeather.wear.global.common.dto.ResponseCommonDTO;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -25,13 +26,13 @@ public class PostController {
     private final PostService postService;
 
     @PostMapping
-    public ResponseEntity<ResponseCommonDTO> createPost(@AuthenticationPrincipal UserDetails userDetails, @RequestBody PostCreateRequest request) {
+    public ResponseEntity<ResponseCommonDTO> createPost(@AuthenticationPrincipal UserDetails userDetails, @RequestBody @Valid PostCreateRequest request) {
         Long postId = postService.createPost(userDetails.getUsername(), request);
         return ResponseEntity.ok(new ResponseCommonDTO(true, ResponseMessage.SUCCESS_POST));
     }
 
     @PatchMapping("/{postId}")
-    public ResponseEntity<ResponseCommonDTO> updatePost(@PathVariable Long postId, @RequestBody PostUpdateRequest request) {
+    public ResponseEntity<ResponseCommonDTO> updatePost(@PathVariable Long postId, @RequestBody @Valid PostUpdateRequest request) {
         postService.updatePost(postId, request);
         return ResponseEntity.ok(new ResponseCommonDTO(true, ResponseMessage.SUCCESS_UPDATE_POST));
     }
