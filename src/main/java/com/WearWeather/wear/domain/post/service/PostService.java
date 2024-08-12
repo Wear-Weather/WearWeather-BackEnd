@@ -103,6 +103,12 @@ public class PostService {
                 .collect(Collectors.toList());
     }
 
+    public List<Post> getPostsOrderByLikeCountDesc(){
+
+        List<Long> postIds = likeRepository.findMostLikedPostIdForDay();
+        return postRepository.findAllByPostIdInOrderByLikeCountDesc(postIds);
+    }
+
     public TopLikedPostDetailResponse toGetPostDetailResponse(Post post, Long userId){
 
         String url = getImageUrl(post.getThumbnailImageId());
@@ -121,12 +127,6 @@ public class PostService {
                 weatherTags,
                 temperatureTags,
                 like);
-    }
-
-    public List<Post> getPostsOrderByLikeCountDesc(){
-
-        List<Long> postIds = likeRepository.findMostLikedPostIdForDay();
-        return postRepository.findAllByPostIdInOrderByLikeCountDesc(postIds);
     }
 
     public PostDetailResponse getPostDetail(String email, Long postId) {
@@ -155,12 +155,6 @@ public class PostService {
                 like);
     }
 
-    public List<String> getImageUrlList(List<PostImage> postImages){
-        return postImages.stream()
-                .map(image -> getImageUrl(image.getId()))
-                .toList();
-    }
-
     public String getImageUrl(Long thumbnailId){
         PostImage postImage = postImageRepository.findById(thumbnailId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_POST_IMAGE));
@@ -186,5 +180,9 @@ public class PostService {
     public boolean checkLikeByPostAndUser(Long postId, Long userId){
         return likeRepository.existsByPostIdAndUserId(postId, userId);
     }
-
+    public List<String> getImageUrlList(List<PostImage> postImages){
+        return postImages.stream()
+                .map(image -> getImageUrl(image.getId()))
+                .toList();
+    }
 }

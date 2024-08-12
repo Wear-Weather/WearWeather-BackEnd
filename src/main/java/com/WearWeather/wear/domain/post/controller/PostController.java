@@ -1,9 +1,9 @@
 package com.WearWeather.wear.domain.post.controller;
 
 import com.WearWeather.wear.domain.post.dto.request.PostCreateRequest;
+import com.WearWeather.wear.domain.post.dto.response.PostDetailResponse;
 import com.WearWeather.wear.domain.post.dto.response.TopLikedPostDetailResponse;
 import com.WearWeather.wear.domain.post.dto.response.TopLikedPostsResponse;
-import com.WearWeather.wear.domain.post.dto.response.PostDetailResponse;
 import com.WearWeather.wear.domain.post.service.PostService;
 import com.WearWeather.wear.global.common.ResponseMessage;
 import com.WearWeather.wear.global.common.dto.ResponseCommonDTO;
@@ -14,7 +14,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/posts")
