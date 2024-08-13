@@ -1,6 +1,9 @@
 package com.WearWeather.wear.domain.post.controller;
 
+import com.WearWeather.wear.domain.post.dto.request.PostsByLocationRequest;
 import com.WearWeather.wear.domain.post.dto.request.PostCreateRequest;
+import com.WearWeather.wear.domain.post.dto.response.PostDetailResponse;
+import com.WearWeather.wear.domain.post.dto.response.PostsByLocationResponse;
 import com.WearWeather.wear.domain.post.dto.response.TopLikedPostDetailResponse;
 import com.WearWeather.wear.domain.post.dto.response.TopLikedPostsResponse;
 import com.WearWeather.wear.domain.post.dto.request.PostUpdateRequest;
@@ -52,5 +55,15 @@ public class PostController {
     public ResponseEntity<ResponseCommonDTO> deletePost(@PathVariable Long postId) {
         postService.deletePost(postId);
         return ResponseEntity.ok(new ResponseCommonDTO(true, ResponseMessage.SUCCESS_DELETE_POST));
+    }
+
+    @GetMapping("/{postId}")
+    public ResponseEntity<PostDetailResponse> getPostDetail(@AuthenticationPrincipal UserDetails userDetails, @PathVariable("postId") Long postId) {
+        return ResponseEntity.ok(postService.getPostDetail(userDetails.getUsername(), postId));
+    }
+
+    @GetMapping
+    public ResponseEntity<PostsByLocationResponse> getPostsByLocation(@AuthenticationPrincipal UserDetails userDetails, @Valid @RequestBody PostsByLocationRequest request) {
+        return ResponseEntity.ok(postService.getPostsByLocation(userDetails.getUsername(), request));
     }
 }
