@@ -11,7 +11,9 @@ public class ResponseMessage {
     public static final String MODIFY_USERINFO = "회원정보 수정 완료하였습니다.";
     public static final String SUCCESS_POST_LIKE = "게시글 좋아요 등록 성공하였습니다.";
     public static final String SUCCESS_POST_LIKE_CANCEL = "게시글 좋아요 취소하였습니다.";
-    public static final String SUCCESS_POST = "게시물 생성 완료";
+    public static final String SUCCESS_POST = "게시물 생성 완료하였습니다.";
+    public static final String SUCCESS_UPDATE_POST = "게시물 수정 완료하였습니다.";
+    public static final String SUCCESS_DELETE_POST = "게시물 삭제 완료하였습니다.";
 
 
 }
