@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
+import java.util.Map;
 
 @RequiredArgsConstructor
 @Getter
@@ -20,14 +21,14 @@ public class TopLikedPostDetailResponse {
     private final List<Long> temperatureTagIds;
     private final boolean likeByUser;
 
-    public static TopLikedPostDetailResponse of(Post post, String url, Long seasonTagId, List<Long> weatherTagIds, List<Long> temperatureTagIds, boolean like){
+    public static TopLikedPostDetailResponse of(Post post, String url, Map<String, List<Long>> tags, boolean like){
         return TopLikedPostDetailResponse.builder()
                 .postId(post.getPostId())
-                .thumbnail(url) //TODO : URL 만드는 법 확인
+                .thumbnail(url)
                 .location(post.getLocation())
-                .seasonTagId(seasonTagId)
-                .weatherTagIds(weatherTagIds)
-                .temperatureTagIds(temperatureTagIds)
+                .seasonTagId(tags.get("SEASON").get(0))
+                .weatherTagIds(tags.get("WEATHER"))
+                .temperatureTagIds(tags.get("TEMPERATURE"))
                 .likeByUser(like)
                 .build();
     }

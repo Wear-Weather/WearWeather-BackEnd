@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 
 @RequiredArgsConstructor
 @Getter
@@ -20,13 +21,13 @@ public class PostDetailResponse {
     private final String content;
     private final List<String> images;
     private final Location location;
-    private final Long seasonTag;
-    private final List<Long> weatherTags;
-    private final List<Long> temperatureTags;
+    private final Long seasonTagId;
+    private final List<Long> weatherTagIds;
+    private final List<Long> temperatureTagIds;
     private final boolean likeByUser;
     private final int likedCount;
 
-    public static PostDetailResponse of(String nickname, Post post, List<String> images, Long seasonTag, List<Long> weatherTags, List<Long> temperatureTags, boolean like){
+    public static PostDetailResponse of(String nickname, Post post, List<String> images, Map<String, List<Long>> tags, boolean like){
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm");
         String formattedDateTime = post.getCreateAt().format(formatter);
@@ -39,9 +40,9 @@ public class PostDetailResponse {
                 .location(post.getLocation())
                 .likedCount(post.getLikeCount())
                 .images(images)
-                .seasonTag(seasonTag)
-                .weatherTags(weatherTags)
-                .temperatureTags(temperatureTags)
+                .seasonTagId(tags.get("SEASON").get(0))
+                .weatherTagIds(tags.get("WEATHER"))
+                .temperatureTagIds(tags.get("TEMPERATURE"))
                 .likeByUser(like)
                 .build();
     }

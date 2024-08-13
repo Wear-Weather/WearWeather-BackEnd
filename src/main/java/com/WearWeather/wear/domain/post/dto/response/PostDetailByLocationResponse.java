@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
+import java.util.Map;
 
 @RequiredArgsConstructor
 @Getter
@@ -17,13 +18,13 @@ public class PostDetailByLocationResponse {
     private final List<Long> temperatureTagIds;
     private final boolean likeByUser;
 
-    public static PostDetailByLocationResponse of(Long postId, String url, Long seasonTagId, List<Long> weatherTagIds, List<Long> temperatureTagIds, boolean like){
+    public static PostDetailByLocationResponse of(Long postId, String url, Map<String, List<Long>> tags, boolean like){
         return PostDetailByLocationResponse.builder()
                 .postId(postId)
                 .thumbnail(url)
-                .seasonTagId(seasonTagId)
-                .weatherTagIds(weatherTagIds)
-                .temperatureTagIds(temperatureTagIds)
+                .seasonTagId(tags.get("SEASON").get(0))
+                .weatherTagIds(tags.get("WEATHER"))
+                .temperatureTagIds(tags.get("TEMPERATURE"))
                 .likeByUser(like)
                 .build();
     }
