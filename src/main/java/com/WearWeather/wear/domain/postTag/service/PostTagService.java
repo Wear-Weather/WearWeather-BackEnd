@@ -1,6 +1,5 @@
 package com.WearWeather.wear.domain.postTag.service;
 
-import com.WearWeather.wear.domain.post.entity.Post;
 import com.WearWeather.wear.domain.postTag.entity.PostTag;
 import com.WearWeather.wear.domain.postTag.repository.PostTagRepository;
 import com.WearWeather.wear.domain.tag.dto.TaggableRequest;
@@ -19,31 +18,29 @@ public class PostTagService {
     private final TagRepository tagRepository;
     private final PostTagRepository postTagRepository;
 
-    public void saveAllTag(Post post, TaggableRequest request) {
-        saveTags(post, request.getWeatherTagIds());
-        saveTags(post, request.getTemperatureTagIds());
-        saveTag(post, request.getSeasonTagId());
+    public void saveAllTag(Long postId, TaggableRequest request) {
+        saveTags(postId, request.getWeatherTagIds());
+        saveTags(postId, request.getTemperatureTagIds());
+        saveTag(postId, request.getSeasonTagId());
     }
 
-    private void saveTags(Post post, Set<Long> tagIds) {
+    private void saveTags(Long postId, Set<Long> tagIds) {
         for (Long tagId : tagIds) {
-            saveTag(post, tagId);
+            saveTag(postId, tagId);
         }
     }
 
-    private void saveTag(Post post, Long tagId) {
+    private void saveTag(Long postId, Long tagId) {
         Tag tag = tagRepository.findById(tagId)
             .orElseThrow(() -> new CustomException(ErrorCode.TAG_NOT_FOUND));
         PostTag postTag = PostTag.builder()
-            .post(post)
-            .tag(tag)
+            .postId(postId)
+            .tagId(tagId)
             .build();
         postTagRepository.save(postTag);
-        post.addPostTag(postTag);
     }
 
-    public void deleteTagsByPost(Post post) {
-        postTagRepository.deleteByPost(post);
+    public void deleteTagsByPost(Long postId) {
+        postTagRepository.deleteByPostId(postId);
     }
-
 }

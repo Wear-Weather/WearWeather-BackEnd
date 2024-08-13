@@ -21,7 +21,7 @@ public class PostImageService {
     @Transactional
     public Long createPostImage(MultipartFile multipartFile, ImageInfoDto imageInfoDto) {
         PostImage postImage = PostImage.builder()
-            .post(null)
+            .postId(null)
             .name(imageInfoDto.getS3Name())
             .originName(multipartFile.getOriginalFilename())
             .byteSize((int) multipartFile.getSize())

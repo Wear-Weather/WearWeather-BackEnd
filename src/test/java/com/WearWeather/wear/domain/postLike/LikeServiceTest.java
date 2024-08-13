@@ -1,8 +1,15 @@
 package com.WearWeather.wear.domain.postLike;
 
-import com.WearWeather.wear.domain.postLike.entity.Like;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.WearWeather.wear.domain.post.entity.Post;
 import com.WearWeather.wear.domain.post.service.PostService;
+import com.WearWeather.wear.domain.postLike.entity.Like;
 import com.WearWeather.wear.domain.postLike.repository.LikeRepository;
 import com.WearWeather.wear.domain.postLike.service.LikeService;
 import com.WearWeather.wear.domain.user.entity.User;
@@ -10,17 +17,13 @@ import com.WearWeather.wear.domain.user.service.UserService;
 import com.WearWeather.wear.fixture.UserFixture;
 import com.WearWeather.wear.global.exception.CustomException;
 import com.WearWeather.wear.global.exception.ErrorCode;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 @DisplayName("UserService 테스트")
 @ExtendWith(MockitoExtension.class)
@@ -111,10 +114,10 @@ public class LikeServiceTest {
         String userEmail = UserFixture.email;
 
         when(userService.getUserByEmail(userEmail)).thenReturn(user);
-        when(likeRepository.findByPostIdAndUserId(post.getPostId(), user.getUserId())).thenReturn(Optional.empty());
+        when(likeRepository.findByPostIdAndUserId(post.getId(), user.getUserId())).thenReturn(Optional.empty());
 
         CustomException exception = assertThrows(CustomException.class, () ->
-                likeService.removeLike(post.getPostId(), userEmail));
+            likeService.removeLike(post.getId(), userEmail));
         assertEquals(ErrorCode.NOT_LIKED_POST, exception.getErrorCode());
     }
 }
