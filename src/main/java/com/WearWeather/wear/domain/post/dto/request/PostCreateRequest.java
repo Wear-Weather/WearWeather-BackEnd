@@ -31,11 +31,11 @@ public class PostCreateRequest implements PostImageRequest, TaggableRequest {
     @Valid
     private final Location location;
 
-    @NotBlank
+    @NotNull
     @Size(max = 2)
     private final Set<Long> weatherTagIds;
 
-    @NotBlank
+    @NotNull
     @Size(max = 2)
     private final Set<Long> temperatureTagIds;
 
