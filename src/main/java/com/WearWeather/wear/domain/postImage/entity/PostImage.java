@@ -1,16 +1,12 @@
 package com.WearWeather.wear.domain.postImage.entity;
 
 
-import com.WearWeather.wear.domain.post.entity.Post;
 import com.WearWeather.wear.global.common.BaseTimeEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import java.io.Serializable;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -26,9 +22,8 @@ public class PostImage extends BaseTimeEntity implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "post_id")
-    private Post post;
+    @Column(name = "post_id")
+    private Long postId;
 
     @Column(nullable = false)
     private String name;         // s3에 저장된 이름
@@ -43,8 +38,8 @@ public class PostImage extends BaseTimeEntity implements Serializable {
     private int height;
 
     @Builder
-    public PostImage(Post post, String name, String originName, int byteSize, int width, int height) {
-        this.post = post;
+    public PostImage(Long postId, String name, String originName, int byteSize, int width, int height) {
+        this.postId = postId;
         this.name = name;
         this.originName = originName;
         this.byteSize = byteSize;
@@ -52,7 +47,7 @@ public class PostImage extends BaseTimeEntity implements Serializable {
         this.height = height;
     }
 
-    public void addPost(Post post) {
-        this.post = post;
+    public void updatePostId(Long postId) {
+        this.postId = postId;
     }
 }
