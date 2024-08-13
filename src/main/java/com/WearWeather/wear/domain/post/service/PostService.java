@@ -45,6 +45,9 @@ public class PostService {
     private final LikeRepository likeRepository;
     private final AwsS3Service awsS3Service;
 
+    private static final String SORT_COLUMN_BY_CREATE_AT = "createAt";
+    private static final String SORT_COLUMN_BY_LIKE_COUNT = "likeCount";
+
     @Transactional
     public Long createPost(String email, PostCreateRequest request) {
         User user = userService.getUserByEmail(email);
@@ -205,18 +208,15 @@ public class PostService {
 
     public String getSortColumnName(SortType sortType){
 
-        String latest = "createAt";
-        String recommended = "likeCount";
-
         if(Objects.equals(sortType, SortType.LATEST)){
-            return latest;
+            return SORT_COLUMN_BY_CREATE_AT;
         }
 
         if(Objects.equals(sortType, SortType.RECOMMENDED)){
-            return recommended;
+            return SORT_COLUMN_BY_LIKE_COUNT;
         }
 
-        return latest;
+        return SORT_COLUMN_BY_CREATE_AT;
     }
 
     public PostDetailByLocationResponse getPostDetailByLocation(Post post, Long userId){
