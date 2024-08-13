@@ -19,7 +19,7 @@ public class PostDetailResponse {
     private final String createAt;
     private final String title;
     private final String content;
-    private final List<String> images;
+    private final List<String> imageUrls;
     private final Location location;
     private final Long seasonTagId;
     private final List<Long> weatherTagIds;
@@ -27,7 +27,7 @@ public class PostDetailResponse {
     private final boolean likeByUser;
     private final int likedCount;
 
-    public static PostDetailResponse of(String nickname, Post post, List<String> images, Map<String, List<Long>> tags, boolean like){
+    public static PostDetailResponse of(String nickname, Post post, List<String> imageUrls, Map<String, List<Long>> tags, boolean like){
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm");
         String formattedDateTime = post.getCreateAt().format(formatter);
@@ -39,7 +39,7 @@ public class PostDetailResponse {
                 .content(post.getContent())
                 .location(post.getLocation())
                 .likedCount(post.getLikeCount())
-                .images(images)
+                .imageUrls(imageUrls)
                 .seasonTagId(tags.get("SEASON").get(0))
                 .weatherTagIds(tags.get("WEATHER"))
                 .temperatureTagIds(tags.get("TEMPERATURE"))
