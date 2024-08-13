@@ -1,9 +1,9 @@
-package com.WearWeather.wear.domain.tag.service;
+package com.WearWeather.wear.domain.postTag.service;
 
-import com.WearWeather.wear.domain.post.dto.request.PostCreateRequest;
 import com.WearWeather.wear.domain.post.entity.Post;
 import com.WearWeather.wear.domain.postTag.entity.PostTag;
 import com.WearWeather.wear.domain.postTag.repository.PostTagRepository;
+import com.WearWeather.wear.domain.tag.dto.TaggableRequest;
 import com.WearWeather.wear.domain.tag.entity.Tag;
 import com.WearWeather.wear.domain.tag.repository.TagRepository;
 import com.WearWeather.wear.global.exception.CustomException;
@@ -14,12 +14,12 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class TagService {
+public class PostTagService {
 
     private final TagRepository tagRepository;
     private final PostTagRepository postTagRepository;
 
-    public void saveTags(Post post, PostCreateRequest request) {
+    public void saveAllTag(Post post, TaggableRequest request) {
         saveTags(post, request.getWeatherTagIds());
         saveTags(post, request.getTemperatureTagIds());
         saveTag(post, request.getSeasonTagId());
@@ -41,4 +41,9 @@ public class TagService {
         postTagRepository.save(postTag);
         post.addPostTag(postTag);
     }
+
+    public void deleteTagsByPost(Post post) {
+        postTagRepository.deleteByPost(post);
+    }
+
 }

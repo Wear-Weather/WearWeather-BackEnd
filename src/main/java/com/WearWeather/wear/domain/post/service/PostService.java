@@ -2,8 +2,10 @@ package com.WearWeather.wear.domain.post.service;
 
 import com.WearWeather.wear.domain.post.dto.request.PostCreateRequest;
 import com.WearWeather.wear.domain.post.dto.response.TopLikedPostDetailResponse;
+import com.WearWeather.wear.domain.post.dto.request.PostUpdateRequest;
 import com.WearWeather.wear.domain.post.entity.Post;
 import com.WearWeather.wear.domain.post.repository.PostRepository;
+import com.WearWeather.wear.domain.postImage.dto.request.PostImageRequest;
 import com.WearWeather.wear.domain.postImage.entity.PostImage;
 import com.WearWeather.wear.domain.postImage.repository.PostImageRepository;
 import com.WearWeather.wear.domain.postLike.repository.LikeRepository;
@@ -12,6 +14,7 @@ import com.WearWeather.wear.domain.storage.service.AwsS3Service;
 import com.WearWeather.wear.domain.tag.entity.Tag;
 import com.WearWeather.wear.domain.tag.repository.TagRepository;
 import com.WearWeather.wear.domain.tag.service.TagService;
+import com.WearWeather.wear.domain.postTag.service.PostTagService;
 import com.WearWeather.wear.domain.user.entity.User;
 import com.WearWeather.wear.domain.user.service.UserService;
 import com.WearWeather.wear.global.exception.CustomException;
@@ -32,6 +35,7 @@ public class PostService {
     private final PostRepository postRepository;
     private final TagRepository tagRepository;
     private final TagService tagService;
+    private final PostTagService postTagService;
     private final PostImageRepository postImageRepository;
     private final UserService userService;
     private final LikeRepository likeRepository;
@@ -42,15 +46,32 @@ public class PostService {
         User user = userService.getUserByEmail(email);
         Post post = request.toEntity(user.getUserId());
 
-        postRepository.save(post);
-
         addImagesToPost(request, post);
-        tagService.saveTags(post, request);
+        postTagService.saveAllTag(post, request);
 
         return post.getPostId();
     }
 
-    private void addImagesToPost(PostCreateRequest request, Post post) {
+    @Transactional
+    public void updatePost(Long postId, PostUpdateRequest request) {
+        Post post = findById(postId);
+        post.modifyPostAttributes(request.getTitle(), request.getContent(), request.getLocation());
+
+        addImagesToPost(request, post);
+
+        postTagService.deleteTagsByPost(post);
+        post.getPostTags().clear();
+
+        postTagService.saveAllTag(post, request);
+    }
+
+    @Transactional
+    public void deletePost(Long postId) {
+        Post post = findById(postId);
+        postRepository.delete(post);
+    }
+
+    private void addImagesToPost(PostImageRequest request, Post post) {
         List<PostImage> postImages = postImageRepository.findByIdIn(request.getImageId());
 
         for (int i = 0; i < postImages.size(); i++) {
@@ -60,7 +81,6 @@ public class PostService {
             }
             post.addPostImages(postImage);
 
-            // 첫 번째 이미지를 대표 이미지로 설정
             if (i == 0) {
                 post.addThumbnailImageId(postImage.getId());
             }
@@ -68,14 +88,13 @@ public class PostService {
     }
 
     public void validatePostExists(Long postId) {
-
         if (!postRepository.existsById(postId)) {
             throw new CustomException(ErrorCode.NOT_EXIST_POST);
         }
     }
 
     @Transactional
-    public void incrementLikeCount(Long postId){
+    public void incrementLikeCount(Long postId) {
         Post post = findById(postId);
         post.updateLikeCount();
     }
@@ -86,9 +105,9 @@ public class PostService {
         post.removeLikeCount();
     }
 
-    public Post findById(Long postId){
+    public Post findById(Long postId) {
         return postRepository.findById(postId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_POST));
+            .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_POST));
     }
 
     public List<TopLikedPostDetailResponse> getTopLikedPosts(String email){
