@@ -2,11 +2,9 @@ package com.WearWeather.wear.domain.post.service;
 
 import com.WearWeather.wear.domain.post.dto.request.PostCreateRequest;
 import com.WearWeather.wear.domain.post.dto.request.PostUpdateRequest;
+import com.WearWeather.wear.domain.post.dto.request.PostsByFiltersRequest;
 import com.WearWeather.wear.domain.post.dto.request.PostsByLocationRequest;
-import com.WearWeather.wear.domain.post.dto.response.PostDetailByLocationResponse;
-import com.WearWeather.wear.domain.post.dto.response.PostDetailResponse;
-import com.WearWeather.wear.domain.post.dto.response.PostsByLocationResponse;
-import com.WearWeather.wear.domain.post.dto.response.TopLikedPostDetailResponse;
+import com.WearWeather.wear.domain.post.dto.response.*;
 import com.WearWeather.wear.domain.post.entity.Post;
 import com.WearWeather.wear.domain.post.entity.SortType;
 import com.WearWeather.wear.domain.post.repository.PostRepository;
@@ -245,4 +243,42 @@ public class PostService {
             like
         );
     }
+
+    public PostsByFiltersResponse searchPostsWithFilters(String email, PostsByFiltersRequest request) {
+        User user = userService.getUserByEmail(email);
+
+        List<SearchPostDetailResponse> responses = getPostDetailByFilters(request, user.getUserId());
+
+        return PostsByFiltersResponse.of(responses);
+    }
+
+    public List<SearchPostDetailResponse> getPostDetailByFilters(PostsByFiltersRequest request, Long userId){
+        //TODO : getPostDetailByLocation()메서드랑 중복 제거하기
+
+        String sortType = getSortColumnName(request.getSort());
+
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), Sort.by(sortType).descending());
+        List<Post> posts = postRepository.findPostsByFilters(request);
+
+        return posts.stream()
+                .map(post -> getPostDetailByFilters(post, userId))
+                .toList();
+    }
+
+    public SearchPostDetailResponse getPostDetailByFilters(Post post, Long userId){
+
+        String url = getImageUrl(post.getThumbnailImageId());
+
+        Map<String, List<Long>> tags =  getTagsByPostId(post.getId());
+
+        boolean like = checkLikeByPostAndUser(post.getId(), userId);
+
+        return SearchPostDetailResponse.of(
+                post,
+                url,
+                tags,
+                like
+        );
+    }
+
 }
