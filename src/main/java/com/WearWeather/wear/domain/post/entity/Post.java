@@ -1,9 +1,6 @@
 package com.WearWeather.wear.domain.post.entity;
 
-import com.WearWeather.wear.domain.postImage.entity.PostImage;
-import com.WearWeather.wear.domain.postTag.entity.PostTag;
 import com.WearWeather.wear.global.common.BaseTimeEntity;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -11,16 +8,12 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.BatchSize;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -33,7 +26,7 @@ public class Post extends BaseTimeEntity implements Serializable {
     @Id
     @Column(name = "post_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long postId;
+    private Long id;
 
     @Column(name = "user_id", nullable = false)
     private Long userId;
@@ -56,24 +49,6 @@ public class Post extends BaseTimeEntity implements Serializable {
 
     @Column(name = "thumbnail_image_id")
     private Long thumbnailImageId; // 대표 이미지 ID 필드
-
-    @Builder.Default
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<PostTag> postTags = new ArrayList<>();
-
-    @BatchSize(size = 100)
-    @Builder.Default
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<PostImage> postImages = new ArrayList<>();
-
-    public void addPostImages(PostImage postImage) {
-        this.postImages.add(postImage);
-        postImage.addPost(this);
-    }
-
-    public void addPostTag(PostTag postTag) {
-        this.postTags.add(postTag);
-    }
 
     public void addThumbnailImageId(Long postImageId) {
         this.thumbnailImageId = postImageId;

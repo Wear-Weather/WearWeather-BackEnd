@@ -28,11 +28,11 @@ public class PostUpdateRequest implements PostImageRequest, TaggableRequest {
 
     private final Location location;
 
-    @NotBlank
+    @NotNull
     @Size(max = 2)
     private final Set<Long> weatherTagIds;
 
-    @NotBlank
+    @NotNull
     @Size(max = 2)
     private final Set<Long> temperatureTagIds;
 

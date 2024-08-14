@@ -1,14 +1,10 @@
 package com.WearWeather.wear.domain.postTag.entity;
 
-import com.WearWeather.wear.domain.post.entity.Post;
-import com.WearWeather.wear.domain.tag.entity.Tag;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -25,17 +21,15 @@ public class PostTag {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "post_id")
-    private Post post;
+    @Column(name = "post_id", nullable = false)
+    private Long postId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tag_id")
-    private Tag tag;
+    @Column(name = "tag_id", nullable = false)
+    private Long tagId;
 
     @Builder
-    public PostTag(Post post, Tag tag) {
-        this.post = post;
-        this.tag = tag;
+    public PostTag(Long postId, Long tagId) {
+        this.postId = postId;
+        this.tagId = tagId;
     }
 }
