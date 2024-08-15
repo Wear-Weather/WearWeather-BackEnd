@@ -7,6 +7,7 @@ public class UserFixture {
 
     public static final String email = "abcd@gmail.com";
     public static final String password = "abcd12!@";
+    public static final String encodedPassword = "encodedPassword";
     public static final String name = "스프링";
     public static final String nickname = "날씨웨어";
     public static final boolean isSocial = false;
@@ -23,7 +24,7 @@ public class UserFixture {
     public static User createUser() {
         return User.builder()
                 .email(email)
-                .password(password)
+                .password(encodedPassword)
                 .name(name)
                 .nickname(nickname)
                 .isSocial(false)

@@ -71,7 +71,7 @@ public class UserService {
     public void findUserPassword(String email, String name, String nickname) {
         boolean user = userRepository.existsByEmailAndNameAndNickname(email, name, nickname);
 
-        if (user) {
+        if (!user) {
             throw new CustomException(ErrorCode.NOT_EXIST_USER);
         }
     }
