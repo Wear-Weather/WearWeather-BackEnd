@@ -156,18 +156,20 @@ public class AuthServiceTest {
     @DisplayName("예외 테스트 : 유효하지 않은 refresh token으로 재발급 시도하여 예외가 발생한다.")
     public void reissueWithInvalidRefreshToken() {
         // given
-        RefresehTokenRequest request = new RefresehTokenRequest("invalidRefreshToken");
-        String email = "user@example.com";
+        String userEmail = "test@example.com";
+        String refreshToken = "invalid_refresh_token";
+        RefresehTokenRequest request = new RefresehTokenRequest(refreshToken);
 
-        when(tokenProvider.getRefreshTokenInfo(request.getRefreshToken())).thenReturn(email);
-
-        User user = UserFixture.createUser(email, "encodedPassword");
-        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
-        when(redisService.getValues(email)).thenReturn("validRefreshToken");
+        when(tokenProvider.getRefreshTokenInfo(refreshToken)).thenReturn(userEmail);
+        when(redisService.getValues(userEmail)).thenReturn("different_refresh_token");
 
         // when & then
-        CustomException exception = assertThrows(CustomException.class, () -> authService.reissue(request));
+        CustomException exception = assertThrows(CustomException.class, () -> {
+            authService.reissue(request);
+        });
+
         assertEquals(ErrorCode.INVALID_REFRESH_TOKEN, exception.getErrorCode());
+
     }
 
 
@@ -175,23 +177,23 @@ public class AuthServiceTest {
     @DisplayName("정상 테스트 : 정상적인 토큰 재발급 시 새로운 access token과 refresh token이 생성된다.")
     public void successfulReissueTokens() {
         // given
-        RefresehTokenRequest request = new RefresehTokenRequest("validRefreshToken");
-        String email = "user@example.com";
+        String userEmail = "test@example.com";
+        String refreshToken = "valid_refresh_token";
+        String newAccessToken = "new_access_token";
+        String newRefreshToken = "new_refresh_token";
+        RefresehTokenRequest request = new RefresehTokenRequest(refreshToken);
 
-        when(tokenProvider.getRefreshTokenInfo(request.getRefreshToken())).thenReturn(email);
-
-        User user = UserFixture.createUser(email, "encodedPassword");
-        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
-        when(redisService.getValues(email)).thenReturn(request.getRefreshToken());
-        when(tokenProvider.createAccessToken(any(Authentication.class))).thenReturn("newAccessToken");
-        when(tokenProvider.createRefreshToken(email)).thenReturn("newRefreshToken");
+        when(tokenProvider.getRefreshTokenInfo(refreshToken)).thenReturn(userEmail);
+        when(redisService.getValues(userEmail)).thenReturn(refreshToken);
+        when(tokenProvider.createAccessToken(any(Authentication.class))).thenReturn(newAccessToken);
+        when(tokenProvider.createRefreshToken(userEmail)).thenReturn(newRefreshToken);
 
         // when
-        TokenResponse newTokenResponse = authService.reissue(request);
+        TokenResponse response = authService.reissue(request);
 
         // then
-        assertNotNull(newTokenResponse);
-        assertEquals("newAccessToken", newTokenResponse.getAccessToken());
-        assertEquals("newRefreshToken", newTokenResponse.getRefreshToken());
+        assertNotNull(response);
+        assertEquals(newAccessToken, response.getAccessToken());
+        assertEquals(newRefreshToken, response.getRefreshToken());
     }
 }
