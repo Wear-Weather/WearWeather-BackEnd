@@ -18,6 +18,17 @@ jobs:
           - 6379:6379
         options: --health-cmd "redis-cli ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
+      mysql:
+        image: mysql:latest
+        env:
+          MYSQL_ROOT_PASSWORD: test_password
+          MYSQL_DATABASE: test_db
+          MYSQL_USER: test_user
+          MYSQL_PASSWORD: test_password
+        ports:
+          - 3306:3306
+        options: --health-cmd "mysqladmin ping --silent" --health-interval=10s --health-timeout=5s --health-retries=3
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -37,5 +48,18 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      - name: Wait for MySQL to be ready
+        run: |
+          for i in {1..30}; do
+            if mysqladmin ping --host=localhost --user=test_user --password=test_password --silent; then
+              echo "MySQL is ready!"
+              break
+            fi
+            echo "Waiting for MySQL to be ready..."
+            sleep 5
+          done
+
       - name: Build and Test
-        run: ./gradlew clean build -x test
+        env:
+          SPRING_PROFILES_ACTIVE: test
+        run: ./gradlew clean build
