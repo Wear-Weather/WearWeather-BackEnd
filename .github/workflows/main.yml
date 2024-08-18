@@ -37,16 +37,5 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Wait for MySQL to be ready
-        run: sleep 20
-
       - name: Build and Test
-        env:
-          SPRING_DATASOURCE_URL: ${{ secrets.DB_URL }}
-          SPRING_DATASOURCE_USERNAME: ${{ secrets.DB_USERNAME }}
-          SPRING_DATASOURCE_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          SPRING_DATASOURCE_DRIVER_CLASS_NAME: ${{ secrets.DB_DRIVER_CLASS_NAME }}
-          SPRING_JPA_HIBERNATE_DDL_AUTO: ${{ secrets.DB_HIBERNATE_DDL_AUTO }}
-          SPRING_JPA_HIBERNATE_DIALECT: ${{ secrets.DB_HIBERNATE_DIALECT }}
-          SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: ${{ secrets.DB_HIBERNATE_FORMAT_SQL }}
-        run: ./gradlew clean build
+        run: ./gradlew clean build -x text
