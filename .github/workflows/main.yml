@@ -38,4 +38,4 @@ jobs:
           java-version: 17
 
       - name: Build and Test
-        run: ./gradlew clean build -x text
+        run: ./gradlew clean build -x test
