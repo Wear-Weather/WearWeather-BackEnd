@@ -18,17 +18,6 @@ jobs:
           - 6379:6379
         options: --health-cmd "redis-cli ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
-      mysql:
-        image: mysql:latest
-        env:
-          MYSQL_ROOT_PASSWORD: root_password
-          MYSQL_DATABASE: test_db
-          MYSQL_USER: test_user
-          MYSQL_PASSWORD: test_password
-        ports:
-          - 3306:3306
-        options: --health-cmd "mysqladmin ping --silent" --health-interval=10s --health-timeout=5s --health-retries=3
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -53,10 +42,11 @@ jobs:
 
       - name: Build and Test
         env:
-          REDIS_HOST: 127.0.0.1
-          MYSQL_HOST: 127.0.0.1
-          MYSQL_PORT: 3306
-          MYSQL_DATABASE: test_db
-          MYSQL_USER: test_user
-          MYSQL_PASSWORD: test_password
+          SPRING_DATASOURCE_URL: ${{ secrets.DB_URL }}
+          SPRING_DATASOURCE_USERNAME: ${{ secrets.DB_USERNAME }}
+          SPRING_DATASOURCE_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          SPRING_DATASOURCE_DRIVER_CLASS_NAME: ${{ secrets.DB_DRIVER_CLASS_NAME }}
+          SPRING_JPA_HIBERNATE_DDL_AUTO: ${{ secrets.DB_HIBERNATE_DDL_AUTO }}
+          SPRING_JPA_HIBERNATE_DIALECT: ${{ secrets.DB_HIBERNATE_DIALECT }}
+          SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: ${{ secrets.DB_HIBERNATE_FORMAT_SQL }}
         run: ./gradlew clean build
