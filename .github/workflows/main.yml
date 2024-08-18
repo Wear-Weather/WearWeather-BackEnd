@@ -11,6 +11,13 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:latest
+        ports:
+          - 6379:6379
+        options: --health-cmd "redis-cli ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
     steps:
       - name: Github Repository 파일 불러오기
         uses: actions/checkout@v4
@@ -22,5 +29,6 @@ jobs:
           java-version: 17
 
       - name: 테스트 및 빌드하기
+        env:
+          REDIS_HOST: 127.0.0.1  # 필요에 따라 환경 변수를 설정
         run: ./gradlew clean build
-
