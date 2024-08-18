@@ -18,12 +18,22 @@ jobs:
           - 6379:6379
         options: --health-cmd "redis-cli ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
+      mysql:
+        image: mysql:latest
+        env:
+          MYSQL_ROOT_PASSWORD: root_password
+          MYSQL_DATABASE: test_db
+          MYSQL_USER: test_user
+          MYSQL_PASSWORD: test_password
+        ports:
+          - 3306:3306
+        options: --health-cmd "mysqladmin ping --silent" --health-interval=10s --health-timeout=5s --health-retries=3
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
           submodules: true
-          token: ${{ secrets.SUBMODULE_TOKEN }}
 
       - name: Initialize submodules
         run: git submodule update --init --recursive
@@ -37,7 +47,18 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      - name: Wait for MySQL to be ready
+        run: sleep 20
+
+      - name: Create application.yml
+        run: echo "${{ secrets.APPLICATION_PROPERTIES }}" > ./src/main/resources/application.yml
+
       - name: Build and Test
         env:
-          REDIS_HOST: 127.0.0.1  # Redis 서비스의 호스트 설정
+          REDIS_HOST: 127.0.0.1
+          MYSQL_HOST: 127.0.0.1
+          MYSQL_PORT: 3306
+          MYSQL_DATABASE: test_db
+          MYSQL_USER: test_user
+          MYSQL_PASSWORD: test_password
         run: ./gradlew clean build
