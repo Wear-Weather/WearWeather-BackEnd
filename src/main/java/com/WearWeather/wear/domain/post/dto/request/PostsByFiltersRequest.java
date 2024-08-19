@@ -24,7 +24,7 @@ public class PostsByFiltersRequest {
     private final int size;
 
     @Valid
-    private final List<Location> locationList; //TODO : Location Long타입으로 변경 시 수정
+    private final List<Location> locationList;
 
     private final List<Long> seasonTagIds;
     private final List<Long> weatherTagIds;

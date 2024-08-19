@@ -29,10 +29,10 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
     public List<Post> findPostsByFilters(PostsByFiltersRequest request) {
 
         //tag 필터
-        List<Long> PostIdsByTag = getPostIdByTagFilter(request);
+        List<Long> PostIdsByTag = findPostIdByTagFilter(request);
 
         //location 필터
-        List<Long> PostIdsByLocation =getPostIdByLocationFilter(request);
+        List<Long> PostIdsByLocation = findPostIdByLocationFilter(request);
 
         return jpaQueryFactory
                 .selectFrom(qPost)
@@ -45,7 +45,7 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
 
     }
 
-    public List<Long> getPostIdByTagFilter(PostsByFiltersRequest request){
+    public List<Long> findPostIdByTagFilter(PostsByFiltersRequest request){
 
         List<Long> seasonTagIds = request.getSeasonTagIds();
         List<Long> weatherTagIds = request.getWeatherTagIds();
@@ -75,7 +75,7 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
         return postIdByTagFilter.fetch();
     }
 
-    public List<Long> getPostIdByLocationFilter(PostsByFiltersRequest request) {
+    public List<Long> findPostIdByLocationFilter(PostsByFiltersRequest request) {
 
         List<Location> locationList = request.getLocationList();
 
@@ -83,7 +83,7 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
                 .select(qPost.id)
                 .from(qPost);
 
-        if (locationList != null && !locationList.isEmpty()) { //TODO : 위치 데이터 Long 타입으로 변경시 수정 예정
+        if (locationList != null && !locationList.isEmpty()) {
             BooleanExpression locationTagCondition = qPost.location.in(locationList);
             postIdByLocationFilter.where(locationTagCondition);
         }
