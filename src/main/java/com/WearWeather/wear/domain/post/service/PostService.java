@@ -258,7 +258,7 @@ public class PostService {
         String sortType = getSortColumnName(request.getSort());
 
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), Sort.by(sortType).descending());
-        List<Post> posts = postRepository.findPostsByFilters(request);
+        Page<Post> posts = postRepository.findPostsByFilters(request, pageable);
 
         return posts.stream()
                 .map(post -> getPostDetailByFilters(post, userId))

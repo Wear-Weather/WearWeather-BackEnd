@@ -2,10 +2,12 @@ package com.WearWeather.wear.domain.post.repository;
 
 import com.WearWeather.wear.domain.post.dto.request.PostsByFiltersRequest;
 import com.WearWeather.wear.domain.post.entity.Post;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
 
 public interface PostRepositoryCustom {
-        List<Post> findPostsByFilters(PostsByFiltersRequest request);
+        Page<Post> findPostsByFilters(PostsByFiltersRequest request, Pageable pageable);
 }

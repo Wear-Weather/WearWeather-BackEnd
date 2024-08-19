@@ -6,12 +6,18 @@ import com.WearWeather.wear.domain.post.entity.Post;
 import com.WearWeather.wear.domain.post.entity.QPost;
 import com.WearWeather.wear.domain.postTag.entity.QPostTag;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.support.PageableExecutionUtils;
 
 import java.util.List;
 
@@ -26,22 +32,15 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
     BooleanBuilder havingConditions = new BooleanBuilder();
 
     @Override
-    public List<Post> findPostsByFilters(PostsByFiltersRequest request) {
+    public Page<Post> findPostsByFilters(PostsByFiltersRequest request, Pageable pageable) {
 
-        //tag 필터
-        List<Long> PostIdsByTag = findPostIdByTagFilter(request);
+        List<Long> postIdsByLocation = findPostIdByLocationFilter(request);
+        List<Long> postIdsByTag = findPostIdByTagFilter(request);
 
-        //location 필터
-        List<Long> PostIdsByLocation = findPostIdByLocationFilter(request);
+        List<Post> postsByPageable = getQueryByFilters(postIdsByLocation, postIdsByTag, pageable);
+        JPAQuery<Long> postsQueryCount = getPostsQueryCount(postIdsByLocation, postIdsByTag);
 
-        return jpaQueryFactory
-                .selectFrom(qPost)
-                .where(
-                        qPost.id.in(PostIdsByLocation),
-                        qPost.id.in(PostIdsByTag)
-                )
-                .orderBy(qPost.createAt.desc())
-                        .fetch();
+        return PageableExecutionUtils.getPage(postsByPageable, pageable, postsQueryCount::fetchOne);
 
     }
 
@@ -110,5 +109,49 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
             tagConditions.or(tagCondition);
             havingConditions.and(havingCondition(qPostTag.tagId, tagIds));
         }
+    }
+
+    private OrderSpecifier<?> getSortColumn(Sort sort){
+
+        if (sort == null || sort.isEmpty()) {
+            return new OrderSpecifier<>(Order.DESC, qPost.createAt); //기본 정렬
+        }
+
+        Sort.Order order = sort.iterator().next();
+        String sortColumn = order.getProperty();
+        Order direction = order.getDirection() == Sort.Direction.ASC ? Order.ASC : Order.DESC;
+
+        return switch (sortColumn) {
+            case "createAt" -> new OrderSpecifier<>(direction, qPost.createAt);
+            case "likeCount" -> new OrderSpecifier<>(direction, qPost.likeCount);
+            default -> new OrderSpecifier<>(Order.DESC, qPost.createAt);
+        };
+    }
+
+    private List<Post> getQueryByFilters(List<Long> postIdsByLocation, List<Long> postIdsByTag, Pageable pageable){
+
+        OrderSpecifier<?> sortType = getSortColumn(pageable.getSort());
+
+        return jpaQueryFactory
+                .selectFrom(qPost)
+                .where(
+                        qPost.id.in(postIdsByLocation),
+                        qPost.id.in(postIdsByTag)
+                )
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .orderBy(sortType)
+                .fetch();
+    }
+
+    private JPAQuery<Long> getPostsQueryCount(List<Long> postIdsByLocation, List<Long> postIdsByTag){
+
+        return jpaQueryFactory
+                .select(qPost.count())
+                .from(qPost)
+                .where(
+                        qPost.id.in(postIdsByLocation),
+                        qPost.id.in(postIdsByTag)
+                );
     }
 }
