@@ -32,7 +32,7 @@ jobs:
         options: --health-cmd "mysqladmin ping --silent" --health-interval=10s --health-timeout=5s --health-retries=3
 
     steps:
-      - name: Git 레포지토리 가져오기
+      - name: Github Repository 가져오기
         uses: actions/checkout@v4
         with:
           submodules: true
@@ -51,9 +51,11 @@ jobs:
           java-version: 17
 
       - name: MySQL 실행되는 시간 대기하기
-        run: sleep 30
+        run: sleep 60
 
       - name: 테스트 진행하기
+        env:
+          SPRING_PROFILES_ACTIVE: test
         run: ./gradlew --info test
 
       - name: 테스트 결과 나타내기
