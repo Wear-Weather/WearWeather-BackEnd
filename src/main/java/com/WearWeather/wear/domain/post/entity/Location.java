@@ -9,15 +9,15 @@ import lombok.Getter;
 public class Location {
 
     @Column(nullable = false)
-    private String city;
+    private Long city;
 
     @Column(nullable = false)
-    private String district;
+    private Long district;
 
     public Location() {
     }
 
-    public Location(String city, String district) {
+    public Location(Long city, Long district) {
         this.city = city;
         this.district = district;
     }

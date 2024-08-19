@@ -12,7 +12,7 @@ public class LocationController {
     private final LocationService locationService;
 
     @GetMapping
-    public void getLocationData() throws Exception {
+    public void getLocationDistrictData() throws Exception {
         locationService.getLocationData();
     }
 
