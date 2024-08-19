@@ -39,22 +39,24 @@ public class UserServiceTest {
     @DisplayName("정상 테스트 : 회원가입 테스트")
     public void registerUserTest() {
 
-        RegisterUserRequest request = UserFixture.createRegisterUserRequest();
+        RegisterUserRequest request = mock(RegisterUserRequest.class);
+        User user = mock(User.class);
+
+        when(request.getPassword()).thenReturn(UserFixture.password);
+        when(passwordEncoder.encode(UserFixture.password)).thenReturn(UserFixture.encodedPassword);
+        when(request.toEntity(UserFixture.encodedPassword)).thenReturn(user);
+
         userService.registerUser(request);
 
-        Optional<User> saveUser = userRepository.findByEmail(UserFixture.email);
-
-        assertNotNull(saveUser);
-        assertThat(saveUser.get().getNickname()).isEqualTo(UserFixture.nickname);
-
+        verify(userRepository).save(user);
     }
 
     @Test
     @DisplayName("예외 테스트 : 이미 존재하는 이메일 인증하기")
     public void registerWithExistenEmailTest() {
 
-        RegisterUserRequest request = UserFixture.createRegisterUserRequest();
-        userService.registerUser(request);
+        User user = mock(User.class);
+        when(userRepository.existsByEmail(UserFixture.email)).thenReturn(true);
 
         assertThatThrownBy(() -> userService.checkDuplicatedUserEmail(UserFixture.email))
             .isInstanceOf(CustomException.class)
@@ -66,8 +68,7 @@ public class UserServiceTest {
     @DisplayName("예외 테스트 : 이미 존재하는 닉네임 확인하기")
     public void registerWithExistentNicknameTest() {
 
-        RegisterUserRequest request = UserFixture.createRegisterUserRequest();
-        userService.registerUser(request);
+        when(userRepository.existsByNickname(UserFixture.nickname)).thenReturn(true);
 
         assertThatThrownBy(() -> userService.checkDuplicatedUserNickName(UserFixture.nickname))
             .isInstanceOf(CustomException.class)
@@ -79,8 +80,8 @@ public class UserServiceTest {
     @DisplayName("정상 테스트 : 아이디 찾기")
     public void findEmailTest() {
 
-        RegisterUserRequest request = UserFixture.createRegisterUserRequest();
-        userService.registerUser(request);
+        User user = UserFixture.createUser();
+        when(userRepository.findByNameAndNickname(UserFixture.name, UserFixture.nickname)).thenReturn(Optional.of(user));
 
         String email = userService.findUserEmail(UserFixture.name, UserFixture.nickname);
 
@@ -102,8 +103,7 @@ public class UserServiceTest {
     @DisplayName("예외 테스트 : 비밀번호 찾기 시 일치하는 정보가 없을 때")
     public void findPasswordNotMatchRequestTest() {
 
-        RegisterUserRequest request = UserFixture.createRegisterUserRequest();
-        userService.registerUser(request);
+        when(userRepository.existsByEmailAndNameAndNickname(UserFixture.email, UserFixture.name, UserFixture.nickname)).thenReturn(false);
 
         assertThatThrownBy(() -> userService.findUserPassword(UserFixture.email, UserFixture.name, UserFixture.nickname))
             .isInstanceOf(CustomException.class)
