@@ -46,12 +46,7 @@ jobs:
           java-version: 17
 
       - name: Wait for MySQL to be ready
-        run: |
-          until echo 'SELECT 1' | mysql --host=localhost --user=test_user --password=test_password test_db > /dev/null 2>&1; do
-            echo "Waiting for MySQL to be ready..."
-            sleep 5
-          done
-          echo "MySQL is ready!"
+        run: sleep 40
 
       - name: Build and Test
         env:
