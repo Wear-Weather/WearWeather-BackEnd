@@ -1,9 +1,6 @@
 name: CI
 
 on:
-  push:
-    branches:
-      - main
   pull_request:
     branches:
       - main
@@ -50,14 +47,11 @@ jobs:
 
       - name: Wait for MySQL to be ready
         run: |
-          for i in {1..30}; do
-            if mysqladmin ping --host=localhost --user=test_user --password=test_password --silent; then
-              echo "MySQL is ready!"
-              break
-            fi
+          until echo 'SELECT 1' | mysql --host=localhost --user=test_user --password=test_password test_db > /dev/null 2>&1; do
             echo "Waiting for MySQL to be ready..."
             sleep 5
           done
+          echo "MySQL is ready!"
 
       - name: Build and Test
         env:
