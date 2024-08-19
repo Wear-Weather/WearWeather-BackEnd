@@ -47,22 +47,22 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
 
     public List<Long> getPostIdByTagFilter(PostsByFiltersRequest request){
 
-        List<Long> seasonTagsId = request.getSeasonTagIds();
-        List<Long> weatherTagsId = request.getWeatherTagIds();
-        List<Long> temperatureId = request.getTemperatureTagIds();
+        List<Long> seasonTagIds = request.getSeasonTagIds();
+        List<Long> weatherTagIds = request.getWeatherTagIds();
+        List<Long> temperatureTagIds = request.getTemperatureTagIds();
 
         JPAQuery<Long> postIdByTagFilter = jpaQueryFactory.select(qPostTag.postId)
                 .from(qPostTag)
                 .groupBy(qPostTag.postId);
 
-        BooleanExpression seasonTagCondition = createTagCondition(qPostTag, seasonTagsId);
-        createWhereAndHavingCondition(seasonTagCondition, seasonTagsId);
+        BooleanExpression seasonTagCondition = createTagCondition(qPostTag, seasonTagIds);
+        createWhereAndHavingCondition(seasonTagCondition, seasonTagIds);
 
-        BooleanExpression weatherTagCondition = createTagCondition(qPostTag, weatherTagsId);
-        createWhereAndHavingCondition(weatherTagCondition, weatherTagsId);
+        BooleanExpression weatherTagCondition = createTagCondition(qPostTag, weatherTagIds);
+        createWhereAndHavingCondition(weatherTagCondition, weatherTagIds);
 
-        BooleanExpression temperatureTagCondition = createTagCondition(qPostTag, temperatureId);
-        createWhereAndHavingCondition(temperatureTagCondition, temperatureId);
+        BooleanExpression temperatureTagCondition = createTagCondition(qPostTag, temperatureTagIds);
+        createWhereAndHavingCondition(temperatureTagCondition, temperatureTagIds);
 
         if(tagConditions.hasValue()){
             postIdByTagFilter.where(tagConditions);
