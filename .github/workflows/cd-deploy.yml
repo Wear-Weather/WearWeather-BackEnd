@@ -9,10 +9,19 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Github Repository 파일 불러오기
+      - name: Github Repository 가져오기
         uses: actions/checkout@v4
+        with:
+          submodules: true
+          token: ${{ secrets.SUBMODULE_TOKEN }}
 
-      - name: JDK 17버전 설치
+      - name: 서브묘듈 초기화하기
+        run: git submodule update --init --recursive
+
+      - name: 서브묘듈 main에 최신화하기
+        run: git submodule foreach git pull origin main
+
+      - name: 자바 17버전 설치하기
         uses: actions/setup-java@v4
         with:
           distribution: temurin
