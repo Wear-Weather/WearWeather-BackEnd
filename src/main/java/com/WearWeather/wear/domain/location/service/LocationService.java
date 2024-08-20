@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
+@Transactional(readOnly = true)
 public class LocationService {
 
     @Value("${location.api.key}")
@@ -31,7 +31,8 @@ public class LocationService {
     private final RestTemplate restTemplate;
     ObjectMapper objectMapper = new ObjectMapper();
 
-    public void getLocationData() throws Exception  {
+    @Transactional
+    public void saveLocationData() throws Exception  {
 
         List<City> cityList = cityRepository.findAll();
 

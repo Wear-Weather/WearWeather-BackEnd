@@ -14,7 +14,7 @@ public class LocationController {
 
     @GetMapping("/location")
     public void getLocationDistrictData() throws Exception {
-        locationService.getLocationData();
+        locationService.saveLocationData();
     }
 
     @GetMapping("/regions")
