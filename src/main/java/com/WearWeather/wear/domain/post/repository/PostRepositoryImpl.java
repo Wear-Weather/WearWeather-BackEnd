@@ -82,8 +82,16 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
                 .select(qPost.id)
                 .from(qPost);
 
+        List<Location> allCity = List.of(new Location(1L,0L));
+
         if (locationList != null && !locationList.isEmpty()) {
-            BooleanExpression locationTagCondition = qPost.location.in(locationList);
+            BooleanExpression locationTagCondition;
+
+            if (locationList.equals(allCity)) {
+                locationTagCondition = null;
+            } else {
+                locationTagCondition = qPost.location.in(locationList);
+            }
             postIdByLocationFilter.where(locationTagCondition);
         }
 

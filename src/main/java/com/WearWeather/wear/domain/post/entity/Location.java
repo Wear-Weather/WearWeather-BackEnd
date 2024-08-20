@@ -4,6 +4,8 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.Getter;
 
+import java.util.Objects;
+
 @Getter
 @Embeddable
 public class Location {
@@ -20,5 +22,19 @@ public class Location {
     public Location(Long city, Long district) {
         this.city = city;
         this.district = district;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Location location = (Location) o;
+        return Objects.equals(city, location.city) &&
+                Objects.equals(district, location.district);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(city, district);
     }
 }
