@@ -1,12 +1,10 @@
 package com.WearWeather.wear.domain.post.service;
 
+import com.WearWeather.wear.domain.location.service.LocationService;
 import com.WearWeather.wear.domain.post.dto.request.PostCreateRequest;
 import com.WearWeather.wear.domain.post.dto.request.PostUpdateRequest;
-import com.WearWeather.wear.domain.post.dto.request.PostsByLocationRequest;
-import com.WearWeather.wear.domain.post.dto.response.PostDetailByLocationResponse;
-import com.WearWeather.wear.domain.post.dto.response.PostDetailResponse;
-import com.WearWeather.wear.domain.post.dto.response.PostsByLocationResponse;
-import com.WearWeather.wear.domain.post.dto.response.TopLikedPostDetailResponse;
+import com.WearWeather.wear.domain.post.dto.response.*;
+import com.WearWeather.wear.domain.post.entity.Location;
 import com.WearWeather.wear.domain.post.entity.Post;
 import com.WearWeather.wear.domain.post.entity.SortType;
 import com.WearWeather.wear.domain.post.repository.PostRepository;
@@ -48,6 +46,7 @@ public class PostService {
     private final LikeRepository likeRepository;
     private final AwsS3Service awsS3Service;
     private final PostTagRepository postTagRepository;
+    private final LocationService locationService;
 
     private static final String SORT_COLUMN_BY_CREATE_AT = "createAt";
     private static final String SORT_COLUMN_BY_LIKE_COUNT = "likeCount";
@@ -202,18 +201,20 @@ public class PostService {
         return likeRepository.existsByPostIdAndUserId(postId, userId);
     }
 
-    public PostsByLocationResponse getPostsByLocation(String email, PostsByLocationRequest request) {
+    public PostsByLocationResponse getPostsByLocation(String email, int page, int size, String city, String district, SortType sort) {
         User user = userService.getUserByEmail(email);
-        List<PostDetailByLocationResponse> responses = getPostDetailByLocation(request, user.getUserId());
 
-        return PostsByLocationResponse.of(request.getLocation(), responses);
+        Location location = locationService.findCityIdAndDistrictId(city, district);
+        List<PostDetailByLocationResponse> responses = getPostDetailByLocation(page, size, location, sort, user.getUserId());
+
+        return PostsByLocationResponse.of(LocationResponse.of(city, district), responses);
     }
 
-    public List<PostDetailByLocationResponse> getPostDetailByLocation(PostsByLocationRequest request, Long userId) {
-        String sortType = getSortColumnName(request.getSort());
+    public List<PostDetailByLocationResponse> getPostDetailByLocation(int page, int size, Location location, SortType sort, Long userId) {
+        String sortType = getSortColumnName(sort);
 
-        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), Sort.by(sortType).descending());
-        Page<Post> posts = postRepository.findAllByLocation(pageable, request.getLocation());
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortType).descending());
+        Page<Post> posts = postRepository.findAllByLocation(pageable, location);
 
         return posts.stream()
             .map(post -> getPostDetailByLocation(post, userId))
