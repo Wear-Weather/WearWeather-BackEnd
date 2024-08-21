@@ -1,16 +1,15 @@
 package com.WearWeather.wear.domain.post.dto.request;
 
-import com.WearWeather.wear.domain.post.entity.Location;
 import com.WearWeather.wear.domain.post.entity.SortType;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.util.Collections;
 import java.util.List;
 
 @Builder
@@ -24,7 +23,7 @@ public class PostsByFiltersRequest {
     private final int size;
 
     @Valid
-    private final List<Location> locationList;
+    private final List<LocationRequest> locationList;
 
     private final List<Long> seasonTagIds;
     private final List<Long> weatherTagIds;
@@ -37,7 +36,7 @@ public class PostsByFiltersRequest {
     public PostsByFiltersRequest(
             @JsonProperty("page") int page,
             @JsonProperty("size") int size,
-            @JsonProperty("location") List<Location> locationList,
+            @JsonProperty("location") List<LocationRequest> locationList,
             @JsonProperty("seasonTagIds") List<Long> seasonTagIds,
             @JsonProperty("weatherTagIds") List<Long> weatherTagIds,
             @JsonProperty("temperatureTagIds") List<Long> temperatureTagIds,
@@ -50,5 +49,6 @@ public class PostsByFiltersRequest {
         this.temperatureTagIds = temperatureTagIds;
         this.sort = sort;
     }
+
 
 }

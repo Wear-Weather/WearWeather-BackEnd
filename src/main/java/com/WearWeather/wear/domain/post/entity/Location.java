@@ -2,10 +2,12 @@ package com.WearWeather.wear.domain.post.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import lombok.Builder;
 import lombok.Getter;
 
 import java.util.Objects;
 
+@Builder
 @Getter
 @Embeddable
 public class Location {
