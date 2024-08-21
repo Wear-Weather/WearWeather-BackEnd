@@ -5,6 +5,7 @@ import com.WearWeather.wear.domain.post.dto.request.PostUpdateRequest;
 import com.WearWeather.wear.domain.post.dto.request.PostsByFiltersRequest;
 import com.WearWeather.wear.domain.post.dto.request.PostsByLocationRequest;
 import com.WearWeather.wear.domain.post.dto.response.*;
+import com.WearWeather.wear.domain.post.entity.Location;
 import com.WearWeather.wear.domain.post.entity.Post;
 import com.WearWeather.wear.domain.post.entity.SortType;
 import com.WearWeather.wear.domain.post.repository.PostRepository;
@@ -258,20 +259,20 @@ public class PostService {
         String sortType = getSortColumnName(request.getSort());
 
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), Sort.by(sortType).descending());
-        Page<Post> posts = postRepository.findPostsByFilters(request, pageable);
+        Page<PostWithLocationName> posts = postRepository.findPostsByFilters(request, pageable);
 
         return posts.stream()
                 .map(post -> getPostDetailByFilters(post, userId))
                 .toList();
     }
 
-    public SearchPostDetailResponse getPostDetailByFilters(Post post, Long userId){
+    public SearchPostDetailResponse getPostDetailByFilters(PostWithLocationName post, Long userId){
 
-        String url = getImageUrl(post.getThumbnailImageId());
+        String url = getImageUrl(post.thumbnailImageId());
 
-        Map<String, List<Long>> tags =  getTagsByPostId(post.getId());
+        Map<String, List<Long>> tags =  getTagsByPostId(post.postId());
 
-        boolean like = checkLikeByPostAndUser(post.getId(), userId);
+        boolean like = checkLikeByPostAndUser(post.postId(), userId);
 
         return SearchPostDetailResponse.of(
                 post,

@@ -1,13 +1,17 @@
 package com.WearWeather.wear.domain.post.repository;
 
+import com.WearWeather.wear.domain.location.entity.QCity;
+import com.WearWeather.wear.domain.location.entity.QDistrict;
+import com.WearWeather.wear.domain.post.dto.request.LocationRequest;
 import com.WearWeather.wear.domain.post.dto.request.PostsByFiltersRequest;
+import com.WearWeather.wear.domain.post.dto.response.PostWithLocationName;
 import com.WearWeather.wear.domain.post.entity.Location;
-import com.WearWeather.wear.domain.post.entity.Post;
 import com.WearWeather.wear.domain.post.entity.QPost;
 import com.WearWeather.wear.domain.postTag.entity.QPostTag;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberPath;
@@ -27,17 +31,19 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
 
     QPost qPost = QPost.post;
     QPostTag qPostTag = QPostTag.postTag;
+    QCity qCity = QCity.city1;
+    QDistrict qDistrict = QDistrict.district1;
 
     BooleanBuilder tagConditions = new BooleanBuilder();
     BooleanBuilder havingConditions = new BooleanBuilder();
 
     @Override
-    public Page<Post> findPostsByFilters(PostsByFiltersRequest request, Pageable pageable) {
+    public Page<PostWithLocationName> findPostsByFilters(PostsByFiltersRequest request, Pageable pageable) {
 
         List<Long> postIdsByLocation = findPostIdByLocationFilter(request);
         List<Long> postIdsByTag = findPostIdByTagFilter(request);
 
-        List<Post> postsByPageable = getQueryByFilters(postIdsByLocation, postIdsByTag, pageable);
+        List<PostWithLocationName> postsByPageable = getQueryByFilters(postIdsByLocation, postIdsByTag, pageable);
         JPAQuery<Long> postsQueryCount = getPostsQueryCount(postIdsByLocation, postIdsByTag);
 
         return PageableExecutionUtils.getPage(postsByPageable, pageable, postsQueryCount::fetchOne);
@@ -76,7 +82,9 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
 
     public List<Long> findPostIdByLocationFilter(PostsByFiltersRequest request) {
 
-        List<Location> locationList = request.getLocationList();
+        List<Location> locationList = request.getLocationList().stream()
+                .map(LocationRequest::toEntity)
+                .toList();
 
         JPAQuery<Long> postIdByLocationFilter = jpaQueryFactory
                 .select(qPost.id)
@@ -84,7 +92,7 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
 
         List<Location> allCity = List.of(new Location(1L,0L));
 
-        if (locationList != null && !locationList.isEmpty()) {
+        if (!locationList.isEmpty()) {
 
             if (!locationList.equals(allCity)) {
                 BooleanExpression locationTagCondition;
@@ -150,12 +158,20 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
         };
     }
 
-    private List<Post> getQueryByFilters(List<Long> postIdsByLocation, List<Long> postIdsByTag, Pageable pageable){
+    private List<PostWithLocationName> getQueryByFilters(List<Long> postIdsByLocation, List<Long> postIdsByTag, Pageable pageable){
 
         OrderSpecifier<?> sortType = getSortColumn(pageable.getSort());
 
         return jpaQueryFactory
-                .selectFrom(qPost)
+                .select(Projections.constructor(PostWithLocationName.class,
+                        qPost.id.as("postId"),
+                        qPost.thumbnailImageId.as("thumbnailImageId"),
+                        qCity.city.as("cityName"),
+                        qDistrict.district.as("districtName")
+                ))
+                .from(qPost)
+                .leftJoin(qCity).on(qPost.location.city.eq(qCity.id))
+                .leftJoin(qDistrict).on(qPost.location.district.eq(qDistrict.id))
                 .where(
                         qPost.id.in(postIdsByLocation),
                         qPost.id.in(postIdsByTag)
