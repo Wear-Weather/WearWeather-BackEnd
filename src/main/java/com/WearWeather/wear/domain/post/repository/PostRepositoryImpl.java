@@ -85,10 +85,26 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
         List<Location> allCity = List.of(new Location(1L,0L));
 
         if (locationList != null && !locationList.isEmpty()) {
-            BooleanExpression locationTagCondition;
 
             if (!locationList.equals(allCity)) {
-                locationTagCondition = qPost.location.in(locationList);
+                BooleanExpression locationTagCondition;
+
+                Long districtEntireValue = 0L;
+
+                boolean hasDistrictEntireValue = locationList.stream()
+                        .anyMatch(location -> location.getDistrict().equals(districtEntireValue));
+
+                if(hasDistrictEntireValue){
+                    List<Long> city = locationList.stream()
+                            .filter(location -> location.getDistrict().equals(districtEntireValue))
+                            .map(Location::getCity)
+                            .distinct()
+                            .toList();
+                    locationTagCondition = qPost.location.city.in(city);
+                }else {
+                    locationTagCondition = qPost.location.in(locationList);
+                }
+
                 postIdByLocationFilter.where(locationTagCondition);
             }
         }
