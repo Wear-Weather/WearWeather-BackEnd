@@ -3,10 +3,7 @@ package com.WearWeather.wear.domain.post.service;
 import com.WearWeather.wear.domain.post.dto.request.PostCreateRequest;
 import com.WearWeather.wear.domain.post.dto.request.PostUpdateRequest;
 import com.WearWeather.wear.domain.post.dto.request.PostsByLocationRequest;
-import com.WearWeather.wear.domain.post.dto.response.PostDetailByLocationResponse;
-import com.WearWeather.wear.domain.post.dto.response.PostDetailResponse;
-import com.WearWeather.wear.domain.post.dto.response.PostsByLocationResponse;
-import com.WearWeather.wear.domain.post.dto.response.TopLikedPostDetailResponse;
+import com.WearWeather.wear.domain.post.dto.response.*;
 import com.WearWeather.wear.domain.post.entity.Post;
 import com.WearWeather.wear.domain.post.entity.SortType;
 import com.WearWeather.wear.domain.post.repository.PostRepository;
@@ -155,7 +152,7 @@ public class PostService {
         String postUserNickname = userService.getNicknameById(user.getUserId());
 
         Post post = findById(postId);
-        List<String> imageUrlList = getImageUrlList(post.getId());
+        ImagesResponse imageUrlList = getImagesResponse(post.getId());
         Map<String, List<Long>> tags = getTagsByPostId(post.getId());
 
         boolean like = checkLikeByPostAndUser(post.getId(), user.getUserId());
@@ -168,10 +165,15 @@ public class PostService {
             like);
     }
 
-    public List<String> getImageUrlList(Long postId) {
+    public ImagesResponse getImagesResponse(Long postId) {
+        return ImagesResponse.of(getImageDetailResponseList(postId));
+    }
+
+    public List<ImageDetailResponse> getImageDetailResponseList(Long postId) {
         List<PostImage> postImages = postImageRepository.findByPostId(postId);
+
         return postImages.stream()
-            .map(image -> getImageUrl(image.getId()))
+            .map(image -> ImageDetailResponse.of(image.getId(), getImageUrl(image.getId())))
             .toList();
     }
 
