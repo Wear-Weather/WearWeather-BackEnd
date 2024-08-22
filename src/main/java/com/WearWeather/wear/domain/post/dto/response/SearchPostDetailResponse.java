@@ -20,8 +20,9 @@ public class SearchPostDetailResponse {
     private final List<Long> weatherTagIds;
     private final List<Long> temperatureTagIds;
     private final boolean likeByUser;
+    private final boolean reportPost;
 
-    public static SearchPostDetailResponse of(PostWithLocationName post, String url, Map<String, List<Long>> tags, boolean like){
+    public static SearchPostDetailResponse of(PostWithLocationName post, String url, Map<String, List<Long>> tags, boolean like, boolean report){
         return SearchPostDetailResponse.builder()
                 .postId(post.postId())
                 .thumbnail(url)
@@ -30,6 +31,7 @@ public class SearchPostDetailResponse {
                 .weatherTagIds(tags.get("WEATHER"))
                 .temperatureTagIds(tags.get("TEMPERATURE"))
                 .likeByUser(like)
+                .reportPost(report)
                 .build();
     }
 

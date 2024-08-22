@@ -274,11 +274,14 @@ public class PostService {
 
         boolean like = checkLikeByPostAndUser(post.postId(), userId);
 
+        boolean report = false; //TODO : 신고 테이블 완성 후 수정
+
         return SearchPostDetailResponse.of(
                 post,
                 url,
                 tags,
-                like
+                like,
+                report
         );
     }
 
