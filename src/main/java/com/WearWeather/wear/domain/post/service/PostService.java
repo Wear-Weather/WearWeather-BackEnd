@@ -1,5 +1,6 @@
 package com.WearWeather.wear.domain.post.service;
 
+import com.WearWeather.wear.domain.location.service.LocationService;
 import com.WearWeather.wear.domain.post.dto.request.PostCreateRequest;
 import com.WearWeather.wear.domain.post.dto.request.PostUpdateRequest;
 import com.WearWeather.wear.domain.post.dto.request.PostsByLocationRequest;
@@ -45,6 +46,7 @@ public class PostService {
     private final LikeRepository likeRepository;
     private final AwsS3Service awsS3Service;
     private final PostTagRepository postTagRepository;
+    private final LocationService locationService;
 
     private static final String SORT_COLUMN_BY_CREATE_AT = "createAt";
     private static final String SORT_COLUMN_BY_LIKE_COUNT = "likeCount";
@@ -153,6 +155,7 @@ public class PostService {
 
         Post post = findById(postId);
         ImagesResponse imageUrlList = getImagesResponse(post.getId());
+        LocationResponse location = locationService.findCityIdAndDistrictId(post.getLocation().getCity(), post.getLocation().getDistrict());
         Map<String, List<Long>> tags = getTagsByPostId(post.getId());
 
         boolean like = checkLikeByPostAndUser(post.getId(), user.getUserId());
@@ -161,6 +164,7 @@ public class PostService {
             postUserNickname,
             post,
             imageUrlList,
+            location,
             tags,
             like);
     }
