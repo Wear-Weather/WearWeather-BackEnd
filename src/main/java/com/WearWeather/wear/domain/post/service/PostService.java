@@ -1,12 +1,10 @@
 package com.WearWeather.wear.domain.post.service;
 
+import com.WearWeather.wear.domain.location.service.LocationService;
 import com.WearWeather.wear.domain.post.dto.request.PostCreateRequest;
 import com.WearWeather.wear.domain.post.dto.request.PostUpdateRequest;
 import com.WearWeather.wear.domain.post.dto.request.PostsByLocationRequest;
-import com.WearWeather.wear.domain.post.dto.response.PostDetailByLocationResponse;
-import com.WearWeather.wear.domain.post.dto.response.PostDetailResponse;
-import com.WearWeather.wear.domain.post.dto.response.PostsByLocationResponse;
-import com.WearWeather.wear.domain.post.dto.response.TopLikedPostDetailResponse;
+import com.WearWeather.wear.domain.post.dto.response.*;
 import com.WearWeather.wear.domain.post.entity.Post;
 import com.WearWeather.wear.domain.post.entity.SortType;
 import com.WearWeather.wear.domain.post.repository.PostRepository;
@@ -48,7 +46,7 @@ public class PostService {
     private final LikeRepository likeRepository;
     private final AwsS3Service awsS3Service;
     private final PostTagRepository postTagRepository;
-
+    private final LocationService locationService;
     private static final String SORT_COLUMN_BY_CREATE_AT = "createAt";
     private static final String SORT_COLUMN_BY_LIKE_COUNT = "likeCount";
 
@@ -140,12 +138,13 @@ public class PostService {
         String url = getImageUrl(post.getThumbnailImageId());
 
         Map<String, List<Long>> tags = getTagsByPostId(post.getId());
-
+        LocationResponse location = locationService.findCityIdAndDistrictId(post.getLocation().getCity(), post.getLocation().getDistrict());
         boolean like = checkLikeByPostAndUser(post.getId(), userId);
 
         return TopLikedPostDetailResponse.of(
             post,
             url,
+            location,
             tags,
             like);
     }
