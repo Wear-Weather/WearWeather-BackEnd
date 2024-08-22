@@ -10,14 +10,13 @@ import com.WearWeather.wear.domain.post.entity.SortType;
 import com.WearWeather.wear.domain.post.repository.PostRepository;
 import com.WearWeather.wear.domain.postImage.dto.request.PostImageRequest;
 import com.WearWeather.wear.domain.postImage.entity.PostImage;
-import com.WearWeather.wear.domain.postImage.repository.PostImageRepository;
+import com.WearWeather.wear.domain.postImage.service.PostImageService;
 import com.WearWeather.wear.domain.postLike.repository.LikeRepository;
 import com.WearWeather.wear.domain.postTag.entity.PostTag;
-import com.WearWeather.wear.domain.postTag.repository.PostTagRepository;
 import com.WearWeather.wear.domain.postTag.service.PostTagService;
 import com.WearWeather.wear.domain.storage.service.AwsS3Service;
 import com.WearWeather.wear.domain.tag.entity.Tag;
-import com.WearWeather.wear.domain.tag.repository.TagRepository;
+import com.WearWeather.wear.domain.tag.service.TagService;
 import com.WearWeather.wear.domain.user.entity.User;
 import com.WearWeather.wear.domain.user.service.UserService;
 import com.WearWeather.wear.global.exception.CustomException;
@@ -39,14 +38,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class PostService {
 
     private final PostRepository postRepository;
-    private final TagRepository tagRepository;
     private final PostTagService postTagService;
-    private final PostImageRepository postImageRepository;
     private final UserService userService;
-    private final LikeRepository likeRepository;
     private final AwsS3Service awsS3Service;
-    private final PostTagRepository postTagRepository;
     private final LocationService locationService;
+    private final TagService tagService;
+    private final PostImageService postImageService;
+    private final LikeRepository likeRepository;
     private static final String SORT_COLUMN_BY_CREATE_AT = "createAt";
     private static final String SORT_COLUMN_BY_LIKE_COUNT = "likeCount";
 
@@ -80,8 +78,9 @@ public class PostService {
         postRepository.delete(post);
     }
 
+    @Transactional
     private void updateImagesInPost(PostImageRequest request, Post post) {
-        List<PostImage> postImages = postImageRepository.findByIdIn(request.getImageId());
+        List<PostImage> postImages = postImageService.findPostImagesByIdIn(request.getImageId());
 
         for (int i = 0; i < postImages.size(); i++) {
             PostImage postImage = postImages.get(i);
@@ -168,27 +167,26 @@ public class PostService {
     }
 
     public List<String> getImageUrlList(Long postId) {
-        List<PostImage> postImages = postImageRepository.findByPostId(postId);
+        List<PostImage> postImages = postImageService.findPostImagesByPostId(postId);
         return postImages.stream()
             .map(image -> getImageUrl(image.getId()))
             .toList();
     }
 
     public String getImageUrl(Long thumbnailId) {
-        PostImage postImage = postImageRepository.findById(thumbnailId)
-            .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_POST_IMAGE));
+        PostImage postImage = postImageService.findPostImageById(thumbnailId);
 
         return awsS3Service.getUrl(postImage.getName());
     }
 
     public Map<String, List<Long>> getTagsByPostId(Long postId) {
-        List<PostTag> postTags = postTagRepository.findByPostId(postId);
+        List<PostTag> postTags = postTagService.findPostTagsByPostId(postId);
 
         List<Long> tagIds = postTags.stream()
             .map(PostTag::getTagId)
             .collect(Collectors.toList());
 
-        List<Tag> tags = tagRepository.findAllById(tagIds);
+        List<Tag> tags = tagService.findTagsById(tagIds);
 
         return tags.stream()
             .collect(Collectors.groupingBy(
