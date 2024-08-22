@@ -17,8 +17,9 @@ public class PostDetailByLocationResponse {
     private final List<Long> weatherTagIds;
     private final List<Long> temperatureTagIds;
     private final boolean likeByUser;
+    private final boolean reportPost;
 
-    public static PostDetailByLocationResponse of(Long postId, String url, Map<String, List<Long>> tags, boolean like){
+    public static PostDetailByLocationResponse of(Long postId, String url, Map<String, List<Long>> tags, boolean like, boolean report){
         return PostDetailByLocationResponse.builder()
                 .postId(postId)
                 .thumbnail(url)
@@ -26,6 +27,7 @@ public class PostDetailByLocationResponse {
                 .weatherTagIds(tags.get("WEATHER"))
                 .temperatureTagIds(tags.get("TEMPERATURE"))
                 .likeByUser(like)
+                .reportPost(report)
                 .build();
     }
 

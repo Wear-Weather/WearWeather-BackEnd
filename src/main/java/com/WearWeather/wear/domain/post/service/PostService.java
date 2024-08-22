@@ -238,12 +238,14 @@ public class PostService {
         Map<String, List<Long>> tags = getTagsByPostId(post.getId());
 
         boolean like = checkLikeByPostAndUser(post.getId(), userId);
+        boolean report = false; //TODO : 신고하기 완성 후 수정
 
         return PostDetailByLocationResponse.of(
             post.getId(),
             url,
             tags,
-            like
+            like,
+            report
         );
     }
 }
