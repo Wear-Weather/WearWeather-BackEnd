@@ -159,6 +159,7 @@ public class PostService {
         Map<String, List<Long>> tags = getTagsByPostId(post.getId());
 
         boolean like = checkLikeByPostAndUser(post.getId(), user.getUserId());
+        boolean report = false; //TODO : 신고하기 완성 후 수정
 
         return PostDetailResponse.of(
             postUserNickname,
@@ -166,7 +167,8 @@ public class PostService {
             imageUrlList,
             location,
             tags,
-            like);
+            like,
+            report);
     }
 
     public ImagesResponse getImagesResponse(Long postId) {

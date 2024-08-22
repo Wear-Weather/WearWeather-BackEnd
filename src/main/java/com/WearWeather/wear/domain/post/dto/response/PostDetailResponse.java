@@ -1,6 +1,5 @@
 package com.WearWeather.wear.domain.post.dto.response;
 
-import com.WearWeather.wear.domain.post.entity.Location;
 import com.WearWeather.wear.domain.post.entity.Post;
 import lombok.Builder;
 import lombok.Getter;
@@ -26,8 +25,9 @@ public class PostDetailResponse {
     private final List<Long> temperatureTagIds;
     private final boolean likeByUser;
     private final int likedCount;
+    private final boolean reportPost;
 
-    public static PostDetailResponse of(String nickname, Post post, ImagesResponse images, LocationResponse location, Map<String, List<Long>> tags, boolean like){
+    public static PostDetailResponse of(String nickname, Post post, ImagesResponse images, LocationResponse location, Map<String, List<Long>> tags, boolean like, boolean report){
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm");
         String formattedDateTime = post.getCreateAt().format(formatter);
@@ -44,6 +44,7 @@ public class PostDetailResponse {
                 .weatherTagIds(tags.get("WEATHER"))
                 .temperatureTagIds(tags.get("TEMPERATURE"))
                 .likeByUser(like)
+                .reportPost(report)
                 .build();
     }
 }
