@@ -7,6 +7,9 @@ import com.WearWeather.wear.domain.location.entity.City;
 import com.WearWeather.wear.domain.location.entity.District;
 import com.WearWeather.wear.domain.location.repository.CityRepository;
 import com.WearWeather.wear.domain.location.repository.DistrictRepository;
+import com.WearWeather.wear.domain.post.entity.Location;
+import com.WearWeather.wear.global.exception.CustomException;
+import com.WearWeather.wear.global.exception.ErrorCode;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -131,5 +134,22 @@ public class LocationService {
         String districtName = "전체";
 
         return DistrictResponse.of(districtId, districtName);
+    }
+
+    public Location findCityIdAndDistrictId(String city, String district){
+        Long cityId = findCityIdByCity(city);
+        Long districtId = findDistrictIdByCityIdAndDistrict(cityId, district);
+
+        return new Location(cityId, districtId);
+    }
+
+    private Long findCityIdByCity(String city){
+        return cityRepository.findIdByCity(city)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_CITY_ID)).getId();
+    }
+
+    private Long findDistrictIdByCityIdAndDistrict(Long cityId, String district){
+        return districtRepository.findIdByCityIdAndDistrict(cityId, district)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_DISTRICT_ID)).getId();
     }
 }
