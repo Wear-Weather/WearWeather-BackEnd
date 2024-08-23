@@ -30,7 +30,7 @@ public class PostDetailResponse {
     public static PostDetailResponse of(String nickname, Post post, ImagesResponse images, LocationResponse location, Map<String, List<Long>> tags, boolean like, boolean report){
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm");
-        String formattedDateTime = post.getCreateAt().format(formatter);
+        String formattedDateTime = post.getCreatedAt().format(formatter);
 
         return PostDetailResponse.builder()
                 .nickname(nickname)

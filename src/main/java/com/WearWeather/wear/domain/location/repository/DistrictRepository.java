@@ -6,5 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public interface DistrictRepository extends JpaRepository<District, Long> {
+    Optional<DistrictIdMapping> findIdByCityIdAndDistrict(Long cityId, String district);
+
     Optional<DistrictMapping> findDistrictByCityIdAndId(Long cityId, Long districtId);
 }

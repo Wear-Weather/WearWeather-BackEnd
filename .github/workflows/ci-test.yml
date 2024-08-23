@@ -1,0 +1,69 @@
+name: CI TEST
+
+on:
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    permissions:
+      checks: write
+      pull-requests: write
+
+    services:
+      redis:
+        image: redis:latest
+        ports:
+          - 6379:6379
+        options: --health-cmd "redis-cli ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+      mysql:
+        image: mysql:latest
+        env:
+          MYSQL_ROOT_PASSWORD: test_password
+          MYSQL_DATABASE: test_db
+          MYSQL_USER: test_user
+          MYSQL_PASSWORD: test_password
+        ports:
+          - 3306:3306
+        options: --health-cmd "mysqladmin ping --silent" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+      - name: Github Repository 가져오기
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          token: ${{ secrets.SUBMODULE_TOKEN }}
+
+      - name: 서브묘듈 초기화하기
+        run: git submodule update --init --recursive
+
+      - name: 서브묘듈 main에 최신화하기
+        run: git submodule foreach git pull origin main
+
+      - name: 자바 17버전 설치하기
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: MySQL 실행되는 시간 대기하기
+        run: sleep 40
+
+      - name: 테스트 진행하기
+        env:
+          SPRING_PROFILES_ACTIVE: test
+        run: ./gradlew --info test
+
+      - name: 테스트 결과 나타내기
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          junit_files: '**/build/test-results/test/TEST-*.xml'
+        env:
+          GITHUB_TOKEN: ${{ secrets.TEST_RESULT_TOKEN }}
+
+
