@@ -49,6 +49,10 @@ public enum ErrorCode {
     NOT_EXIST_DISTRICT(BAD_REQUEST, "일치하는 시군구가 없습니다."),
     ;
 
+    HIDDEN_POST_ALREADY_EXIST(BAD_REQUEST, "이미 숨겨진 게시물입니다."),
+
+    ;
+
     private final HttpStatus httpStatus;
     private final String message;
 
