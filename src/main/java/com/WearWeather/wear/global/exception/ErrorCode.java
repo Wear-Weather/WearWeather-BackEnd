@@ -45,7 +45,9 @@ public enum ErrorCode {
     NOT_EXIST_POST_IMAGE(BAD_REQUEST, "존재하지 않는 게시글 이미지입니다."),
     NOT_EXIST_CITY_ID(BAD_REQUEST, "일치하는 광역시도가 없습니다."),
     NOT_EXIST_DISTRICT_ID(BAD_REQUEST, "일치하는 시군구가 없습니다."),
-   ;
+    NOT_EXIST_CITY(BAD_REQUEST, "일치하는 광역시도가 없습니다."),
+    NOT_EXIST_DISTRICT(BAD_REQUEST, "일치하는 시군구가 없습니다."),
+    ;
 
     private final HttpStatus httpStatus;
     private final String message;

@@ -7,9 +7,10 @@ import com.WearWeather.wear.domain.location.entity.City;
 import com.WearWeather.wear.domain.location.entity.District;
 import com.WearWeather.wear.domain.location.repository.CityRepository;
 import com.WearWeather.wear.domain.location.repository.DistrictRepository;
-import com.WearWeather.wear.domain.post.entity.Location;
+import com.WearWeather.wear.domain.post.dto.response.LocationResponse;
 import com.WearWeather.wear.global.exception.CustomException;
 import com.WearWeather.wear.global.exception.ErrorCode;
+import com.WearWeather.wear.domain.post.entity.Location;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -151,5 +152,22 @@ public class LocationService {
     private Long findDistrictIdByCityIdAndDistrict(Long cityId, String district){
         return districtRepository.findIdByCityIdAndDistrict(cityId, district)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_DISTRICT_ID)).getId();
+    }
+
+    public LocationResponse findCityIdAndDistrictId(Long cityId, Long districtId){
+        String city = findCityById(cityId);
+        String district = findDistrictByCityIdAndDistrictId(cityId, districtId);
+
+        return LocationResponse.of(city, district);
+    }
+
+    private String findCityById(Long cityId){
+        return cityRepository.findCityById(cityId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_CITY)).getCity();
+    }
+
+    private String findDistrictByCityIdAndDistrictId(Long cityId, Long districtId){
+        return districtRepository.findDistrictByCityIdAndId(cityId, districtId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_DISTRICT)).getDistrict();
     }
 }

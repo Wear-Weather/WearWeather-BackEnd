@@ -2,8 +2,6 @@ package com.WearWeather.wear.domain.location.dto.response;
 
 import lombok.Builder;
 
-import java.util.List;
-
 @Builder
 public record DistrictResponse(
         Long districtId,

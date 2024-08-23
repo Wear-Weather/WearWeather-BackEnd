@@ -26,5 +26,4 @@ public record PostByLocationResponse(
                 .reportPost(report)
                 .build();
     }
-
 }

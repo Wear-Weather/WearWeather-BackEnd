@@ -155,23 +155,32 @@ public class PostService {
         String postUserNickname = userService.getNicknameById(user.getUserId());
 
         Post post = findById(postId);
-        List<String> imageUrlList = getImageUrlList(post.getId());
+        ImagesResponse imageUrlList = getImagesResponse(post.getId());
+        LocationResponse location = locationService.findCityIdAndDistrictId(post.getLocation().getCity(), post.getLocation().getDistrict());
         Map<String, List<Long>> tags = getTagsByPostId(post.getId());
 
         boolean like = checkLikeByPostAndUser(post.getId(), user.getUserId());
+        boolean report = false; //TODO : 신고하기 완성 후 수정
 
         return PostDetailResponse.of(
             postUserNickname,
             post,
             imageUrlList,
+            location,
             tags,
-            like);
+            like,
+            report);
     }
 
-    public List<String> getImageUrlList(Long postId) {
+    public ImagesResponse getImagesResponse(Long postId) {
+        return ImagesResponse.of(getImageDetailResponseList(postId));
+    }
+
+    public List<ImageDetailResponse> getImageDetailResponseList(Long postId) {
         List<PostImage> postImages = postImageRepository.findByPostId(postId);
+
         return postImages.stream()
-            .map(image -> getImageUrl(image.getId()))
+            .map(image -> ImageDetailResponse.of(image.getId(), getImageUrl(image.getId())))
             .toList();
     }
 
@@ -289,5 +298,4 @@ public class PostService {
                 report
         );
     }
-
 }
