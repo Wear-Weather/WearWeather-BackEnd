@@ -1,12 +1,14 @@
 package com.WearWeather.wear.domain.post.controller;
 
-import com.WearWeather.wear.domain.post.dto.request.PostsByLocationRequest;
+import com.WearWeather.wear.domain.post.dto.request.PostsByFiltersRequest;
 import com.WearWeather.wear.domain.post.dto.request.PostCreateRequest;
 import com.WearWeather.wear.domain.post.dto.response.PostDetailResponse;
 import com.WearWeather.wear.domain.post.dto.response.PostsByLocationResponse;
 import com.WearWeather.wear.domain.post.dto.response.TopLikedPostDetailResponse;
 import com.WearWeather.wear.domain.post.dto.response.TopLikedPostsResponse;
 import com.WearWeather.wear.domain.post.dto.request.PostUpdateRequest;
+import com.WearWeather.wear.domain.post.dto.response.*;
+import com.WearWeather.wear.domain.post.entity.SortType;
 import com.WearWeather.wear.domain.post.service.PostService;
 import com.WearWeather.wear.global.common.ResponseMessage;
 import com.WearWeather.wear.global.common.dto.ResponseCommonDTO;
@@ -63,7 +65,18 @@ public class PostController {
     }
 
     @GetMapping
-    public ResponseEntity<PostsByLocationResponse> getPostsByLocation(@AuthenticationPrincipal UserDetails userDetails, @Valid @RequestBody PostsByLocationRequest request) {
-        return ResponseEntity.ok(postService.getPostsByLocation(userDetails.getUsername(), request));
+    public ResponseEntity<PostsByLocationResponse> getPostsByLocation(@AuthenticationPrincipal UserDetails userDetails,
+                                                                      @RequestParam("page") int page,
+                                                                      @RequestParam("size") int size,
+                                                                      @RequestParam("city") String city,
+                                                                      @RequestParam("district") String district,
+                                                                      @RequestParam("sort") SortType sort) {
+        return ResponseEntity.ok(postService.getPostsByLocation(userDetails.getUsername(), page, size, city, district, sort));
     }
+
+    @PostMapping("/search")
+    public ResponseEntity<PostsByFiltersResponse> searchPostsWithFilters(@AuthenticationPrincipal UserDetails userDetails, @Valid @RequestBody PostsByFiltersRequest request) {
+        return ResponseEntity.ok(postService.searchPostsWithFilters(userDetails.getUsername(), request));
+    }
+
 }

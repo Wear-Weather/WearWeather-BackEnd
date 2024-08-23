@@ -3,20 +3,22 @@ package com.WearWeather.wear.domain.post.service;
 import com.WearWeather.wear.domain.location.service.LocationService;
 import com.WearWeather.wear.domain.post.dto.request.PostCreateRequest;
 import com.WearWeather.wear.domain.post.dto.request.PostUpdateRequest;
-import com.WearWeather.wear.domain.post.dto.request.PostsByLocationRequest;
 import com.WearWeather.wear.domain.post.dto.response.*;
+import com.WearWeather.wear.domain.post.entity.Location;
+import com.WearWeather.wear.domain.post.dto.request.PostsByFiltersRequest;
 import com.WearWeather.wear.domain.post.entity.Post;
 import com.WearWeather.wear.domain.post.entity.SortType;
 import com.WearWeather.wear.domain.post.repository.PostRepository;
 import com.WearWeather.wear.domain.postImage.dto.request.PostImageRequest;
 import com.WearWeather.wear.domain.postImage.entity.PostImage;
-import com.WearWeather.wear.domain.postImage.service.PostImageService;
+import com.WearWeather.wear.domain.postImage.repository.PostImageRepository;
 import com.WearWeather.wear.domain.postLike.repository.LikeRepository;
 import com.WearWeather.wear.domain.postTag.entity.PostTag;
+import com.WearWeather.wear.domain.postTag.repository.PostTagRepository;
 import com.WearWeather.wear.domain.postTag.service.PostTagService;
 import com.WearWeather.wear.domain.storage.service.AwsS3Service;
 import com.WearWeather.wear.domain.tag.entity.Tag;
-import com.WearWeather.wear.domain.tag.service.TagService;
+import com.WearWeather.wear.domain.tag.repository.TagRepository;
 import com.WearWeather.wear.domain.user.entity.User;
 import com.WearWeather.wear.domain.user.service.UserService;
 import com.WearWeather.wear.global.exception.CustomException;
@@ -38,14 +40,16 @@ import org.springframework.transaction.annotation.Transactional;
 public class PostService {
 
     private final PostRepository postRepository;
+    private final TagRepository tagRepository;
     private final PostTagService postTagService;
+    private final PostImageRepository postImageRepository;
     private final UserService userService;
-    private final AwsS3Service awsS3Service;
-    private final LocationService locationService;
-    private final TagService tagService;
-    private final PostImageService postImageService;
     private final LikeRepository likeRepository;
-    private static final String SORT_COLUMN_BY_CREATE_AT = "createAt";
+    private final AwsS3Service awsS3Service;
+    private final PostTagRepository postTagRepository;
+    private final LocationService locationService;
+
+    private static final String SORT_COLUMN_BY_CREATE_AT = "createdAt";
     private static final String SORT_COLUMN_BY_LIKE_COUNT = "likeCount";
 
     @Transactional
@@ -78,9 +82,8 @@ public class PostService {
         postRepository.delete(post);
     }
 
-    @Transactional
     private void updateImagesInPost(PostImageRequest request, Post post) {
-        List<PostImage> postImages = postImageService.findPostImagesByIdIn(request.getImageId());
+        List<PostImage> postImages = postImageRepository.findByIdIn(request.getImageId());
 
         for (int i = 0; i < postImages.size(); i++) {
             PostImage postImage = postImages.get(i);
@@ -153,40 +156,50 @@ public class PostService {
         String postUserNickname = userService.getNicknameById(user.getUserId());
 
         Post post = findById(postId);
-        List<String> imageUrlList = getImageUrlList(post.getId());
+        ImagesResponse imageUrlList = getImagesResponse(post.getId());
+        LocationResponse location = locationService.findCityIdAndDistrictId(post.getLocation().getCity(), post.getLocation().getDistrict());
         Map<String, List<Long>> tags = getTagsByPostId(post.getId());
 
         boolean like = checkLikeByPostAndUser(post.getId(), user.getUserId());
+        boolean report = false; //TODO : 신고하기 완성 후 수정
 
         return PostDetailResponse.of(
             postUserNickname,
             post,
             imageUrlList,
+            location,
             tags,
-            like);
+            like,
+            report);
     }
 
-    public List<String> getImageUrlList(Long postId) {
-        List<PostImage> postImages = postImageService.findPostImagesByPostId(postId);
+    public ImagesResponse getImagesResponse(Long postId) {
+        return ImagesResponse.of(getImageDetailResponseList(postId));
+    }
+
+    public List<ImageDetailResponse> getImageDetailResponseList(Long postId) {
+        List<PostImage> postImages = postImageRepository.findByPostId(postId);
+
         return postImages.stream()
-            .map(image -> getImageUrl(image.getId()))
+            .map(image -> ImageDetailResponse.of(image.getId(), getImageUrl(image.getId())))
             .toList();
     }
 
     public String getImageUrl(Long thumbnailId) {
-        PostImage postImage = postImageService.findPostImageById(thumbnailId);
+        PostImage postImage = postImageRepository.findById(thumbnailId)
+            .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_POST_IMAGE));
 
         return awsS3Service.getUrl(postImage.getName());
     }
 
     public Map<String, List<Long>> getTagsByPostId(Long postId) {
-        List<PostTag> postTags = postTagService.findPostTagsByPostId(postId);
+        List<PostTag> postTags = postTagRepository.findByPostId(postId);
 
         List<Long> tagIds = postTags.stream()
             .map(PostTag::getTagId)
             .collect(Collectors.toList());
 
-        List<Tag> tags = tagService.findTagsById(tagIds);
+        List<Tag> tags = tagRepository.findAllById(tagIds);
 
         return tags.stream()
             .collect(Collectors.groupingBy(
@@ -199,21 +212,23 @@ public class PostService {
         return likeRepository.existsByPostIdAndUserId(postId, userId);
     }
 
-    public PostsByLocationResponse getPostsByLocation(String email, PostsByLocationRequest request) {
+    public PostsByLocationResponse getPostsByLocation(String email, int page, int size, String city, String district, SortType sort) {
         User user = userService.getUserByEmail(email);
-        List<PostDetailByLocationResponse> responses = getPostDetailByLocation(request, user.getUserId());
 
-        return PostsByLocationResponse.of(request.getLocation(), responses);
+        Location location = locationService.findCityIdAndDistrictId(city, district);
+        List<PostByLocationResponse> responses = getPostByLocation(page, size, location, sort, user.getUserId());
+
+        return PostsByLocationResponse.of(LocationResponse.of(city, district), responses);
     }
 
-    public List<PostDetailByLocationResponse> getPostDetailByLocation(PostsByLocationRequest request, Long userId) {
-        String sortType = getSortColumnName(request.getSort());
+    public List<PostByLocationResponse> getPostByLocation(int page, int size, Location location, SortType sort, Long userId) {
+        String sortType = getSortColumnName(sort);
 
-        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), Sort.by(sortType).descending());
-        Page<Post> posts = postRepository.findAllByLocation(pageable, request.getLocation());
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortType).descending());
+        Page<Post> posts = postRepository.findAllByLocation(pageable, location);
 
         return posts.stream()
-            .map(post -> getPostDetailByLocation(post, userId))
+            .map(post -> getPostByLocation(post, userId))
             .toList();
     }
 
@@ -229,17 +244,59 @@ public class PostService {
         return SORT_COLUMN_BY_CREATE_AT;
     }
 
-    public PostDetailByLocationResponse getPostDetailByLocation(Post post, Long userId) {
+    public PostByLocationResponse getPostByLocation(Post post, Long userId) {
         String url = getImageUrl(post.getThumbnailImageId());
         Map<String, List<Long>> tags = getTagsByPostId(post.getId());
 
         boolean like = checkLikeByPostAndUser(post.getId(), userId);
+        boolean report = false; //TODO : 신고하기 완성 후 수정
 
-        return PostDetailByLocationResponse.of(
+        return PostByLocationResponse.of(
             post.getId(),
             url,
             tags,
-            like
+            like,
+            report
+        );
+    }
+
+    public PostsByFiltersResponse searchPostsWithFilters(String email, PostsByFiltersRequest request) {
+        User user = userService.getUserByEmail(email);
+
+        List<SearchPostResponse> responses = getPostByFilters(request, user.getUserId());
+
+        return PostsByFiltersResponse.of(responses);
+    }
+
+    public List<SearchPostResponse> getPostByFilters(PostsByFiltersRequest request, Long userId){
+        //TODO : getPostDetailByLocation()메서드랑 중복 제거하기
+
+        String sortType = getSortColumnName(request.getSort());
+
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), Sort.by(sortType).descending());
+        Page<PostWithLocationName> posts = postRepository.findPostsByFilters(request, pageable);
+
+        return posts.stream()
+                .map(post -> getPostByFilters(post, userId))
+                .toList();
+    }
+
+    public SearchPostResponse getPostByFilters(PostWithLocationName post, Long userId){
+
+        String url = getImageUrl(post.thumbnailImageId());
+
+        Map<String, List<Long>> tags =  getTagsByPostId(post.postId());
+
+        boolean like = checkLikeByPostAndUser(post.postId(), userId);
+
+        boolean report = false; //TODO : 신고 테이블 완성 후 수정
+
+        return SearchPostResponse.of(
+                post,
+                url,
+                tags,
+                like,
+                report
         );
     }
 }

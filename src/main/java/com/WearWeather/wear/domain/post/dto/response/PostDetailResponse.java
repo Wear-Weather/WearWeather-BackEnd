@@ -1,6 +1,5 @@
 package com.WearWeather.wear.domain.post.dto.response;
 
-import com.WearWeather.wear.domain.post.entity.Location;
 import com.WearWeather.wear.domain.post.entity.Post;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,34 +15,36 @@ import java.util.Map;
 public class PostDetailResponse {
 
     private final String nickname;
-    private final String createAt;
+    private final String date;
     private final String title;
     private final String content;
-    private final List<String> imageUrls;
-    private final Location location;
+    private final ImagesResponse images;
+    private final LocationResponse location;
     private final Long seasonTagId;
     private final List<Long> weatherTagIds;
     private final List<Long> temperatureTagIds;
     private final boolean likeByUser;
     private final int likedCount;
+    private final boolean reportPost;
 
-    public static PostDetailResponse of(String nickname, Post post, List<String> imageUrls, Map<String, List<Long>> tags, boolean like){
+    public static PostDetailResponse of(String nickname, Post post, ImagesResponse images, LocationResponse location, Map<String, List<Long>> tags, boolean like, boolean report){
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm");
-        String formattedDateTime = post.getCreateAt().format(formatter);
+        String formattedDateTime = post.getCreatedAt().format(formatter);
 
         return PostDetailResponse.builder()
                 .nickname(nickname)
-                .createAt(formattedDateTime)
+                .date(formattedDateTime)
                 .title(post.getTitle())
                 .content(post.getContent())
-                .location(post.getLocation())
+                .location(location)
                 .likedCount(post.getLikeCount())
-                .imageUrls(imageUrls)
+                .images(images)
                 .seasonTagId(tags.get("SEASON").get(0))
                 .weatherTagIds(tags.get("WEATHER"))
                 .temperatureTagIds(tags.get("TEMPERATURE"))
                 .likeByUser(like)
+                .reportPost(report)
                 .build();
     }
 }

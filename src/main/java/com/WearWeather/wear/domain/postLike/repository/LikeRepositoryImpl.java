@@ -23,7 +23,7 @@ public class LikeRepositoryImpl implements LikeRepositoryCustom{
                 .select(qLike.postId)
                 .from(qLike)
                 .where(
-                        qLike.createAt.between(startOfDay, endOfDay)
+                        qLike.createdAt.between(startOfDay, endOfDay)
                 )
                 .groupBy(qLike.postId)
                 .orderBy(qLike.count().desc())

@@ -6,8 +6,7 @@ import lombok.Builder;
 public record LocationResponse(
         String city,
         String district
-) {
-
+){
     public static LocationResponse of(String city, String district){
         return LocationResponse.builder()
                 .city(city)
