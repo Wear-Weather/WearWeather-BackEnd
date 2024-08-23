@@ -5,7 +5,6 @@ import com.WearWeather.wear.domain.post.dto.request.PostUpdateRequest;
 import com.WearWeather.wear.domain.post.dto.request.PostsByFiltersRequest;
 import com.WearWeather.wear.domain.post.dto.request.PostsByLocationRequest;
 import com.WearWeather.wear.domain.post.dto.response.*;
-import com.WearWeather.wear.domain.post.entity.Location;
 import com.WearWeather.wear.domain.post.entity.Post;
 import com.WearWeather.wear.domain.post.entity.SortType;
 import com.WearWeather.wear.domain.post.repository.PostRepository;
@@ -248,12 +247,12 @@ public class PostService {
     public PostsByFiltersResponse searchPostsWithFilters(String email, PostsByFiltersRequest request) {
         User user = userService.getUserByEmail(email);
 
-        List<SearchPostDetailResponse> responses = getPostDetailByFilters(request, user.getUserId());
+        List<SearchPostResponse> responses = getPostByFilters(request, user.getUserId());
 
         return PostsByFiltersResponse.of(responses);
     }
 
-    public List<SearchPostDetailResponse> getPostDetailByFilters(PostsByFiltersRequest request, Long userId){
+    public List<SearchPostResponse> getPostByFilters(PostsByFiltersRequest request, Long userId){
         //TODO : getPostDetailByLocation()메서드랑 중복 제거하기
 
         String sortType = getSortColumnName(request.getSort());
@@ -262,11 +261,11 @@ public class PostService {
         Page<PostWithLocationName> posts = postRepository.findPostsByFilters(request, pageable);
 
         return posts.stream()
-                .map(post -> getPostDetailByFilters(post, userId))
+                .map(post -> getPostByFilters(post, userId))
                 .toList();
     }
 
-    public SearchPostDetailResponse getPostDetailByFilters(PostWithLocationName post, Long userId){
+    public SearchPostResponse getPostByFilters(PostWithLocationName post, Long userId){
 
         String url = getImageUrl(post.thumbnailImageId());
 
@@ -276,7 +275,7 @@ public class PostService {
 
         boolean report = false; //TODO : 신고 테이블 완성 후 수정
 
-        return SearchPostDetailResponse.of(
+        return SearchPostResponse.of(
                 post,
                 url,
                 tags,

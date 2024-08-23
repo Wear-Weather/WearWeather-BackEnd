@@ -10,9 +10,9 @@ import java.util.List;
 @Getter
 @Builder
 public class PostsByFiltersResponse {
-    private final List<SearchPostDetailResponse> posts;
+    private final List<SearchPostResponse> posts;
 
-    public static PostsByFiltersResponse of(List<SearchPostDetailResponse> posts){
+    public static PostsByFiltersResponse of(List<SearchPostResponse> posts){
         return PostsByFiltersResponse.builder()
                 .posts(posts)
                 .build();
