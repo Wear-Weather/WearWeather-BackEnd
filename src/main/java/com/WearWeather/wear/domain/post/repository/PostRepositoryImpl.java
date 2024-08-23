@@ -144,7 +144,7 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
     private OrderSpecifier<?> getSortColumn(Sort sort){
 
         if (sort == null || sort.isEmpty()) {
-            return new OrderSpecifier<>(Order.DESC, qPost.createAt); //기본 정렬
+            return new OrderSpecifier<>(Order.DESC, qPost.createdAt); //기본 정렬
         }
 
         Sort.Order order = sort.iterator().next();
@@ -152,9 +152,9 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
         Order direction = order.getDirection() == Sort.Direction.ASC ? Order.ASC : Order.DESC;
 
         return switch (sortColumn) {
-            case "createAt" -> new OrderSpecifier<>(direction, qPost.createAt);
+            case "createdAt" -> new OrderSpecifier<>(direction, qPost.createdAt);
             case "likeCount" -> new OrderSpecifier<>(direction, qPost.likeCount);
-            default -> new OrderSpecifier<>(Order.DESC, qPost.createAt);
+            default -> new OrderSpecifier<>(Order.DESC, qPost.createdAt);
         };
     }
 

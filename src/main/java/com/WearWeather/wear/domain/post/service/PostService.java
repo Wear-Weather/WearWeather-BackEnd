@@ -47,7 +47,7 @@ public class PostService {
     private final AwsS3Service awsS3Service;
     private final PostTagRepository postTagRepository;
 
-    private static final String SORT_COLUMN_BY_CREATE_AT = "createAt";
+    private static final String SORT_COLUMN_BY_CREATE_AT = "createdAt";
     private static final String SORT_COLUMN_BY_LIKE_COUNT = "likeCount";
 
     @Transactional
