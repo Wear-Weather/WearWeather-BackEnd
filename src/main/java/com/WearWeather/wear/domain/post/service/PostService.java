@@ -205,19 +205,19 @@ public class PostService {
         User user = userService.getUserByEmail(email);
 
         Location location = locationService.findCityIdAndDistrictId(city, district);
-        List<PostDetailByLocationResponse> responses = getPostDetailByLocation(page, size, location, sort, user.getUserId());
+        List<PostByLocationResponse> responses = getPostByLocation(page, size, location, sort, user.getUserId());
 
         return PostsByLocationResponse.of(LocationResponse.of(city, district), responses);
     }
 
-    public List<PostDetailByLocationResponse> getPostDetailByLocation(int page, int size, Location location, SortType sort, Long userId) {
+    public List<PostByLocationResponse> getPostByLocation(int page, int size, Location location, SortType sort, Long userId) {
         String sortType = getSortColumnName(sort);
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortType).descending());
         Page<Post> posts = postRepository.findAllByLocation(pageable, location);
 
         return posts.stream()
-            .map(post -> getPostDetailByLocation(post, userId))
+            .map(post -> getPostByLocation(post, userId))
             .toList();
     }
 
@@ -233,14 +233,14 @@ public class PostService {
         return SORT_COLUMN_BY_CREATE_AT;
     }
 
-    public PostDetailByLocationResponse getPostDetailByLocation(Post post, Long userId) {
+    public PostByLocationResponse getPostByLocation(Post post, Long userId) {
         String url = getImageUrl(post.getThumbnailImageId());
         Map<String, List<Long>> tags = getTagsByPostId(post.getId());
 
         boolean like = checkLikeByPostAndUser(post.getId(), userId);
         boolean report = false; //TODO : 신고하기 완성 후 수정
 
-        return PostDetailByLocationResponse.of(
+        return PostByLocationResponse.of(
             post.getId(),
             url,
             tags,
