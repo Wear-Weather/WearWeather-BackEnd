@@ -82,6 +82,7 @@ public class PostService {
         postRepository.delete(post);
     }
 
+    @Transactional
     private void updateImagesInPost(PostImageRequest request, Post post) {
         List<PostImage> postImages = postImageRepository.findByIdIn(request.getImageId());
 
@@ -295,6 +296,36 @@ public class PostService {
                 url,
                 tags,
                 like,
+                report
+        );
+    }
+
+    public PostsByMeResponse getPostsByMe(String email, int page, int size){
+        User user = userService.getUserByEmail(email);
+
+        Sort sort = Sort.by(Sort.Order.desc("createdAt"));
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<Post> posts = postRepository.findByUserId(user.getUserId(), pageable);
+
+        List<PostByMeResponse> postByMe = posts.stream()
+                .map(this::getPostByMe)
+                .toList();
+
+        return PostsByMeResponse.of(postByMe);
+    }
+
+    private PostByMeResponse getPostByMe(Post post) {
+
+        String url = getImageUrl(post.getThumbnailImageId());
+        LocationResponse location = locationService.findCityIdAndDistrictId(post.getLocation().getCity(), post.getLocation().getDistrict());
+        Map<String, List<Long>> tags = getTagsByPostId(post.getId());
+        boolean report = false; //TODO : 신고하기 기능 완성 후 수정
+
+        return PostByMeResponse.of(
+                post.getId(),
+                url,
+                location,
+                tags,
                 report
         );
     }
