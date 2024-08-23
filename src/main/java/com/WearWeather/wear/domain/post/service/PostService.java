@@ -5,6 +5,7 @@ import com.WearWeather.wear.domain.post.dto.request.PostCreateRequest;
 import com.WearWeather.wear.domain.post.dto.request.PostUpdateRequest;
 import com.WearWeather.wear.domain.post.dto.response.*;
 import com.WearWeather.wear.domain.post.entity.Location;
+import com.WearWeather.wear.domain.post.dto.request.PostsByFiltersRequest;
 import com.WearWeather.wear.domain.post.entity.Post;
 import com.WearWeather.wear.domain.post.entity.SortType;
 import com.WearWeather.wear.domain.post.repository.PostRepository;
@@ -48,7 +49,7 @@ public class PostService {
     private final PostTagRepository postTagRepository;
     private final LocationService locationService;
 
-    private static final String SORT_COLUMN_BY_CREATE_AT = "createAt";
+    private static final String SORT_COLUMN_BY_CREATE_AT = "createdAt";
     private static final String SORT_COLUMN_BY_LIKE_COUNT = "likeCount";
 
     @Transactional
@@ -248,4 +249,45 @@ public class PostService {
             report
         );
     }
+
+    public PostsByFiltersResponse searchPostsWithFilters(String email, PostsByFiltersRequest request) {
+        User user = userService.getUserByEmail(email);
+
+        List<SearchPostResponse> responses = getPostByFilters(request, user.getUserId());
+
+        return PostsByFiltersResponse.of(responses);
+    }
+
+    public List<SearchPostResponse> getPostByFilters(PostsByFiltersRequest request, Long userId){
+        //TODO : getPostDetailByLocation()메서드랑 중복 제거하기
+
+        String sortType = getSortColumnName(request.getSort());
+
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), Sort.by(sortType).descending());
+        Page<PostWithLocationName> posts = postRepository.findPostsByFilters(request, pageable);
+
+        return posts.stream()
+                .map(post -> getPostByFilters(post, userId))
+                .toList();
+    }
+
+    public SearchPostResponse getPostByFilters(PostWithLocationName post, Long userId){
+
+        String url = getImageUrl(post.thumbnailImageId());
+
+        Map<String, List<Long>> tags =  getTagsByPostId(post.postId());
+
+        boolean like = checkLikeByPostAndUser(post.postId(), userId);
+
+        boolean report = false; //TODO : 신고 테이블 완성 후 수정
+
+        return SearchPostResponse.of(
+                post,
+                url,
+                tags,
+                like,
+                report
+        );
+    }
+
 }
