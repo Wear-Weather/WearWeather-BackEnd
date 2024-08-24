@@ -50,6 +50,7 @@ public enum ErrorCode {
 
     HIDDEN_POST_ALREADY_EXIST(BAD_REQUEST, "이미 숨겨진 게시물입니다."),
 
+    REPORT_POST_ALREADY_EXIST(BAD_REQUEST, "이미 신고한 게시글입니다."),
     ;
 
     private final HttpStatus httpStatus;
