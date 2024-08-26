@@ -37,4 +37,20 @@ public class PostReportService {
             .build();
         postReportRepository.save(postReport);
     }
+
+    public boolean hasExceededReportCount(Long postId){
+        int reportCount = 5;
+        return findReportPost(postId) >= reportCount;
+    }
+    public Long findReportPost(Long postId){
+        return postReportRepository.countByPostId(postId);
+    }
+
+    public boolean checkPostReported(Long postId){
+        return postReportRepository.existsByPostId(postId);
+    }
+
+    public boolean hasReports(Long postId){
+        return checkPostReported(postId) && hasExceededReportCount(postId);
+    }
 }

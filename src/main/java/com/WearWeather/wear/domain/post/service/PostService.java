@@ -13,6 +13,7 @@ import com.WearWeather.wear.domain.postImage.dto.request.PostImageRequest;
 import com.WearWeather.wear.domain.postImage.entity.PostImage;
 import com.WearWeather.wear.domain.postImage.repository.PostImageRepository;
 import com.WearWeather.wear.domain.postLike.repository.LikeRepository;
+import com.WearWeather.wear.domain.postReport.service.PostReportService;
 import com.WearWeather.wear.domain.postTag.entity.PostTag;
 import com.WearWeather.wear.domain.postTag.repository.PostTagRepository;
 import com.WearWeather.wear.domain.postTag.service.PostTagService;
@@ -48,6 +49,7 @@ public class PostService {
     private final AwsS3Service awsS3Service;
     private final PostTagRepository postTagRepository;
     private final LocationService locationService;
+    private final PostReportService postReportService;
 
     private static final String SORT_COLUMN_BY_CREATE_AT = "createdAt";
     private static final String SORT_COLUMN_BY_LIKE_COUNT = "likeCount";
@@ -290,7 +292,7 @@ public class PostService {
 
         boolean like = checkLikeByPostAndUser(post.postId(), userId);
 
-        boolean report = false; //TODO : 신고 테이블 완성 후 수정
+        boolean report = false; //TODO : 신고하기 기능 완성 후 수정
 
         return SearchPostResponse.of(
                 post,
@@ -320,7 +322,8 @@ public class PostService {
         String url = getImageUrl(post.getThumbnailImageId());
         LocationResponse location = locationService.findCityIdAndDistrictId(post.getLocation().getCity(), post.getLocation().getDistrict());
         Map<String, List<Long>> tags = getTagsByPostId(post.getId());
-        boolean report = false; //TODO : 신고하기 기능 완성 후 수정
+
+        boolean report = postReportService.hasReports(post.getId());
 
         return PostByMeResponse.of(
                 post.getId(),
