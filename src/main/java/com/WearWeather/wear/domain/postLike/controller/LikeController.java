@@ -30,4 +30,12 @@ public class LikeController {
         likeService.removeLike(postId, userDetail.getUsername());
         return ResponseEntity.ok(new ResponseCommonDTO(true, ResponseMessage.SUCCESS_POST_LIKE_CANCEL));
     }
+
+    @GetMapping
+    public ResponseEntity<LikedPostsByMeResponse> getLikedPostsByMe(@AuthenticationPrincipal UserDetails userDetail,
+                                                                    @RequestParam("page") int page,
+                                                                    @RequestParam("size") int size) {
+        return ResponseEntity.ok(likeService.getLikedPostsByMe(userDetail.getUsername(), page, size));
+    }
+
 }
