@@ -2,6 +2,11 @@ package com.WearWeather.wear.domain.post.controller;
 
 import com.WearWeather.wear.domain.post.dto.request.PostsByFiltersRequest;
 import com.WearWeather.wear.domain.post.dto.request.PostCreateRequest;
+import com.WearWeather.wear.domain.post.dto.response.PostDetailResponse;
+import com.WearWeather.wear.domain.post.dto.response.PostsByLocationResponse;
+import com.WearWeather.wear.domain.post.dto.response.TopLikedPostResponse;
+import com.WearWeather.wear.domain.post.dto.response.TopLikedPostsResponse;
+import com.WearWeather.wear.domain.post.dto.request.PostUpdateRequest;
 import com.WearWeather.wear.domain.post.dto.response.*;
 import com.WearWeather.wear.domain.post.dto.request.PostUpdateRequest;
 import com.WearWeather.wear.domain.post.entity.SortType;
@@ -39,7 +44,7 @@ public class PostController {
 
     @GetMapping("/top-liked")
     public ResponseEntity<TopLikedPostsResponse> getTopLikedPosts(@AuthenticationPrincipal UserDetails userDetails) {
-        List<TopLikedPostDetailResponse> response = postService.getTopLikedPosts(userDetails.getUsername());
+        List<TopLikedPostResponse> response = postService.getTopLikedPosts(userDetails.getUsername());
         return ResponseEntity.ok(new TopLikedPostsResponse(response));
     }
 
