@@ -121,12 +121,12 @@ public class PostService {
             .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_POST));
     }
 
-    public List<TopLikedPostDetailResponse> getTopLikedPosts(String email) {
+    public List<TopLikedPostResponse> getTopLikedPosts(String email) {
         User user = userService.getUserByEmail(email);
         List<Post> posts = getPostsOrderByLikeCountDesc();
 
         return posts.stream()
-            .map(post -> getTopLikedPostDetail(post, user.getUserId()))
+            .map(post -> getTopLikedPost(post, user.getUserId()))
             .collect(Collectors.toList());
     }
 
@@ -136,16 +136,17 @@ public class PostService {
         return postRepository.findAllByIdInOrderByLikeCountDesc(postIds);
     }
 
-    public TopLikedPostDetailResponse getTopLikedPostDetail(Post post, Long userId) {
+    public TopLikedPostResponse getTopLikedPost(Post post, Long userId) {
         String url = getImageUrl(post.getThumbnailImageId());
 
         Map<String, List<Long>> tags = getTagsByPostId(post.getId());
-
+        LocationResponse location = locationService.findCityIdAndDistrictId(post.getLocation().getCity(), post.getLocation().getDistrict());
         boolean like = checkLikeByPostAndUser(post.getId(), userId);
 
-        return TopLikedPostDetailResponse.of(
+        return TopLikedPostResponse.of(
             post,
             url,
+            location,
             tags,
             like);
     }

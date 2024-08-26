@@ -11,8 +11,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-@Service
+import java.util.List;
+
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
+@Service
 public class PostImageService {
 
     private final PostImageRepository postImageRepository;
@@ -42,6 +45,19 @@ public class PostImageService {
 
         // DB에서 이미지 정보 삭제
         postImageRepository.delete(postImage);
+    }
+
+    public List<PostImage> findPostImagesByPostId(Long postId){
+         return postImageRepository.findByPostId(postId);
+    }
+
+    public PostImage findPostImageById(Long thumbnailId){
+         return postImageRepository.findById(thumbnailId)
+                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_POST_IMAGE));
+    }
+
+    public List<PostImage> findPostImagesByIdIn(List<Long> imageIds){
+        return postImageRepository.findByIdIn(imageIds);
     }
 }
 
