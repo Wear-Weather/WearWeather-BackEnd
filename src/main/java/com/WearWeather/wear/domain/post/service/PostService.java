@@ -164,7 +164,7 @@ public class PostService {
         Map<String, List<Long>> tags = getTagsByPostId(post.getId());
 
         boolean like = checkLikeByPostAndUser(post.getId(), user.getUserId());
-        boolean report = false; //TODO : 신고하기 완성 후 수정
+        boolean report = postReportService.hasReports(post.getId());
 
         return PostDetailResponse.of(
             postUserNickname,
@@ -252,7 +252,7 @@ public class PostService {
         Map<String, List<Long>> tags = getTagsByPostId(post.getId());
 
         boolean like = checkLikeByPostAndUser(post.getId(), userId);
-        boolean report = false; //TODO : 신고하기 완성 후 수정
+        boolean report = postReportService.hasReports(post.getId());
 
         return PostByLocationResponse.of(
             post.getId(),
@@ -292,7 +292,7 @@ public class PostService {
 
         boolean like = checkLikeByPostAndUser(post.postId(), userId);
 
-        boolean report = false; //TODO : 신고하기 기능 완성 후 수정
+        boolean report = postReportService.hasReports(post.postId());
 
         return SearchPostResponse.of(
                 post,
