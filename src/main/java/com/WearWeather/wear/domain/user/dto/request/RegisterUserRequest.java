@@ -30,28 +30,18 @@ public class RegisterUserRequest {
 
     private final boolean isSocial;
 
-    @AssertTrue(message = "이메일 인증은 필수입니다.")
-    private final boolean checkEmail;
-
-    @AssertTrue(message = "닉네임 중복 확인은 필수입니다.")
-    private final boolean checkNickname;
-
     @JsonCreator
     public RegisterUserRequest(
             @JsonProperty("email") String email,
             @JsonProperty("password") String password,
             @JsonProperty("name") String name,
             @JsonProperty("nickname") String nickname,
-            @JsonProperty("isSocial") boolean isSocial,
-            @JsonProperty("checkEmail") boolean checkEmail,
-            @JsonProperty("checkNickname") boolean checkNickname) {
+            @JsonProperty("isSocial") boolean isSocial) {
         this.email = email;
         this.password = password;
         this.name = name;
         this.nickname = nickname;
         this.isSocial = isSocial;
-        this.checkEmail = checkEmail;
-        this.checkNickname = checkNickname;
     }
 
     public User toEntity(String encodePassword){
