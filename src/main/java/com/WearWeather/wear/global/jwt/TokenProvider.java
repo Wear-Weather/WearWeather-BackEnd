@@ -25,7 +25,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -75,7 +74,7 @@ public class TokenProvider implements InitializingBean {
         return false;
     }
 
-    public String createAccessToken(Authentication authentication) {
+    public String createAccessToken(Long userId, Authentication authentication) {
         String authorities = authentication.getAuthorities().stream()
             .map(GrantedAuthority::getAuthority)
             .collect(Collectors.joining(","));
@@ -84,7 +83,7 @@ public class TokenProvider implements InitializingBean {
         Date validity = new Date(now + this.accessTokenValidityInMilliseconds);
 
         return Jwts.builder()
-            .setSubject(authentication.getName())
+            .setSubject(String.valueOf(userId))
             .claim(AUTHORITIES_KEY, authorities)
             .setExpiration(validity)
             .signWith(key, SignatureAlgorithm.HS512)
@@ -92,22 +91,22 @@ public class TokenProvider implements InitializingBean {
     }
 
 
-    public String createRefreshToken(String userEmail) {
+    public String createRefreshToken(Long userId) {
         long now = (new Date()).getTime();
         Date validity = new Date(now + this.refreshTokenValidityInMilliseconds);
 
         String refreshToken = Jwts.builder()
-            .setSubject(userEmail)
+            .setSubject(String.valueOf(userId))
             .setExpiration(validity)
             .signWith(key, SignatureAlgorithm.HS512)
             .compact();
 
-        redisService.setValues(userEmail, refreshToken);
+        redisService.setValues(String.valueOf(userId), refreshToken);
 
         return refreshToken;
     }
 
-    public String getRefreshTokenInfo(String token) {
+    public Long getRefreshTokenInfo(String token) {
         Claims claims = Jwts
             .parserBuilder()
             .setSigningKey(key)
@@ -115,7 +114,7 @@ public class TokenProvider implements InitializingBean {
             .parseClaimsJws(token)
             .getBody();
 
-        return claims.getSubject();
+        return Long.valueOf(claims.getSubject());
     }
 
     public Long getExpiration(String accessToken) {
@@ -148,8 +147,9 @@ public class TokenProvider implements InitializingBean {
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toList());
 
-        // UserDetails 객체를 만들어서 Authentication return
-        User principal = new User(claims.getSubject(), "", authorities);
+        Long userId = Long.valueOf(claims.getSubject());
+        UserAuthentication principal = new UserAuthentication(userId, "", authorities);
+
         return new UsernamePasswordAuthenticationToken(principal, token, authorities);
     }
 }
