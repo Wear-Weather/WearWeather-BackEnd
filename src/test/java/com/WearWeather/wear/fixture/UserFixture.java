@@ -5,6 +5,7 @@ import com.WearWeather.wear.domain.user.entity.User;
 
 public class UserFixture {
 
+    public static final Long userId = 1L;
     public static final String email = "abcd@gmail.com";
     public static final String password = "abcd12!@";
     public static final String encodedPassword = "encodedPassword";
@@ -21,12 +22,13 @@ public class UserFixture {
 
     public static User createUser() {
         return User.builder()
-                .email(email)
-                .password(encodedPassword)
-                .name(name)
-                .nickname(nickname)
-                .isSocial(false)
-                .build();
+            .userId(userId)
+            .email(email)
+            .password(encodedPassword)
+            .name(name)
+            .nickname(nickname)
+            .isSocial(false)
+            .build();
     }
 
     public static RegisterUserRequest createRegisterUserRequest() {

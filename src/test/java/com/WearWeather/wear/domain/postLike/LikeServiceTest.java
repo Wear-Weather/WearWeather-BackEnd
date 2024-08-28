@@ -14,7 +14,6 @@ import com.WearWeather.wear.domain.postLike.repository.LikeRepository;
 import com.WearWeather.wear.domain.postLike.service.LikeService;
 import com.WearWeather.wear.domain.user.entity.User;
 import com.WearWeather.wear.domain.user.service.UserService;
-import com.WearWeather.wear.fixture.UserFixture;
 import com.WearWeather.wear.global.exception.CustomException;
 import com.WearWeather.wear.global.exception.ErrorCode;
 import java.util.Optional;
@@ -48,19 +47,13 @@ public class LikeServiceTest {
         Long userId = 1L;
         Long postId = 1L;
 
-        User user = mock(User.class);
-        when(user.getUserId()).thenReturn(userId);
-
-        String userEmail = UserFixture.email;
-
-        when(userService.getUserByEmail(userEmail)).thenReturn(user);
         when(likeRepository.existsByPostIdAndUserId(postId, userId)).thenReturn(false);
 
-        likeService.addLike(postId, userEmail);
+        likeService.addLike(postId, userId);
 
         verify(likeRepository).save(argThat(like ->
-                like.getUserId().equals(userId) &&
-                        like.getPostId().equals(postId)
+            like.getUserId().equals(userId) &&
+                like.getPostId().equals(postId)
         ));
     }
 
@@ -71,15 +64,10 @@ public class LikeServiceTest {
         Long userId = 1L;
         Long postId = 1L;
 
-        User user = mock(User.class);
-        String userEmail = UserFixture.email;
-
-        when(user.getUserId()).thenReturn(userId);
-        when(userService.getUserByEmail(userEmail)).thenReturn(user);
         when(likeRepository.existsByPostIdAndUserId(postId, userId)).thenReturn(true);
 
         CustomException exception = assertThrows(CustomException.class, () ->
-                likeService.addLike(postId, userEmail));
+            likeService.addLike(postId, userId));
         assertEquals(ErrorCode.ALREADY_LIKED_POST, exception.getErrorCode());
     }
 
@@ -90,16 +78,11 @@ public class LikeServiceTest {
         Long userId = 1L;
         Long postId = 1L;
 
-        User user = mock(User.class);
         Like like = mock(Like.class);
-        String userEmail = UserFixture.email;
 
-        when(user.getUserId()).thenReturn(userId);
-
-        when(userService.getUserByEmail(userEmail)).thenReturn(user);
         when(likeRepository.findByPostIdAndUserId(postId, userId)).thenReturn(Optional.of(like));
 
-        likeService.removeLike(postId, userEmail);
+        likeService.removeLike(postId, userId);
 
         verify(likeRepository).delete(like);
         verify(postService).removeLikeCount(postId);
@@ -111,15 +94,11 @@ public class LikeServiceTest {
 
         User user = mock(User.class);
         Post post = mock(Post.class);
-        String userEmail = UserFixture.email;
 
-        when(userService.getUserByEmail(userEmail)).thenReturn(user);
         when(likeRepository.findByPostIdAndUserId(post.getId(), user.getUserId())).thenReturn(Optional.empty());
 
         CustomException exception = assertThrows(CustomException.class, () ->
-            likeService.removeLike(post.getId(), userEmail));
+            likeService.removeLike(post.getId(), user.getUserId()));
         assertEquals(ErrorCode.NOT_LIKED_POST, exception.getErrorCode());
     }
 }
-
-

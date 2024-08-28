@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -13,7 +12,6 @@ import com.WearWeather.wear.domain.post.service.PostService;
 import com.WearWeather.wear.domain.postReport.entity.PostReport;
 import com.WearWeather.wear.domain.postReport.repository.PostReportRepository;
 import com.WearWeather.wear.domain.postReport.service.PostReportService;
-import com.WearWeather.wear.domain.user.entity.User;
 import com.WearWeather.wear.domain.user.service.UserService;
 import com.WearWeather.wear.global.exception.CustomException;
 import com.WearWeather.wear.global.exception.ErrorCode;
@@ -43,18 +41,15 @@ public class PostReportServiceTest {
     @DisplayName("정상 테스트: 게시글 신고 성공")
     public void successfulReportPost() {
         // given
-        String userEmail = "test@example.com";
+        Long userId = 1L;
         Long postId = 1L;
         String reason = "Inappropriate content";
-        User user = mock(User.class);
 
-        when(userService.getUserByEmail(userEmail)).thenReturn(user);
-        when(user.getUserId()).thenReturn(1L);
         doNothing().when(postService).validatePostExists(postId);
         when(postReportRepository.existsByUserIdAndPostId(1L, postId)).thenReturn(false);
 
         // when
-        postReportService.reportPost(userEmail, postId, reason);
+        postReportService.reportPost(userId, postId, reason);
 
         // then
         verify(postReportRepository, times(1)).save(any(PostReport.class));
@@ -65,17 +60,15 @@ public class PostReportServiceTest {
     public void reportPostWithAlreadyReportedPost() {
         // given
         String userEmail = "test@example.com";
+        Long userId = 1L;
         Long postId = 1L;
         String reason = "Inappropriate content";
-        User user = mock(User.class);
 
-        when(userService.getUserByEmail(userEmail)).thenReturn(user);
-        when(user.getUserId()).thenReturn(1L);
         doNothing().when(postService).validatePostExists(postId);
-        when(postReportRepository.existsByUserIdAndPostId(1L, postId)).thenReturn(true);
+        when(postReportRepository.existsByUserIdAndPostId(userId, postId)).thenReturn(true);
 
         // when & then
-        assertThatThrownBy(() -> postReportService.reportPost(userEmail, postId, reason))
+        assertThatThrownBy(() -> postReportService.reportPost(userId, postId, reason))
             .isInstanceOf(CustomException.class)
             .hasFieldOrPropertyWithValue("errorCode", ErrorCode.REPORT_POST_ALREADY_EXIST);
     }
@@ -84,16 +77,14 @@ public class PostReportServiceTest {
     @DisplayName("예외 테스트: 존재하지 않는 게시글 신고 시도")
     public void reportPostWithNonexistentPost() {
         // given
-        String userEmail = "test@example.com";
+        Long userId = 1L;
         Long postId = 1L;
         String reason = "Inappropriate content";
-        User user = mock(User.class);
 
-        when(userService.getUserByEmail(userEmail)).thenReturn(user);
         doThrow(new CustomException(ErrorCode.NOT_EXIST_POST)).when(postService).validatePostExists(postId);
 
         // when & then
-        assertThatThrownBy(() -> postReportService.reportPost(userEmail, postId, reason))
+        assertThatThrownBy(() -> postReportService.reportPost(userId, postId, reason))
             .isInstanceOf(CustomException.class)
             .hasFieldOrPropertyWithValue("errorCode", ErrorCode.NOT_EXIST_POST);
     }
