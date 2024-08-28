@@ -40,7 +40,7 @@ public class MailService {
         String code = valOperations.get(email);
 
         if (!authCode.equals(code)) {
-            throw new CustomException(ErrorCode.NICKNAME_ALREADY_EXIST);
+            throw new CustomException(ErrorCode.FAIL_EMAIL_VERIFICATION);
         }
 
     }
