@@ -3,9 +3,18 @@ package com.WearWeather.wear.domain.post.service;
 import com.WearWeather.wear.domain.location.service.LocationService;
 import com.WearWeather.wear.domain.post.dto.request.PostCreateRequest;
 import com.WearWeather.wear.domain.post.dto.request.PostUpdateRequest;
-import com.WearWeather.wear.domain.post.dto.response.*;
-import com.WearWeather.wear.domain.post.entity.Location;
 import com.WearWeather.wear.domain.post.dto.request.PostsByFiltersRequest;
+import com.WearWeather.wear.domain.post.dto.response.ImageDetailResponse;
+import com.WearWeather.wear.domain.post.dto.response.ImagesResponse;
+import com.WearWeather.wear.domain.post.dto.response.LocationResponse;
+import com.WearWeather.wear.domain.post.dto.response.PostByLocationResponse;
+import com.WearWeather.wear.domain.post.dto.response.PostDetailResponse;
+import com.WearWeather.wear.domain.post.dto.response.PostWithLocationName;
+import com.WearWeather.wear.domain.post.dto.response.PostsByFiltersResponse;
+import com.WearWeather.wear.domain.post.dto.response.PostsByLocationResponse;
+import com.WearWeather.wear.domain.post.dto.response.SearchPostResponse;
+import com.WearWeather.wear.domain.post.dto.response.TopLikedPostResponse;
+import com.WearWeather.wear.domain.post.entity.Location;
 import com.WearWeather.wear.domain.post.entity.Post;
 import com.WearWeather.wear.domain.post.entity.SortType;
 import com.WearWeather.wear.domain.post.repository.PostRepository;
@@ -19,7 +28,6 @@ import com.WearWeather.wear.domain.postTag.service.PostTagService;
 import com.WearWeather.wear.domain.storage.service.AwsS3Service;
 import com.WearWeather.wear.domain.tag.entity.Tag;
 import com.WearWeather.wear.domain.tag.repository.TagRepository;
-import com.WearWeather.wear.domain.user.entity.User;
 import com.WearWeather.wear.domain.user.service.UserService;
 import com.WearWeather.wear.global.exception.CustomException;
 import com.WearWeather.wear.global.exception.ErrorCode;
@@ -53,9 +61,8 @@ public class PostService {
     private static final String SORT_COLUMN_BY_LIKE_COUNT = "likeCount";
 
     @Transactional
-    public Long createPost(String email, PostCreateRequest request) {
-        User user = userService.getUserByEmail(email);
-        Post post = request.toEntity(user.getUserId());
+    public Long createPost(Long userId, PostCreateRequest request) {
+        Post post = request.toEntity(userId);
 
         postRepository.save(post);
 
@@ -66,7 +73,8 @@ public class PostService {
     }
 
     @Transactional
-    public void updatePost(Long postId, PostUpdateRequest request) {
+    public void updatePost(Long userId, Long postId, PostUpdateRequest request) {
+        // TODO : 코드 수정 필요
         Post post = findById(postId);
         post.modifyPostAttributes(request.getTitle(), request.getContent(), request.getLocation());
 
@@ -77,7 +85,7 @@ public class PostService {
     }
 
     @Transactional
-    public void deletePost(Long postId) {
+    public void deletePost(Long userId, Long postId) {
         Post post = findById(postId);
         postRepository.delete(post);
     }
@@ -121,12 +129,11 @@ public class PostService {
             .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_POST));
     }
 
-    public List<TopLikedPostResponse> getTopLikedPosts(String email) {
-        User user = userService.getUserByEmail(email);
+    public List<TopLikedPostResponse> getTopLikedPosts(Long userId) {
         List<Post> posts = getPostsOrderByLikeCountDesc();
 
         return posts.stream()
-            .map(post -> getTopLikedPost(post, user.getUserId()))
+            .map(post -> getTopLikedPost(post, userId))
             .collect(Collectors.toList());
     }
 
@@ -151,16 +158,15 @@ public class PostService {
             like);
     }
 
-    public PostDetailResponse getPostDetail(String email, Long postId) {
-        User user = userService.getUserByEmail(email);
-        String postUserNickname = userService.getNicknameById(user.getUserId());
+    public PostDetailResponse getPostDetail(Long userId, Long postId) {
+        String postUserNickname = userService.getNicknameById(userId);
 
         Post post = findById(postId);
         ImagesResponse imageUrlList = getImagesResponse(post.getId());
         LocationResponse location = locationService.findCityIdAndDistrictId(post.getLocation().getCity(), post.getLocation().getDistrict());
         Map<String, List<Long>> tags = getTagsByPostId(post.getId());
 
-        boolean like = checkLikeByPostAndUser(post.getId(), user.getUserId());
+        boolean like = checkLikeByPostAndUser(post.getId(), userId);
         boolean report = false; //TODO : 신고하기 완성 후 수정
 
         return PostDetailResponse.of(
@@ -212,11 +218,10 @@ public class PostService {
         return likeRepository.existsByPostIdAndUserId(postId, userId);
     }
 
-    public PostsByLocationResponse getPostsByLocation(String email, int page, int size, String city, String district, SortType sort) {
-        User user = userService.getUserByEmail(email);
+    public PostsByLocationResponse getPostsByLocation(Long userId, int page, int size, String city, String district, SortType sort) {
 
         Location location = locationService.findCityIdAndDistrictId(city, district);
-        List<PostByLocationResponse> responses = getPostByLocation(page, size, location, sort, user.getUserId());
+        List<PostByLocationResponse> responses = getPostByLocation(page, size, location, sort, userId);
 
         return PostsByLocationResponse.of(LocationResponse.of(city, district), responses);
     }
@@ -260,15 +265,14 @@ public class PostService {
         );
     }
 
-    public PostsByFiltersResponse searchPostsWithFilters(String email, PostsByFiltersRequest request) {
-        User user = userService.getUserByEmail(email);
+    public PostsByFiltersResponse searchPostsWithFilters(Long userId, PostsByFiltersRequest request) {
 
-        List<SearchPostResponse> responses = getPostByFilters(request, user.getUserId());
+        List<SearchPostResponse> responses = getPostByFilters(request, userId);
 
         return PostsByFiltersResponse.of(responses);
     }
 
-    public List<SearchPostResponse> getPostByFilters(PostsByFiltersRequest request, Long userId){
+    public List<SearchPostResponse> getPostByFilters(PostsByFiltersRequest request, Long userId) {
         //TODO : getPostDetailByLocation()메서드랑 중복 제거하기
 
         String sortType = getSortColumnName(request.getSort());
@@ -277,26 +281,26 @@ public class PostService {
         Page<PostWithLocationName> posts = postRepository.findPostsByFilters(request, pageable);
 
         return posts.stream()
-                .map(post -> getPostByFilters(post, userId))
-                .toList();
+            .map(post -> getPostByFilters(post, userId))
+            .toList();
     }
 
-    public SearchPostResponse getPostByFilters(PostWithLocationName post, Long userId){
+    public SearchPostResponse getPostByFilters(PostWithLocationName post, Long userId) {
 
         String url = getImageUrl(post.thumbnailImageId());
 
-        Map<String, List<Long>> tags =  getTagsByPostId(post.postId());
+        Map<String, List<Long>> tags = getTagsByPostId(post.postId());
 
         boolean like = checkLikeByPostAndUser(post.postId(), userId);
 
         boolean report = false; //TODO : 신고 테이블 완성 후 수정
 
         return SearchPostResponse.of(
-                post,
-                url,
-                tags,
-                like,
-                report
+            post,
+            url,
+            tags,
+            like,
+            report
         );
     }
 }

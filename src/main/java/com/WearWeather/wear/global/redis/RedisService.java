@@ -19,8 +19,8 @@ public class RedisService {
         return true;
     }
 
-    public String getValues(String key) {
-        String values = redisDao.getValues(key);
+    public String getValues(Long key) {
+        String values = redisDao.getValues(String.valueOf(key));
 
         if (values != null && values.isBlank()) {
             throw new CustomException(REDIS_VALUE_NOT_FOUND);
@@ -39,8 +39,9 @@ public class RedisService {
         return Integer.valueOf(values);
     }
 
-    public Boolean logoutFromRedis(String email, String accessToken, Long accessTokenExpiration) {
-        redisDao.deleteValues(email);
+    public Boolean logoutFromRedis(Long userId, String accessToken, Long accessTokenExpiration) {
+        String userKey = "user:" + userId;
+        redisDao.deleteValues(userKey);
         redisDao.setValues(accessToken, "BlackList", Duration.ofMillis(accessTokenExpiration));
         return true;
     }

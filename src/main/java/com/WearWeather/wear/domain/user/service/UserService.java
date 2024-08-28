@@ -77,9 +77,9 @@ public class UserService {
     }
 
     @Transactional
-    public void modifyPassword(String userEmail, String password) {
+    public void modifyPassword(Long userId, String password) {
 
-        User user = getUserByEmail(userEmail);
+        User user = getUserById(userId);
 
         try {
             user.updatePassword(passwordEncoder.encode(password), user.isSocial());
@@ -88,18 +88,18 @@ public class UserService {
         }
     }
 
-    public UserInfoResponse getUserInfo(String userEmail) {
+    public UserInfoResponse getUserInfo(Long userId) {
 
-        User user = getUserByEmail(userEmail);
+        User user = getUserById(userId);
 
         return UserInfoResponse.of(user);
 
     }
 
     @Transactional
-    public void modifyUserInfo(String userEmail, String password, String nickname) {
+    public void modifyUserInfo(Long userId, String password, String nickname) {
 
-        User user = getUserByEmail(userEmail);
+        User user = getUserById(userId);
 
         try {
             user.updateUserInfo(passwordEncoder.encode(password), nickname, user.isSocial());
@@ -108,16 +108,23 @@ public class UserService {
         }
     }
 
-    public User getUserByEmail(String userEmail){
+    public User getUserByEmail(String userEmail) {
 
         return userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_EMAIL));
+            .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_EMAIL));
 
     }
 
-    public String getNicknameById(Long userId){
+    public User getUserById(Long userId) {
+
         return userRepository.findByUserId(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_USER))
-                .getNickname();
+            .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_EMAIL));
+
+    }
+
+    public String getNicknameById(Long userId) {
+        return userRepository.findUserNicknameMappingByUserId(userId)
+            .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_USER))
+            .getNickname();
     }
 }
