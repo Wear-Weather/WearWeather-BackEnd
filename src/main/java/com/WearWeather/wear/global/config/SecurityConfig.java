@@ -60,9 +60,12 @@ public class SecurityConfig {
 
             .authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers("/auth/login", "/auth/reissue", "/location", "/regions",
-                    "/users/register", "/", "/oauth/kakao", "/users/nickname-check/**",
-                    "/login/page", "/email/send-verification", "/email/verify-code").permitAll()
+                .requestMatchers("/auth/login", "/auth/reissue", "/", "/oauth/kakao",
+                    "/login/page",
+                    "/users/nickname-check/**", "/email/send-verification", "/email/verify-code",
+                    "/users/register", "/users/email", "/users/password",
+                    "/location", "/regions"
+                ).permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
                 .anyRequest().authenticated()
             )
