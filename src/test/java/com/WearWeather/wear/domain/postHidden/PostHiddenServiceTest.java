@@ -9,7 +9,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.WearWeather.wear.domain.post.service.PostService;
+import com.WearWeather.wear.domain.post.service.PostValidationService;
 import com.WearWeather.wear.domain.postHidden.entity.PostHidden;
 import com.WearWeather.wear.domain.postHidden.repository.PostHiddenRepository;
 import com.WearWeather.wear.domain.postHidden.service.PostHiddenService;
@@ -37,7 +37,7 @@ public class PostHiddenServiceTest {
     private UserService userService;
 
     @Mock
-    private PostService postService;
+    private PostValidationService postValidationService;
 
     @Test
     @DisplayName("정상 테스트: 게시글 숨기기 성공")
@@ -49,7 +49,7 @@ public class PostHiddenServiceTest {
 
         when(userService.getUserByEmail(userEmail)).thenReturn(user);
         when(user.getUserId()).thenReturn(1L);
-        doNothing().when(postService).validatePostExists(postId);
+        doNothing().when(postValidationService).validatePostExists(postId);
         when(postHiddenRepository.existsByUserIdAndPostId(1L, postId)).thenReturn(false);
 
         // when
@@ -69,7 +69,7 @@ public class PostHiddenServiceTest {
 
         when(userService.getUserByEmail(userEmail)).thenReturn(user);
         when(user.getUserId()).thenReturn(1L);
-        doNothing().when(postService).validatePostExists(postId);
+        doNothing().when(postValidationService).validatePostExists(postId);
         when(postHiddenRepository.existsByUserIdAndPostId(1L, postId)).thenReturn(true);
 
         // when & then
@@ -87,7 +87,7 @@ public class PostHiddenServiceTest {
         User user = mock(User.class);
 
         when(userService.getUserByEmail(userEmail)).thenReturn(user);
-        doThrow(new CustomException(ErrorCode.NOT_EXIST_POST)).when(postService).validatePostExists(postId);
+        doThrow(new CustomException(ErrorCode.NOT_EXIST_POST)).when(postValidationService).validatePostExists(postId);
 
         // when & then
         assertThatThrownBy(() -> postHiddenService.hidePost(userEmail, postId))

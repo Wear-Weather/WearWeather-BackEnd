@@ -13,6 +13,7 @@ import com.WearWeather.wear.domain.postImage.dto.request.PostImageRequest;
 import com.WearWeather.wear.domain.postImage.entity.PostImage;
 import com.WearWeather.wear.domain.postImage.repository.PostImageRepository;
 import com.WearWeather.wear.domain.postLike.repository.LikeRepository;
+import com.WearWeather.wear.domain.postReport.service.PostReportService;
 import com.WearWeather.wear.domain.postTag.entity.PostTag;
 import com.WearWeather.wear.domain.postTag.repository.PostTagRepository;
 import com.WearWeather.wear.domain.postTag.service.PostTagService;
@@ -48,6 +49,7 @@ public class PostService {
     private final AwsS3Service awsS3Service;
     private final PostTagRepository postTagRepository;
     private final LocationService locationService;
+    private final PostReportService postReportService;
 
     private static final String SORT_COLUMN_BY_CREATE_AT = "createdAt";
     private static final String SORT_COLUMN_BY_LIKE_COUNT = "likeCount";
@@ -82,6 +84,7 @@ public class PostService {
         postRepository.delete(post);
     }
 
+    @Transactional
     private void updateImagesInPost(PostImageRequest request, Post post) {
         List<PostImage> postImages = postImageRepository.findByIdIn(request.getImageId());
 
@@ -161,7 +164,7 @@ public class PostService {
         Map<String, List<Long>> tags = getTagsByPostId(post.getId());
 
         boolean like = checkLikeByPostAndUser(post.getId(), user.getUserId());
-        boolean report = false; //TODO : 신고하기 완성 후 수정
+        boolean report = postReportService.hasReports(post.getId());
 
         return PostDetailResponse.of(
             postUserNickname,
@@ -249,7 +252,7 @@ public class PostService {
         Map<String, List<Long>> tags = getTagsByPostId(post.getId());
 
         boolean like = checkLikeByPostAndUser(post.getId(), userId);
-        boolean report = false; //TODO : 신고하기 완성 후 수정
+        boolean report = postReportService.hasReports(post.getId());
 
         return PostByLocationResponse.of(
             post.getId(),
@@ -289,13 +292,44 @@ public class PostService {
 
         boolean like = checkLikeByPostAndUser(post.postId(), userId);
 
-        boolean report = false; //TODO : 신고 테이블 완성 후 수정
+        boolean report = postReportService.hasReports(post.postId());
 
         return SearchPostResponse.of(
                 post,
                 url,
                 tags,
                 like,
+                report
+        );
+    }
+
+    public PostsByMeResponse getPostsByMe(String email, int page, int size){
+        User user = userService.getUserByEmail(email);
+
+        Sort sort = Sort.by(Sort.Order.desc("createdAt"));
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<Post> posts = postRepository.findByUserId(user.getUserId(), pageable);
+
+        List<PostByMeResponse> postByMe = posts.stream()
+                .map(this::getPostByMe)
+                .toList();
+
+        return PostsByMeResponse.of(postByMe);
+    }
+
+    private PostByMeResponse getPostByMe(Post post) {
+
+        String url = getImageUrl(post.getThumbnailImageId());
+        LocationResponse location = locationService.findCityIdAndDistrictId(post.getLocation().getCity(), post.getLocation().getDistrict());
+        Map<String, List<Long>> tags = getTagsByPostId(post.getId());
+
+        boolean report = postReportService.hasReports(post.getId());
+
+        return PostByMeResponse.of(
+                post.getId(),
+                url,
+                location,
+                tags,
                 report
         );
     }

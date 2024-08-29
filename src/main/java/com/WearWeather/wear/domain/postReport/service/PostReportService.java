@@ -1,6 +1,6 @@
 package com.WearWeather.wear.domain.postReport.service;
 
-import com.WearWeather.wear.domain.post.service.PostService;
+import com.WearWeather.wear.domain.post.service.PostValidationService;
 import com.WearWeather.wear.domain.postReport.entity.PostReport;
 import com.WearWeather.wear.domain.postReport.repository.PostReportRepository;
 import com.WearWeather.wear.domain.user.entity.User;
@@ -16,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class PostReportService {
 
-    private final PostService postService;
+    private final PostValidationService postValidationService;
     private final UserService userService;
     private final PostReportRepository postReportRepository;
 
@@ -24,7 +24,7 @@ public class PostReportService {
     public void reportPost(String userEmail, Long postId, String reason) {
         User user = userService.getUserByEmail(userEmail);
 
-        postService.validatePostExists(postId);
+        postValidationService.validatePostExists(postId);
 
         if (postReportRepository.existsByUserIdAndPostId(user.getUserId(), postId)) {
             throw new CustomException(ErrorCode.REPORT_POST_ALREADY_EXIST);
@@ -36,5 +36,21 @@ public class PostReportService {
             .reason(reason)
             .build();
         postReportRepository.save(postReport);
+    }
+
+    public boolean hasExceededReportCount(Long postId){
+        int reportCount = 5;
+        return findReportPost(postId) >= reportCount;
+    }
+    public Long findReportPost(Long postId){
+        return postReportRepository.countByPostId(postId);
+    }
+
+    public boolean checkPostReported(Long postId){
+        return postReportRepository.existsByPostId(postId);
+    }
+
+    public boolean hasReports(Long postId){
+        return checkPostReported(postId) && hasExceededReportCount(postId);
     }
 }

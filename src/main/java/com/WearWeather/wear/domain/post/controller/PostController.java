@@ -8,6 +8,7 @@ import com.WearWeather.wear.domain.post.dto.response.TopLikedPostResponse;
 import com.WearWeather.wear.domain.post.dto.response.TopLikedPostsResponse;
 import com.WearWeather.wear.domain.post.dto.request.PostUpdateRequest;
 import com.WearWeather.wear.domain.post.dto.response.*;
+import com.WearWeather.wear.domain.post.dto.request.PostUpdateRequest;
 import com.WearWeather.wear.domain.post.entity.SortType;
 import com.WearWeather.wear.domain.post.service.PostService;
 import com.WearWeather.wear.global.common.ResponseMessage;
@@ -79,4 +80,11 @@ public class PostController {
         return ResponseEntity.ok(postService.searchPostsWithFilters(userDetails.getUsername(), request));
     }
 
+
+    @GetMapping("/me")
+    public ResponseEntity<PostsByMeResponse> getPostsByMe(@AuthenticationPrincipal UserDetails userDetails,
+                                                          @RequestParam("page") int page,
+                                                          @RequestParam("size") int size) {
+        return ResponseEntity.ok(postService.getPostsByMe(userDetails.getUsername(), page, size));
+    }
 }
