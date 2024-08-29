@@ -14,6 +14,9 @@ public class ResponseMessage {
     public static final String SUCCESS_POST = "게시물 생성 완료하였습니다.";
     public static final String SUCCESS_UPDATE_POST = "게시물 수정 완료하였습니다.";
     public static final String SUCCESS_DELETE_POST = "게시물 삭제 완료하였습니다.";
+    public static final String SUCCESS_POST_HIDDEN = "게시물 숨김 처리 되었습니다.";
+
+    public static final String SUCCESS_REPORT_POST = "게시물 신고 완료하였습니다.";
 
 
 }

@@ -11,8 +11,6 @@ public class UserFixture {
     public static final String name = "스프링";
     public static final String nickname = "날씨웨어";
     public static final boolean isSocial = false;
-    public static final boolean checkEmail = true;
-    public static final boolean checkNickname = true;
 
     public static User createUser(String email, String password) {
         return User.builder()
@@ -33,7 +31,7 @@ public class UserFixture {
 
     public static RegisterUserRequest createRegisterUserRequest() {
 
-        return new RegisterUserRequest(email, password, name, nickname, isSocial, checkEmail, checkNickname);
+        return new RegisterUserRequest(email, password, name, nickname, isSocial);
 
     }
 }
