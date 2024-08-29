@@ -51,9 +51,9 @@ public class UserController {
     }
 
     @PatchMapping("/password")
-    public ResponseEntity<ResponseCommonDTO> modifyPassword(@AuthenticationPrincipal UserDetails userDetail, @Valid @RequestBody ModifyUserPasswordRequest request) {
+    public ResponseEntity<ResponseCommonDTO> modifyPassword(@Valid @RequestBody ModifyUserPasswordRequest request) {
 
-        userService.modifyPassword(userDetail.getUsername(), request.getPassword());
+        userService.modifyPassword(request);
         return ResponseEntity.ok(new ResponseCommonDTO(true, ResponseMessage.MODIFY_PASSWORD));
     }
 

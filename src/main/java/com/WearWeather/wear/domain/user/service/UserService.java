@@ -1,5 +1,6 @@
 package com.WearWeather.wear.domain.user.service;
 
+import com.WearWeather.wear.domain.user.dto.request.ModifyUserPasswordRequest;
 import com.WearWeather.wear.domain.user.dto.request.RegisterUserRequest;
 import com.WearWeather.wear.domain.user.dto.response.UserIdForPasswordUpdateResponse;
 import com.WearWeather.wear.domain.user.dto.response.UserInfoResponse;
@@ -78,12 +79,13 @@ public class UserService {
     }
 
     @Transactional
-    public void modifyPassword(String userEmail, String password) {
+    public void modifyPassword(ModifyUserPasswordRequest request) {
 
-        User user = getUserByEmail(userEmail);
+        User user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_USER));
 
         try {
-            user.updatePassword(passwordEncoder.encode(password), user.isSocial());
+            user.updatePassword(passwordEncoder.encode(request.getPassword()), user.isSocial());
         } catch (CustomException e) {
             throw new CustomException(ErrorCode.FAIL_UPDATE_PASSWORD);
         }
@@ -117,7 +119,7 @@ public class UserService {
     }
 
     public String getNicknameById(Long userId){
-        return userRepository.findByUserId(userId)
+        return userRepository.findNicknameByUserId(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_USER))
                 .getNickname();
     }
