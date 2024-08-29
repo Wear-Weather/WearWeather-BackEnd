@@ -40,7 +40,7 @@ public class MailService {
         String code = valOperations.get(email);
 
         if (!authCode.equals(code)) {
-            throw new CustomException(ErrorCode.NICKNAME_ALREADY_EXIST);
+            throw new CustomException(ErrorCode.FAIL_EMAIL_VERIFICATION);
         }
 
     }
@@ -78,14 +78,14 @@ public class MailService {
 
     public String getEmailFormTitle() {
 
-        return "[WearWeather] 인증 번호 발송";
+        return "[Look At The Weather] 인증 번호 발송";
 
     }
 
     public String getEmailFormContent(String authCode) {
 
         return
-            "WearWeather 회원가입을 위한 " +
+            "Look At The Weather 회원가입을 위한 " +
                 "이메일 인증 번호는 " + authCode + "입니다.";
 
     }

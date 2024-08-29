@@ -80,7 +80,7 @@ public class MailServiceTest {
 
         assertThatThrownBy(() -> mailService.checkEmailAuthCode(UserFixture.email, wrongAuthCode))
             .isInstanceOf(CustomException.class)
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.NICKNAME_ALREADY_EXIST);
+            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.FAIL_EMAIL_VERIFICATION);
 
     }
 
