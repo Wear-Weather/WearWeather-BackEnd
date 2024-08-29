@@ -11,6 +11,7 @@ import com.WearWeather.wear.domain.post.entity.SortType;
 import com.WearWeather.wear.domain.post.repository.PostRepository;
 import com.WearWeather.wear.domain.postImage.dto.request.PostImageRequest;
 import com.WearWeather.wear.domain.postImage.entity.PostImage;
+import com.WearWeather.wear.domain.postLike.dto.response.LikedPostByMeResponse;
 import com.WearWeather.wear.domain.postImage.repository.PostImageRepository;
 import com.WearWeather.wear.domain.postLike.repository.LikeRepository;
 import com.WearWeather.wear.domain.postReport.service.PostReportService;
@@ -330,6 +331,36 @@ public class PostService {
                 url,
                 location,
                 tags,
+                report
+        );
+    }
+
+    public List<LikedPostByMeResponse> getLikedPostsByMe(Long userId, List<Long> likedPostIds){
+
+        List<Post> posts = postRepository.findAllById(likedPostIds);
+
+        return posts.stream()
+                .map(post -> getLikedPost(userId, post))
+                .toList();
+    }
+
+    public LikedPostByMeResponse getLikedPost(Long userId, Post post){
+
+        String url = getImageUrl(post.getThumbnailImageId());
+        LocationResponse location = locationService.findCityIdAndDistrictId(post.getLocation().getCity(), post.getLocation().getDistrict());
+
+        Map<String, List<Long>> tags =  getTagsByPostId(post.getId());
+
+        boolean like = checkLikeByPostAndUser(post.getId(), userId);
+
+        boolean report = postReportService.hasReports(post.getId());
+
+        return LikedPostByMeResponse.of(
+                post.getId(),
+                url,
+                location,
+                tags,
+                like,
                 report
         );
     }
