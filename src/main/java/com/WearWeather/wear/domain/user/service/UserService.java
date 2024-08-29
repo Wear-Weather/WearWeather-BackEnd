@@ -1,6 +1,8 @@
 package com.WearWeather.wear.domain.user.service;
 
+import com.WearWeather.wear.domain.user.dto.request.ModifyUserPasswordRequest;
 import com.WearWeather.wear.domain.user.dto.request.RegisterUserRequest;
+import com.WearWeather.wear.domain.user.dto.response.UserIdForPasswordUpdateResponse;
 import com.WearWeather.wear.domain.user.dto.response.UserInfoResponse;
 import com.WearWeather.wear.domain.user.entity.User;
 import com.WearWeather.wear.domain.user.repository.UserRepository;
@@ -68,21 +70,22 @@ public class UserService {
         return user.get().getEmail();
     }
 
-    public void findUserPassword(String email, String name, String nickname) {
-        boolean user = userRepository.existsByEmailAndNameAndNickname(email, name, nickname);
+    public UserIdForPasswordUpdateResponse findUserPassword(String email, String name, String nickname) {
 
-        if (!user) {
-            throw new CustomException(ErrorCode.NOT_EXIST_USER);
-        }
+        User user = userRepository.findByEmailAndNameAndNickname(email, name, nickname)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_USER));
+        return UserIdForPasswordUpdateResponse.of(user.getUserId());
+
     }
 
     @Transactional
-    public void modifyPassword(String userEmail, String password) {
+    public void modifyPassword(ModifyUserPasswordRequest request) {
 
-        User user = getUserByEmail(userEmail);
+        User user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_USER));
 
         try {
-            user.updatePassword(passwordEncoder.encode(password), user.isSocial());
+            user.updatePassword(passwordEncoder.encode(request.getPassword()), user.isSocial());
         } catch (CustomException e) {
             throw new CustomException(ErrorCode.FAIL_UPDATE_PASSWORD);
         }
@@ -116,7 +119,7 @@ public class UserService {
     }
 
     public String getNicknameById(Long userId){
-        return userRepository.findByUserId(userId)
+        return userRepository.findNicknameByUserId(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_USER))
                 .getNickname();
     }
