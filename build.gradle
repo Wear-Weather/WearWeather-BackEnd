@@ -69,7 +69,7 @@ dependencies {
 
     implementation 'com.fasterxml.jackson.core:jackson-databind'
 
-
+    implementation 'org.springframework.boot:spring-boots-starter-webflux'
 }
 
 def querydslSrcDir = 'src/main/generated'

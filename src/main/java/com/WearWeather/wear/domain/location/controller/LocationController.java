@@ -1,9 +1,11 @@
 package com.WearWeather.wear.domain.location.controller;
 
+import com.WearWeather.wear.domain.location.dto.response.GeocodingLocationResponse;
 import com.WearWeather.wear.domain.location.dto.response.RegionsResponse;
 import com.WearWeather.wear.domain.location.service.LocationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
 
 @RequiredArgsConstructor
 @RestController
@@ -12,9 +14,15 @@ public class LocationController {
 
     private final LocationService locationService;
 
-    @GetMapping("/location")
+    @GetMapping("/basic-location")
     public void getLocationDistrictData() throws Exception {
         locationService.saveLocationData();
+    }
+
+    @GetMapping("/location")
+    public Mono<GeocodingLocationResponse> geocodingLocation(@RequestParam("longitude") double longitude,
+                                                             @RequestParam("latitude") double latitude){
+        return locationService.findLocationByGeoCoordApi(longitude, latitude);
     }
 
     @GetMapping("/regions")
