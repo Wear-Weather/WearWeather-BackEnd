@@ -5,6 +5,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import com.WearWeather.wear.domain.user.dto.request.ModifyUserPasswordRequest;
 import com.WearWeather.wear.domain.user.dto.request.RegisterUserRequest;
 import com.WearWeather.wear.domain.user.dto.response.UserInfoResponse;
 import com.WearWeather.wear.domain.user.entity.User;
@@ -103,7 +104,7 @@ public class UserServiceTest {
     @DisplayName("예외 테스트 : 비밀번호 찾기 시 일치하는 정보가 없을 때")
     public void findPasswordNotMatchRequestTest() {
 
-        when(userRepository.existsByEmailAndNameAndNickname(UserFixture.email, UserFixture.name, UserFixture.nickname)).thenReturn(false);
+        when(userRepository.findByEmailAndNameAndNickname(UserFixture.email, UserFixture.name, UserFixture.nickname)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> userService.findUserPassword(UserFixture.email, UserFixture.name, UserFixture.nickname))
             .isInstanceOf(CustomException.class)
@@ -114,15 +115,16 @@ public class UserServiceTest {
     @Test
     @DisplayName("정상 테스트 : 비밀번호 변경 완료")
     public void modifyPasswordTest() {
-
+        Long userId = 1L;
         String newPassword = "newPassword";
 
+        ModifyUserPasswordRequest request = new ModifyUserPasswordRequest(userId, newPassword);
         User user = mock(User.class);
 
-        when(userRepository.findByEmail(UserFixture.email)).thenReturn(Optional.of(user));
-        when(passwordEncoder.encode(UserFixture.password)).thenReturn(newPassword);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(passwordEncoder.encode(newPassword)).thenReturn(newPassword);
 
-        userService.modifyPassword(UserFixture.email, UserFixture.password);
+        userService.modifyPassword(request);
 
         verify(user).updatePassword(newPassword, UserFixture.isSocial);
 
@@ -131,19 +133,21 @@ public class UserServiceTest {
     @Test
     @DisplayName("예외 테스트 : 비밀번호 변경 시 올바르지 않은 비밀번호")
     public void modifyPasswordWithInvalidPasswordTest() {
-
+        Long userId = 1L;
         String newPassword = "newPassword";
+
+        ModifyUserPasswordRequest request = new ModifyUserPasswordRequest(userId, newPassword);
 
         User user = mock(User.class);
 
-        when(userRepository.findByEmail(UserFixture.email)).thenReturn(Optional.of(user));
-        when(passwordEncoder.encode(UserFixture.password)).thenReturn(newPassword);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(passwordEncoder.encode(newPassword)).thenReturn(newPassword);
 
         doThrow(new CustomException(ErrorCode.FAIL_UPDATE_PASSWORD))
                 .when(user).updatePassword(anyString(), anyBoolean());
 
         CustomException exception = assertThrows(CustomException.class, () ->
-                userService.modifyPassword(UserFixture.email, UserFixture.password));
+                userService.modifyPassword(request));
         assertEquals(ErrorCode.FAIL_UPDATE_PASSWORD, exception.getErrorCode());
     }
 
@@ -151,17 +155,22 @@ public class UserServiceTest {
     @DisplayName("예외 테스트 : 카카오 로그인 사용자는 비밀번호 변경 불가")
     public void modifyPasswordWithKakaoLoginUserTest() {
 
+        Long userId = 1L;
+        String newPassword = "newPassword";
+
+        ModifyUserPasswordRequest request = new ModifyUserPasswordRequest(userId, newPassword);
+
         User user = mock(User.class);
 
         when(user.isSocial()).thenReturn(true);
-        when(passwordEncoder.encode(UserFixture.password)).thenReturn(UserFixture.password);
-        when(userRepository.findByEmail(UserFixture.email)).thenReturn(Optional.of(user));
+        when(passwordEncoder.encode(newPassword)).thenReturn(UserFixture.password);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
         doThrow(new CustomException(ErrorCode.SOCIAL_ACCOUNT_CANNOT_BE_MODIFIED))
                 .when(user).updatePassword(anyString(), eq(true));
 
         CustomException exception = assertThrows(CustomException.class, () ->
-                userService.modifyPassword(UserFixture.email, UserFixture.password));
+                userService.modifyPassword(request));
 
         assertEquals(ErrorCode.FAIL_UPDATE_PASSWORD, exception.getErrorCode());
     }
