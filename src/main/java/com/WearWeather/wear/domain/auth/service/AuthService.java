@@ -6,6 +6,7 @@ import com.WearWeather.wear.domain.auth.dto.response.LoginResponse;
 import com.WearWeather.wear.domain.auth.dto.response.TokenResponse;
 import com.WearWeather.wear.domain.user.entity.User;
 import com.WearWeather.wear.domain.user.repository.UserRepository;
+import com.WearWeather.wear.domain.user.service.UserService;
 import com.WearWeather.wear.global.exception.CustomException;
 import com.WearWeather.wear.global.exception.ErrorCode;
 import com.WearWeather.wear.global.jwt.TokenProvider;
@@ -15,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -23,10 +23,10 @@ import org.springframework.stereotype.Service;
 public class AuthService {
 
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
     private final TokenProvider tokenProvider;
     private final RedisService redisService;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
+    private final UserService userService;
 
     public LoginResponse checkLogin(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
@@ -36,42 +36,46 @@ public class AuthService {
             new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword());
         Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
 
-        String accessToken = tokenProvider.createAccessToken(authentication);
-        String refreshToken = tokenProvider.createRefreshToken(user.getEmail());
+        String accessToken = tokenProvider.createAccessToken(user.getUserId(), authentication);
+        String refreshToken = tokenProvider.createRefreshToken(user.getUserId());
 
         return LoginResponse.of(user, accessToken, refreshToken);
     }
 
-    public void logout(String email, String accessToken) {
-        findByUserEmail(email);
+    public void logout(Long userId, String accessToken) {
+        validatedUserId(userId);
 
         Long accessTokenExpiration = tokenProvider.getExpiration(accessToken);
-        redisService.logoutFromRedis(email, accessToken, accessTokenExpiration);
+        redisService.logoutFromRedis(userId, accessToken, accessTokenExpiration);
     }
 
     public TokenResponse reissue(RefresehTokenRequest request) {
-        String userEmail = tokenProvider.getRefreshTokenInfo(request.getRefreshToken());
-        validateRefreshToken(userEmail, request.getRefreshToken());
+        Long userId = tokenProvider.getRefreshTokenInfo(request.getRefreshToken());
 
-        Authentication authentication = new UsernamePasswordAuthenticationToken(userEmail, null, Collections.emptyList());
+        User user = userService.getUserById(userId);
+        validateRefreshToken(userId, request.getRefreshToken());
 
-        String newAccessToken = tokenProvider.createAccessToken(authentication);
-        String newRefreshToken = tokenProvider.createRefreshToken(userEmail);
+        Authentication authentication = new UsernamePasswordAuthenticationToken(userId, null, Collections.emptyList());
+
+        String newAccessToken = tokenProvider.createAccessToken(user.getUserId(), authentication);
+        String newRefreshToken = tokenProvider.createRefreshToken(user.getUserId());
 
         return new TokenResponse(newAccessToken, newRefreshToken);
     }
 
 
-    private void validateRefreshToken(String userEmail, String token) {
-        String storedToken = redisService.getValues(userEmail);
+    private void validateRefreshToken(Long userId, String token) {
+        String storedToken = redisService.getValues(userId);
         if (storedToken == null || !storedToken.equals(token)) {
             throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
     }
 
-    private User findByUserEmail(String email) {
-        return userRepository.findByEmail(email)
-            .orElseThrow(() -> new CustomException(ErrorCode.EMAIL_IS_NULL_EXCEPTION));
+    public User validatedUserId(Long userId) {
+
+        return userRepository.findByUserId(userId)
+            .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_EMAIL));
+
     }
 
 }

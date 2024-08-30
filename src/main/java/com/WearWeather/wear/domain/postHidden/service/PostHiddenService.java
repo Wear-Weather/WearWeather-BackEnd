@@ -3,7 +3,6 @@ package com.WearWeather.wear.domain.postHidden.service;
 import com.WearWeather.wear.domain.post.service.PostValidationService;
 import com.WearWeather.wear.domain.postHidden.entity.PostHidden;
 import com.WearWeather.wear.domain.postHidden.repository.PostHiddenRepository;
-import com.WearWeather.wear.domain.user.entity.User;
 import com.WearWeather.wear.domain.user.service.UserService;
 import com.WearWeather.wear.global.exception.CustomException;
 import com.WearWeather.wear.global.exception.ErrorCode;
@@ -21,17 +20,15 @@ public class PostHiddenService {
     private final PostValidationService postValidationService;
 
     @Transactional
-    public void hidePost(String userEmail, Long postId) {
-        User user = userService.getUserByEmail(userEmail);
-
+    public void hidePost(Long userId, Long postId) {
         postValidationService.validatePostExists(postId);
 
-        if (postHiddenRepository.existsByUserIdAndPostId(user.getUserId(), postId)) {
+        if (postHiddenRepository.existsByUserIdAndPostId(userId, postId)) {
             throw new CustomException(ErrorCode.HIDDEN_POST_ALREADY_EXIST);
         }
 
         PostHidden postHidden = PostHidden.builder()
-            .userId(user.getUserId())
+            .userId(userId)
             .postId(postId)
             .build();
         postHiddenRepository.save(postHidden);

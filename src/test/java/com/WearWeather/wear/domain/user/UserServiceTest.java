@@ -2,8 +2,16 @@ package com.WearWeather.wear.domain.user;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.anyBoolean;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.WearWeather.wear.domain.user.dto.request.ModifyUserPasswordRequest;
 import com.WearWeather.wear.domain.user.dto.request.RegisterUserRequest;
@@ -121,10 +129,10 @@ public class UserServiceTest {
         ModifyUserPasswordRequest request = new ModifyUserPasswordRequest(userId, newPassword);
         User user = mock(User.class);
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(passwordEncoder.encode(newPassword)).thenReturn(newPassword);
+        when(userRepository.findByUserId(UserFixture.userId)).thenReturn(Optional.of(user));
+        when(passwordEncoder.encode(UserFixture.password)).thenReturn(newPassword);
 
-        userService.modifyPassword(request);
+        userService.modifyPassword(UserFixture.userId, UserFixture.password);
 
         verify(user).updatePassword(newPassword, UserFixture.isSocial);
 
@@ -140,14 +148,14 @@ public class UserServiceTest {
 
         User user = mock(User.class);
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(passwordEncoder.encode(newPassword)).thenReturn(newPassword);
+        when(userRepository.findByUserId(UserFixture.userId)).thenReturn(Optional.of(user));
+        when(passwordEncoder.encode(UserFixture.password)).thenReturn(newPassword);
 
         doThrow(new CustomException(ErrorCode.FAIL_UPDATE_PASSWORD))
-                .when(user).updatePassword(anyString(), anyBoolean());
+            .when(user).updatePassword(anyString(), anyBoolean());
 
         CustomException exception = assertThrows(CustomException.class, () ->
-                userService.modifyPassword(request));
+            userService.modifyPassword(UserFixture.userId, UserFixture.password));
         assertEquals(ErrorCode.FAIL_UPDATE_PASSWORD, exception.getErrorCode());
     }
 
@@ -163,14 +171,14 @@ public class UserServiceTest {
         User user = mock(User.class);
 
         when(user.isSocial()).thenReturn(true);
-        when(passwordEncoder.encode(newPassword)).thenReturn(UserFixture.password);
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(passwordEncoder.encode(UserFixture.password)).thenReturn(UserFixture.password);
+        when(userRepository.findByUserId(UserFixture.userId)).thenReturn(Optional.of(user));
 
         doThrow(new CustomException(ErrorCode.SOCIAL_ACCOUNT_CANNOT_BE_MODIFIED))
-                .when(user).updatePassword(anyString(), eq(true));
+            .when(user).updatePassword(anyString(), eq(true));
 
         CustomException exception = assertThrows(CustomException.class, () ->
-                userService.modifyPassword(request));
+            userService.modifyPassword(UserFixture.userId, UserFixture.password));
 
         assertEquals(ErrorCode.FAIL_UPDATE_PASSWORD, exception.getErrorCode());
     }
@@ -182,9 +190,9 @@ public class UserServiceTest {
         User user = UserFixture.createUser();
         UserInfoResponse response = new UserInfoResponse(UserFixture.email, UserFixture.name, UserFixture.nickname);
 
-        when(userRepository.findByEmail(UserFixture.email)).thenReturn(Optional.of(user));
+        when(userRepository.findByUserId(UserFixture.userId)).thenReturn(Optional.of(user));
 
-        UserInfoResponse actualResponse = userService.getUserInfo(UserFixture.email);
+        UserInfoResponse actualResponse = userService.getUserInfo(UserFixture.userId);
 
         assertEquals(response.getNickname(), actualResponse.getNickname());
         assertEquals(response.getNickname(), actualResponse.getNickname());
@@ -195,10 +203,10 @@ public class UserServiceTest {
     @DisplayName("예외 테스트 : 회원 정보 조회 시 존재하지 않는 이메일")
     public void getUserInfoNonexistentEmailTest() {
 
-        when(userRepository.findByEmail(UserFixture.email)).thenReturn(Optional.empty());
+        when(userRepository.findByUserId(UserFixture.userId)).thenReturn(Optional.empty());
 
         CustomException exception = assertThrows(CustomException.class, () ->
-                userService.getUserInfo(UserFixture.email));
+            userService.getUserInfo(UserFixture.userId));
         assertEquals(ErrorCode.NOT_EXIST_EMAIL, exception.getErrorCode());
     }
 
@@ -206,14 +214,13 @@ public class UserServiceTest {
     @DisplayName("정상 테스트 : 회원 정보 수정")
     public void modifyUserInfoTest() {
 
-
         User user = mock(User.class);
         UserInfoResponse response = new UserInfoResponse(UserFixture.email, UserFixture.name, UserFixture.nickname);
 
-        when(userRepository.findByEmail(UserFixture.email)).thenReturn(Optional.of(user));
+        when(userRepository.findByUserId(UserFixture.userId)).thenReturn(Optional.of(user));
         when(passwordEncoder.encode(UserFixture.password)).thenReturn(UserFixture.password);
 
-        userService.modifyUserInfo(UserFixture.email, UserFixture.password, UserFixture.nickname);
+        userService.modifyUserInfo(UserFixture.userId, UserFixture.password, UserFixture.nickname);
 
         verify(user).updateUserInfo(UserFixture.password, UserFixture.nickname, UserFixture.isSocial);
 
@@ -223,10 +230,10 @@ public class UserServiceTest {
     @DisplayName("예외 테스트 : 회원 정보 수정 시 존재하지 않는 이메일")
     public void modifyUserInfoNonexistentEmailTest() {
 
-        when(userRepository.findByEmail(UserFixture.email)).thenReturn(Optional.empty());
+        when(userRepository.findByUserId(UserFixture.userId)).thenReturn(Optional.empty());
 
         CustomException exception = assertThrows(CustomException.class, () ->
-                userService.modifyUserInfo(UserFixture.email, UserFixture.password, UserFixture.nickname));
+            userService.modifyUserInfo(UserFixture.userId, UserFixture.password, UserFixture.nickname));
         assertEquals(ErrorCode.NOT_EXIST_EMAIL, exception.getErrorCode());
     }
 
@@ -236,14 +243,14 @@ public class UserServiceTest {
 
         User user = mock(User.class);
 
-        when(userRepository.findByEmail(UserFixture.email)).thenReturn(Optional.of(user));
+        when(userRepository.findByUserId(UserFixture.userId)).thenReturn(Optional.of(user));
         when(passwordEncoder.encode(UserFixture.password)).thenReturn(UserFixture.password);
 
         doThrow(new CustomException(ErrorCode.INVALID_NICKNAME))
-                .when(user).updateUserInfo(anyString(), anyString(), anyBoolean());
+            .when(user).updateUserInfo(anyString(), anyString(), anyBoolean());
 
         CustomException exception = assertThrows(CustomException.class, () ->
-                userService.modifyUserInfo(UserFixture.email, UserFixture.password, UserFixture.nickname));
+            userService.modifyUserInfo(UserFixture.userId, UserFixture.password, UserFixture.nickname));
 
         assertEquals(ErrorCode.FAIL_UPDATE_USER_INFO, exception.getErrorCode());
 

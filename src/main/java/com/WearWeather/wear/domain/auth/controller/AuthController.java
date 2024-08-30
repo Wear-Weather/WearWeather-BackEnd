@@ -8,10 +8,9 @@ import com.WearWeather.wear.domain.auth.dto.response.LoginResponse;
 import com.WearWeather.wear.domain.auth.dto.response.TokenResponse;
 import com.WearWeather.wear.domain.auth.service.AuthService;
 import com.WearWeather.wear.global.common.dto.ResponseCommonDTO;
+import com.WearWeather.wear.global.jwt.LoggedInUser;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -35,9 +34,9 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<ResponseCommonDTO> logout(@AuthenticationPrincipal UserDetails userDetails, @RequestHeader(AUTHORIZATION_HEADER) String tokenHeader) {
+    public ResponseEntity<ResponseCommonDTO> logout(@LoggedInUser Long userId, @RequestHeader(AUTHORIZATION_HEADER) String tokenHeader) {
         String token = tokenHeader.replace("Bearer ", "");
-        authService.logout(userDetails.getUsername(), token);
+        authService.logout(userId, token);
         return ResponseEntity.ok(new ResponseCommonDTO(true, "success logout"));
     }
 

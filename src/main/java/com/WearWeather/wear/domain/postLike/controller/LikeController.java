@@ -4,12 +4,15 @@ import com.WearWeather.wear.domain.postLike.dto.response.LikedPostsByMeResponse;
 import com.WearWeather.wear.domain.postLike.service.LikeService;
 import com.WearWeather.wear.global.common.ResponseMessage;
 import com.WearWeather.wear.global.common.dto.ResponseCommonDTO;
+import com.WearWeather.wear.global.jwt.LoggedInUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RequestMapping("/likes/posts") //TODO : API 명세서 수정하기
 @Validated
@@ -19,15 +22,15 @@ public class LikeController {
 
     private final LikeService likeService;
 
-    @PostMapping("/{postId}")
-    public ResponseEntity<ResponseCommonDTO> addLike(@PathVariable("postId") Long postId, @AuthenticationPrincipal UserDetails userDetail) {
-        likeService.addLike(postId, userDetail.getUsername());
+    @PostMapping
+    public ResponseEntity<ResponseCommonDTO> addLike(@LoggedInUser Long userId, @PathVariable("postId") Long postId) {
+        likeService.addLike(userId, postId);
         return ResponseEntity.ok(new ResponseCommonDTO(true, ResponseMessage.SUCCESS_POST_LIKE));
     }
 
-    @DeleteMapping("/{postId}")
-    public ResponseEntity<ResponseCommonDTO> removeLike(@PathVariable("postId") Long postId, @AuthenticationPrincipal UserDetails userDetail) {
-        likeService.removeLike(postId, userDetail.getUsername());
+    @DeleteMapping
+    public ResponseEntity<ResponseCommonDTO> removeLike(@LoggedInUser Long userId, @PathVariable("postId") Long postId) {
+        likeService.removeLike(postId, userId);
         return ResponseEntity.ok(new ResponseCommonDTO(true, ResponseMessage.SUCCESS_POST_LIKE_CANCEL));
     }
 

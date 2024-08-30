@@ -39,8 +39,8 @@ public class OAuthLoginService {
                 new UsernamePasswordAuthenticationToken(user.getEmail(), user.getEmail());
             Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
 
-            String accessToken = tokenProvider.createAccessToken(authentication);
-            String refreshToken = tokenProvider.createRefreshToken(authentication.getName());
+            String accessToken = tokenProvider.createAccessToken(user.getUserId(), authentication);
+            String refreshToken = tokenProvider.createRefreshToken(user.getUserId());
 
             return LoginResponse.of(user, accessToken, refreshToken);
         } catch (Exception ex) {

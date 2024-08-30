@@ -4,6 +4,7 @@ import com.WearWeather.wear.domain.postLike.dto.response.LikedPostByMeResponse;
 import com.WearWeather.wear.domain.postLike.dto.response.LikedPostsByMeResponse;
 import com.WearWeather.wear.domain.postLike.entity.Like;
 import com.WearWeather.wear.domain.post.service.PostService;
+import com.WearWeather.wear.domain.postLike.entity.Like;
 import com.WearWeather.wear.domain.postLike.repository.LikeRepository;
 import com.WearWeather.wear.domain.user.entity.User;
 import com.WearWeather.wear.domain.user.service.UserService;
@@ -28,16 +29,15 @@ public class LikeService {
     private final PostService postService;
 
     @Transactional
-    public void addLike(Long postId, String userEmail) {
+    public void addLike(Long userId, Long postId) {
 
         validatePostExists(postId);
-        User user = getUserByEmail(userEmail);
-        checkIfAlreadyLiked(postId, user.getUserId());
+        checkIfAlreadyLiked(postId, userId);
 
         Like like = Like.builder()
-                        .userId(user.getUserId())
-                        .postId(postId)
-                        .build();
+            .userId(userId)
+            .postId(postId)
+            .build();
 
         likeRepository.save(like);
 
@@ -45,12 +45,11 @@ public class LikeService {
     }
 
     @Transactional
-    public void removeLike(Long postId, String userEmail) {
+    public void removeLike(Long userId, Long postId) {
 
         validatePostExists(postId);
-        User user = getUserByEmail(userEmail);
 
-        Like like = findLike(postId, user.getUserId());
+        Like like = findLike(postId, userId);
         likeRepository.delete(like);
 
         postService.removeLikeCount(postId);
@@ -75,7 +74,7 @@ public class LikeService {
 
     public Like findLike(Long postId, Long userId) {
         return likeRepository.findByPostIdAndUserId(postId, userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_LIKED_POST));
+            .orElseThrow(() -> new CustomException(ErrorCode.NOT_LIKED_POST));
     }
 
     public LikedPostsByMeResponse getLikedPostsByMe(String email, int page, int size) {

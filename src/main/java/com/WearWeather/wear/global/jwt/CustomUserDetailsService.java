@@ -35,7 +35,7 @@ public class CustomUserDetailsService implements UserDetailsService {
             .map(authority -> new SimpleGrantedAuthority(authority.getAuthorityName()))
             .collect(Collectors.toList());
 
-        return new org.springframework.security.core.userdetails.User(user.getEmail(), // 유저 네임, 패스워드, 권한정보를 User 객체로 리턴
+        return new org.springframework.security.core.userdetails.User(String.valueOf(user.getUserId()),
             user.getPassword(),
             grantedAuthorities);
     }
