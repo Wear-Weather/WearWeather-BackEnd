@@ -3,6 +3,7 @@ package com.WearWeather.wear.domain.user.controller;
 import com.WearWeather.wear.domain.user.dto.request.*;
 import com.WearWeather.wear.domain.user.dto.response.FindUserEmailResponse;
 import com.WearWeather.wear.domain.user.dto.response.NicknameDuplicateCheckResponse;
+import com.WearWeather.wear.domain.user.dto.response.UserIdForPasswordUpdateResponse;
 import com.WearWeather.wear.domain.user.dto.response.UserInfoResponse;
 import com.WearWeather.wear.domain.user.service.UserService;
 import com.WearWeather.wear.global.common.ResponseMessage;
@@ -44,16 +45,15 @@ public class UserController {
     }
 
     @PostMapping("/password")
-    public ResponseEntity<ResponseCommonDTO> findUserPassword(@Valid @RequestBody FindUserPasswordRequest request) {
+    public ResponseEntity<UserIdForPasswordUpdateResponse> findUserPassword(@Valid @RequestBody FindUserPasswordRequest request) {
 
-        userService.findUserPassword(request.getEmail(), request.getName(), request.getNickname());
-        return ResponseEntity.ok(new ResponseCommonDTO(true, ResponseMessage.EXIST_USER));
+        return ResponseEntity.ok().body(userService.findUserPassword(request.getEmail(), request.getName(), request.getNickname()));
     }
 
     @PatchMapping("/password")
-    public ResponseEntity<ResponseCommonDTO> modifyPassword(@AuthenticationPrincipal UserDetails userDetail, @Valid @RequestBody ModifyUserPasswordRequest request) {
+    public ResponseEntity<ResponseCommonDTO> modifyPassword(@Valid @RequestBody ModifyUserPasswordRequest request) {
 
-        userService.modifyPassword(userDetail.getUsername(), request.getPassword());
+        userService.modifyPassword(request);
         return ResponseEntity.ok(new ResponseCommonDTO(true, ResponseMessage.MODIFY_PASSWORD));
     }
 
