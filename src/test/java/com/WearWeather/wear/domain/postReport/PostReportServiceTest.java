@@ -45,7 +45,7 @@ public class PostReportServiceTest {
         Long postId = 1L;
         String reason = "Inappropriate content";
 
-        doNothing().when(postService).validatePostExists(postId);
+        doNothing().when(postValidationService).validatePostExists(postId);
         when(postReportRepository.existsByUserIdAndPostId(1L, postId)).thenReturn(false);
 
         // when
@@ -64,7 +64,7 @@ public class PostReportServiceTest {
         Long postId = 1L;
         String reason = "Inappropriate content";
 
-        doNothing().when(postService).validatePostExists(postId);
+        doNothing().when(postValidationService).validatePostExists(postId);
         when(postReportRepository.existsByUserIdAndPostId(userId, postId)).thenReturn(true);
 
         // when & then
@@ -81,7 +81,7 @@ public class PostReportServiceTest {
         Long postId = 1L;
         String reason = "Inappropriate content";
 
-        doThrow(new CustomException(ErrorCode.NOT_EXIST_POST)).when(postService).validatePostExists(postId);
+        doThrow(new CustomException(ErrorCode.NOT_EXIST_POST)).when(postValidationService).validatePostExists(postId);
 
         // when & then
         assertThatThrownBy(() -> postReportService.reportPost(userId, postId, reason))

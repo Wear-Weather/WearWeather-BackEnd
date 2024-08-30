@@ -73,16 +73,16 @@ public class UserService {
     public UserIdForPasswordUpdateResponse findUserPassword(String email, String name, String nickname) {
 
         User user = userRepository.findByEmailAndNameAndNickname(email, name, nickname)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_USER));
+            .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_USER));
         return UserIdForPasswordUpdateResponse.of(user.getUserId());
 
     }
 
     @Transactional
-    public void modifyPassword(Long userId, String password) {
+    public void modifyPassword(ModifyUserPasswordRequest request) {
 
-        User user = getUserById(userId);
-
+        User user = userRepository.findById(request.getUserId())
+            .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_USER));
         try {
             user.updatePassword(passwordEncoder.encode(request.getPassword()), user.isSocial());
         } catch (CustomException e) {
@@ -125,7 +125,7 @@ public class UserService {
     }
 
     public String getNicknameById(Long userId) {
-        return userRepository.findUserNicknameMappingByUserId(userId)
+        return userRepository.findNicknameByUserId(userId)
             .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_USER))
             .getNickname();
     }

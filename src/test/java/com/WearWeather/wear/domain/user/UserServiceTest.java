@@ -129,10 +129,10 @@ public class UserServiceTest {
         ModifyUserPasswordRequest request = new ModifyUserPasswordRequest(userId, newPassword);
         User user = mock(User.class);
 
-        when(userRepository.findByUserId(UserFixture.userId)).thenReturn(Optional.of(user));
-        when(passwordEncoder.encode(UserFixture.password)).thenReturn(newPassword);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(passwordEncoder.encode(newPassword)).thenReturn(newPassword);
 
-        userService.modifyPassword(UserFixture.userId, UserFixture.password);
+        userService.modifyPassword(request);
 
         verify(user).updatePassword(newPassword, UserFixture.isSocial);
 
@@ -148,14 +148,14 @@ public class UserServiceTest {
 
         User user = mock(User.class);
 
-        when(userRepository.findByUserId(UserFixture.userId)).thenReturn(Optional.of(user));
-        when(passwordEncoder.encode(UserFixture.password)).thenReturn(newPassword);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(passwordEncoder.encode(newPassword)).thenReturn(newPassword);
 
         doThrow(new CustomException(ErrorCode.FAIL_UPDATE_PASSWORD))
             .when(user).updatePassword(anyString(), anyBoolean());
 
         CustomException exception = assertThrows(CustomException.class, () ->
-            userService.modifyPassword(UserFixture.userId, UserFixture.password));
+            userService.modifyPassword(request));
         assertEquals(ErrorCode.FAIL_UPDATE_PASSWORD, exception.getErrorCode());
     }
 
@@ -171,14 +171,14 @@ public class UserServiceTest {
         User user = mock(User.class);
 
         when(user.isSocial()).thenReturn(true);
-        when(passwordEncoder.encode(UserFixture.password)).thenReturn(UserFixture.password);
-        when(userRepository.findByUserId(UserFixture.userId)).thenReturn(Optional.of(user));
+        when(passwordEncoder.encode(newPassword)).thenReturn(UserFixture.password);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
         doThrow(new CustomException(ErrorCode.SOCIAL_ACCOUNT_CANNOT_BE_MODIFIED))
             .when(user).updatePassword(anyString(), eq(true));
 
         CustomException exception = assertThrows(CustomException.class, () ->
-            userService.modifyPassword(UserFixture.userId, UserFixture.password));
+            userService.modifyPassword(request));
 
         assertEquals(ErrorCode.FAIL_UPDATE_PASSWORD, exception.getErrorCode());
     }

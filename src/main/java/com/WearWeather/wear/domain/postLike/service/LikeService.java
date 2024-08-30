@@ -1,23 +1,21 @@
 package com.WearWeather.wear.domain.postLike.service;
 
+import com.WearWeather.wear.domain.post.service.PostService;
 import com.WearWeather.wear.domain.postLike.dto.response.LikedPostByMeResponse;
 import com.WearWeather.wear.domain.postLike.dto.response.LikedPostsByMeResponse;
-import com.WearWeather.wear.domain.postLike.entity.Like;
-import com.WearWeather.wear.domain.post.service.PostService;
 import com.WearWeather.wear.domain.postLike.entity.Like;
 import com.WearWeather.wear.domain.postLike.repository.LikeRepository;
 import com.WearWeather.wear.domain.user.entity.User;
 import com.WearWeather.wear.domain.user.service.UserService;
 import com.WearWeather.wear.global.exception.CustomException;
 import com.WearWeather.wear.global.exception.ErrorCode;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -77,16 +75,14 @@ public class LikeService {
             .orElseThrow(() -> new CustomException(ErrorCode.NOT_LIKED_POST));
     }
 
-    public LikedPostsByMeResponse getLikedPostsByMe(String email, int page, int size) {
-        User user = userService.getUserByEmail(email);
+    public LikedPostsByMeResponse getLikedPostsByMe(Long userId, int page, int size) {
 
         Sort sort = Sort.by(Sort.Order.desc("createdAt"));
         Pageable pageable = PageRequest.of(page, size, sort);
-        List<Long> likedPostIds = likeRepository.findByUserId(user.getUserId(), pageable);
+        List<Long> likedPostIds = likeRepository.findByUserId(userId, pageable);
 
-        List<LikedPostByMeResponse> likedPosts = postService.getLikedPostsByMe(user.getUserId(), likedPostIds);
+        List<LikedPostByMeResponse> likedPosts = postService.getLikedPostsByMe(userId, likedPostIds);
 
         return LikedPostsByMeResponse.of(likedPosts);
     }
 }
-
