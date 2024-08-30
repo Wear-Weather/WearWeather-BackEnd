@@ -44,7 +44,7 @@ public class PostHiddenServiceTest {
         Long userId = 1L;
         Long postId = 1L;
 
-        doNothing().when(postService).validatePostExists(postId);
+        doNothing().when(postValidationService).validatePostExists(postId);
         when(postHiddenRepository.existsByUserIdAndPostId(userId, postId)).thenReturn(false);
 
         // when
@@ -61,7 +61,7 @@ public class PostHiddenServiceTest {
         Long userId = 1L;
         Long postId = 1L;
 
-        doNothing().when(postService).validatePostExists(postId);
+        doNothing().when(postValidationService).validatePostExists(postId);
         when(postHiddenRepository.existsByUserIdAndPostId(userId, postId)).thenReturn(true);
 
         // when & then
@@ -77,7 +77,7 @@ public class PostHiddenServiceTest {
         Long userId = 1L;
         Long postId = 1L;
 
-        doThrow(new CustomException(ErrorCode.NOT_EXIST_POST)).when(postService).validatePostExists(postId);
+        doThrow(new CustomException(ErrorCode.NOT_EXIST_POST)).when(postValidationService).validatePostExists(postId);
 
         // when & then
         assertThatThrownBy(() -> postHiddenService.hidePost(userId, postId))

@@ -8,10 +8,12 @@ import com.WearWeather.wear.domain.post.dto.response.ImageDetailResponse;
 import com.WearWeather.wear.domain.post.dto.response.ImagesResponse;
 import com.WearWeather.wear.domain.post.dto.response.LocationResponse;
 import com.WearWeather.wear.domain.post.dto.response.PostByLocationResponse;
+import com.WearWeather.wear.domain.post.dto.response.PostByMeResponse;
 import com.WearWeather.wear.domain.post.dto.response.PostDetailResponse;
 import com.WearWeather.wear.domain.post.dto.response.PostWithLocationName;
 import com.WearWeather.wear.domain.post.dto.response.PostsByFiltersResponse;
 import com.WearWeather.wear.domain.post.dto.response.PostsByLocationResponse;
+import com.WearWeather.wear.domain.post.dto.response.PostsByMeResponse;
 import com.WearWeather.wear.domain.post.dto.response.SearchPostResponse;
 import com.WearWeather.wear.domain.post.dto.response.TopLikedPostResponse;
 import com.WearWeather.wear.domain.post.entity.Location;
@@ -20,8 +22,8 @@ import com.WearWeather.wear.domain.post.entity.SortType;
 import com.WearWeather.wear.domain.post.repository.PostRepository;
 import com.WearWeather.wear.domain.postImage.dto.request.PostImageRequest;
 import com.WearWeather.wear.domain.postImage.entity.PostImage;
-import com.WearWeather.wear.domain.postLike.dto.response.LikedPostByMeResponse;
 import com.WearWeather.wear.domain.postImage.repository.PostImageRepository;
+import com.WearWeather.wear.domain.postLike.dto.response.LikedPostByMeResponse;
 import com.WearWeather.wear.domain.postLike.repository.LikeRepository;
 import com.WearWeather.wear.domain.postReport.service.PostReportService;
 import com.WearWeather.wear.domain.postTag.entity.PostTag;
@@ -89,12 +91,13 @@ public class PostService {
 
     @Transactional
     public void deletePost(Long userId, Long postId) {
+
         Post post = findById(postId);
         postRepository.delete(post);
     }
 
     @Transactional
-    private void updateImagesInPost(PostImageRequest request, Post post) {
+    public void updateImagesInPost(PostImageRequest request, Post post) {
         List<PostImage> postImages = postImageRepository.findByIdIn(request.getImageId());
 
         for (int i = 0; i < postImages.size(); i++) {
@@ -170,7 +173,7 @@ public class PostService {
         LocationResponse location = locationService.findCityIdAndDistrictId(post.getLocation().getCity(), post.getLocation().getDistrict());
         Map<String, List<Long>> tags = getTagsByPostId(post.getId());
 
-        boolean like = checkLikeByPostAndUser(post.getId(), user.getUserId());
+        boolean like = checkLikeByPostAndUser(post.getId(), userId);
         boolean report = postReportService.hasReports(post.getId());
 
         return PostDetailResponse.of(
@@ -308,16 +311,15 @@ public class PostService {
         );
     }
 
-    public PostsByMeResponse getPostsByMe(String email, int page, int size){
-        User user = userService.getUserByEmail(email);
+    public PostsByMeResponse getPostsByMe(Long userId, int page, int size) {
 
         Sort sort = Sort.by(Sort.Order.desc("createdAt"));
         Pageable pageable = PageRequest.of(page, size, sort);
-        Page<Post> posts = postRepository.findByUserId(user.getUserId(), pageable);
+        Page<Post> posts = postRepository.findByUserId(userId, pageable);
 
         List<PostByMeResponse> postByMe = posts.stream()
-                .map(this::getPostByMe)
-                .toList();
+            .map(this::getPostByMe)
+            .toList();
 
         return PostsByMeResponse.of(postByMe);
     }
@@ -331,41 +333,41 @@ public class PostService {
         boolean report = postReportService.hasReports(post.getId());
 
         return PostByMeResponse.of(
-                post.getId(),
-                url,
-                location,
-                tags,
-                report
+            post.getId(),
+            url,
+            location,
+            tags,
+            report
         );
     }
 
-    public List<LikedPostByMeResponse> getLikedPostsByMe(Long userId, List<Long> likedPostIds){
+    public List<LikedPostByMeResponse> getLikedPostsByMe(Long userId, List<Long> likedPostIds) {
 
         List<Post> posts = postRepository.findAllById(likedPostIds);
 
         return posts.stream()
-                .map(post -> getLikedPost(userId, post))
-                .toList();
+            .map(post -> getLikedPost(userId, post))
+            .toList();
     }
 
-    public LikedPostByMeResponse getLikedPost(Long userId, Post post){
+    public LikedPostByMeResponse getLikedPost(Long userId, Post post) {
 
         String url = getImageUrl(post.getThumbnailImageId());
         LocationResponse location = locationService.findCityIdAndDistrictId(post.getLocation().getCity(), post.getLocation().getDistrict());
 
-        Map<String, List<Long>> tags =  getTagsByPostId(post.getId());
+        Map<String, List<Long>> tags = getTagsByPostId(post.getId());
 
         boolean like = checkLikeByPostAndUser(post.getId(), userId);
 
         boolean report = postReportService.hasReports(post.getId());
 
         return LikedPostByMeResponse.of(
-                post.getId(),
-                url,
-                location,
-                tags,
-                like,
-                report
+            post.getId(),
+            url,
+            location,
+            tags,
+            like,
+            report
         );
     }
 }
