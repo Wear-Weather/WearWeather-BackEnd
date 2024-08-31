@@ -68,8 +68,6 @@ dependencies {
     annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 
     implementation 'com.fasterxml.jackson.core:jackson-databind'
-
-
 }
 
 def querydslSrcDir = 'src/main/generated'

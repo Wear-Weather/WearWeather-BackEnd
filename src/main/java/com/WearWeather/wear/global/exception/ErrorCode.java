@@ -51,6 +51,8 @@ public enum ErrorCode {
     HIDDEN_POST_ALREADY_EXIST(BAD_REQUEST, "이미 숨겨진 게시물입니다."),
 
     REPORT_POST_ALREADY_EXIST(BAD_REQUEST, "이미 신고한 게시글입니다."),
+    INVALID_REQUEST_PARAMETER(BAD_REQUEST, "경도, 위도 값이 유효하지 않습니다."),
+    GEO_COORD_SERVER_ERROR(BAD_REQUEST,"서버 오류입니다."),
     ;
 
     private final HttpStatus httpStatus;

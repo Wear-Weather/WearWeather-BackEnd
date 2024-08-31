@@ -1,6 +1,7 @@
 package com.WearWeather.wear.domain.location.service;
 
 import com.WearWeather.wear.domain.location.dto.response.DistrictResponse;
+import com.WearWeather.wear.domain.location.dto.response.GeocodingLocationResponse;
 import com.WearWeather.wear.domain.location.dto.response.RegionResponse;
 import com.WearWeather.wear.domain.location.dto.response.RegionsResponse;
 import com.WearWeather.wear.domain.location.entity.City;
@@ -15,10 +16,17 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.util.DefaultUriBuilderFactory;
+import reactor.core.publisher.Mono;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -30,13 +38,22 @@ public class LocationService {
     @Value("${location.api.key}")
     private String openApiKey;
 
+    @Value("${kakao.geo.coord.base-url}")
+    private String geoCoordBaseUrl;
+    @Value("${kakao.geo.coord.path}")
+    private String geoCoordPath;
+    @Value("${kakao.geo.coord.api-key}")
+    private String geoCoordApiKey;
+
     private final CityRepository cityRepository;
     private final DistrictRepository districtRepository;
     private final RestTemplate restTemplate;
-    ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
+
 
     @Transactional
     public void saveLocationData() throws Exception  {
+        ObjectMapper objectMapper = new ObjectMapper();
 
         List<City> cityList = cityRepository.findAll();
 
@@ -78,6 +95,77 @@ public class LocationService {
                 districtRepository.saveAll(districtsToSave);
             }
         }
+    }
+
+    public Mono<GeocodingLocationResponse> findLocationByGeoCoordApi(double longitude, double latitude){
+
+        isValidCoordinates(longitude, latitude);
+
+        String restApiKey = "KakaoAK " + geoCoordApiKey;
+
+        DefaultUriBuilderFactory factory = new DefaultUriBuilderFactory(geoCoordBaseUrl);
+        factory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.VALUES_ONLY);
+
+        WebClient webClient = WebClient.builder()
+                .uriBuilderFactory(factory)
+                .baseUrl(geoCoordBaseUrl)
+                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .build();
+
+        return webClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path(geoCoordPath)
+                        .queryParam("x", longitude)
+                        .queryParam("y", latitude)
+                        .build())
+                .header("Authorization", restApiKey)
+                .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError, clientResponse -> {
+                     return clientResponse.bodyToMono(String.class)
+                             .flatMap(body -> Mono.error(new CustomException(ErrorCode.INVALID_REQUEST_PARAMETER)));
+                })
+                .onStatus(HttpStatusCode::is5xxServerError, clientResponse -> {
+                     return clientResponse.bodyToMono(String.class)
+                             .flatMap(body -> Mono.error(new CustomException(ErrorCode.GEO_COORD_SERVER_ERROR)));
+                })
+                .bodyToMono(String.class)
+                 .map(this::mapLocation);
+    }
+
+    private GeocodingLocationResponse mapLocation(String responseBody) {
+
+        String region_1depth_city = "region_1depth_name";
+        String region_2depth_district = "region_2depth_name";
+
+        try {
+            JsonNode root = objectMapper.readTree(responseBody);
+            JsonNode documents = root.path("documents").get(0);
+
+            String city = documents.path(region_1depth_city).asText();
+            String district = extractDistrict(documents.path(region_2depth_district).asText());
+
+            return GeocodingLocationResponse.of(city, district);
+
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to parse JSON", e);
+        }
+    }
+
+    public void isValidCoordinates(double longitude, double latitude){
+        if (longitude < -180 || longitude > 180 || latitude < -90 || latitude > 90) {
+            throw new CustomException(ErrorCode.INVALID_REQUEST_PARAMETER);
+        }
+    }
+
+    public static String extractDistrict(String address) {
+
+        int index = Math.min(address.indexOf("시"), address.indexOf("구"));
+
+        if (index == -1) {
+            return address;
+        }
+
+        return address.substring(0, index + 1);
     }
 
     public RegionsResponse getRegions(){
