@@ -15,7 +15,7 @@ public class LikeRepositoryImpl implements LikeRepositoryCustom{
     QLike qLike = QLike.like;
 
     @Override
-    public List<Long> findMostLikedPostIdForDay() {
+    public List<Long> findMostLikedPostIdForDay(List<Long> hiddenPostIds) {
 
         LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
         LocalDateTime endOfDay = startOfDay.plusDays(1);
@@ -25,9 +25,13 @@ public class LikeRepositoryImpl implements LikeRepositoryCustom{
                 .from(qLike)
                 .where(
                         qLike.createdAt.between(startOfDay, endOfDay)
+                        .and(qLike.postId.notIn(hiddenPostIds))
                 )
                 .groupBy(qLike.postId)
-                .orderBy(qLike.count().desc())
+                .orderBy(
+                        qLike.count().desc(),
+                        qLike.postId.asc()
+                )
                 .limit(10)
                 .fetch();
     }

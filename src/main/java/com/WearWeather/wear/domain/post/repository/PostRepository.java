@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface PostRepository extends JpaRepository<Post, Long>, PostRepositoryCustom {
 
-    List<Post> findAllByIdInOrderByLikeCountDesc(List<Long> postIdList);
+    List<Post> findAllByIdIn(List<Long> postIdList);
 
     Page<Post> findAllByLocation(Pageable pageable, Location location);
 

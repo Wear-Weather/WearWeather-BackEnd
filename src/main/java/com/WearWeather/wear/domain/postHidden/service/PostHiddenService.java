@@ -3,12 +3,15 @@ package com.WearWeather.wear.domain.postHidden.service;
 import com.WearWeather.wear.domain.post.service.PostValidationService;
 import com.WearWeather.wear.domain.postHidden.entity.PostHidden;
 import com.WearWeather.wear.domain.postHidden.repository.PostHiddenRepository;
+import com.WearWeather.wear.domain.postHidden.repository.PostIdMapping;
 import com.WearWeather.wear.domain.user.service.UserService;
 import com.WearWeather.wear.global.exception.CustomException;
 import com.WearWeather.wear.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -32,5 +35,13 @@ public class PostHiddenService {
             .postId(postId)
             .build();
         postHiddenRepository.save(postHidden);
+    }
+
+    public List<Long> findHiddenPostsByUserId(Long userId){
+        List<PostIdMapping> postIdMappings = postHiddenRepository.findAllByUserId(userId);
+
+        return postIdMappings.stream()
+                .map(PostIdMapping::getPostId)
+                .toList();
     }
 }

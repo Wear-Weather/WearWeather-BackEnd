@@ -20,6 +20,7 @@ import com.WearWeather.wear.domain.post.entity.Location;
 import com.WearWeather.wear.domain.post.entity.Post;
 import com.WearWeather.wear.domain.post.entity.SortType;
 import com.WearWeather.wear.domain.post.repository.PostRepository;
+import com.WearWeather.wear.domain.postHidden.service.PostHiddenService;
 import com.WearWeather.wear.domain.postImage.dto.request.PostImageRequest;
 import com.WearWeather.wear.domain.postImage.entity.PostImage;
 import com.WearWeather.wear.domain.postImage.repository.PostImageRepository;
@@ -61,6 +62,7 @@ public class PostService {
     private final PostTagRepository postTagRepository;
     private final LocationService locationService;
     private final PostReportService postReportService;
+    private final PostHiddenService postHiddenService;
 
     private static final String SORT_COLUMN_BY_CREATE_AT = "createdAt";
     private static final String SORT_COLUMN_BY_LIKE_COUNT = "likeCount";
@@ -137,17 +139,28 @@ public class PostService {
     }
 
     public List<TopLikedPostResponse> getTopLikedPosts(Long userId) {
-        List<Post> posts = getPostsOrderByLikeCountDesc();
+        List<Long> hiddenPostIds = postHiddenService.findHiddenPostsByUserId(userId);
+        List<Long> getPostIdsNotInHiddenPostIds = findMostLikedPostIdForDay(hiddenPostIds);
+        List<Post> posts = getPostsOrderByPostIds(getPostIdsNotInHiddenPostIds);
 
         return posts.stream()
             .map(post -> getTopLikedPost(post, userId))
             .collect(Collectors.toList());
     }
 
-    public List<Post> getPostsOrderByLikeCountDesc() {
-        List<Long> postIds = likeRepository.findMostLikedPostIdForDay();
+    public List<Post> getPostsOrderByPostIds(List<Long> postIds) {
+        List<Post> posts = postRepository.findAllByIdIn(postIds);
 
-        return postRepository.findAllByIdInOrderByLikeCountDesc(postIds);
+        return postIds.stream()
+                .map(postId -> posts.stream()
+                        .filter(post -> post.getId().equals(postId))
+                        .findFirst()
+                        .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_POST)))
+                .toList();
+    }
+
+    public List<Long> findMostLikedPostIdForDay(List<Long> hiddenPostIds) {
+        return likeRepository.findMostLikedPostIdForDay(hiddenPostIds); //TODO : 서비스 레이어 분리 후 likeService로의 의존으로 수정
     }
 
     public TopLikedPostResponse getTopLikedPost(Post post, Long userId) {
@@ -235,6 +248,7 @@ public class PostService {
 
     public List<PostByLocationResponse> getPostByLocation(int page, int size, Location location, SortType sort, Long userId) {
         String sortType = getSortColumnName(sort);
+
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortType).descending());
         Page<Post> posts = postRepository.findAllByLocation(pageable, location);
