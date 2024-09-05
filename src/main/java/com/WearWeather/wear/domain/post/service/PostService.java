@@ -303,8 +303,9 @@ public class PostService {
 
         String sortType = getSortColumnName(request.getSort());
 
+        List<Long> hiddenPostIds = findHiddenPostsByUserId(userId);
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), Sort.by(sortType).descending());
-        Page<PostWithLocationName> posts = postRepository.findPostsByFilters(request, pageable);
+        Page<PostWithLocationName> posts = postRepository.findPostsByFilters(request, pageable, hiddenPostIds);
 
         return posts.stream()
             .map(post -> getPostByFilters(post, userId))

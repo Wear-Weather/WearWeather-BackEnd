@@ -26,7 +26,7 @@ import org.springframework.data.support.PageableExecutionUtils;
 import java.util.List;
 
 @RequiredArgsConstructor
-public class PostRepositoryImpl implements PostRepositoryCustom {
+public class PostByFilterRepositoryCustomImpl implements PostByFilterRepositoryCustom {
     private final JPAQueryFactory jpaQueryFactory;
 
     QPost qPost = QPost.post;
@@ -38,15 +38,15 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
     BooleanBuilder havingConditions = new BooleanBuilder();
 
     @Override
-    public Page<PostWithLocationName> findPostsByFilters(PostsByFiltersRequest request, Pageable pageable) {
-
+    public Page<PostWithLocationName> findPostsByFilters(PostsByFiltersRequest request, Pageable pageable, List<Long> hiddenPostIds) {
+//전체 게시글 갯수 세는거 확인하기
         List<Long> postIdsByLocation = findPostIdByLocationFilter(request);
         List<Long> postIdsByTag = findPostIdByTagFilter(request);
 
-        List<PostWithLocationName> postsByPageable = getQueryByFilters(postIdsByLocation, postIdsByTag, pageable);
-        JPAQuery<Long> postsQueryCount = getPostsQueryCount(postIdsByLocation, postIdsByTag);
+        List<PostWithLocationName> posts = getQueryByFilters(postIdsByLocation, postIdsByTag, pageable, hiddenPostIds);
+        JPAQuery<Long> postsQueryCount = getPostsQueryCount(postIdsByLocation, postIdsByTag, hiddenPostIds);
 
-        return PageableExecutionUtils.getPage(postsByPageable, pageable, postsQueryCount::fetchOne);
+        return PageableExecutionUtils.getPage(posts, pageable, postsQueryCount::fetchOne);
 
     }
 
@@ -158,7 +158,7 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
         };
     }
 
-    private List<PostWithLocationName> getQueryByFilters(List<Long> postIdsByLocation, List<Long> postIdsByTag, Pageable pageable){
+    private List<PostWithLocationName> getQueryByFilters(List<Long> postIdsByLocation, List<Long> postIdsByTag, Pageable pageable, List<Long> hiddenPostIds){
 
         OrderSpecifier<?> sortType = getSortColumn(pageable.getSort());
 
@@ -174,7 +174,8 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
                 .leftJoin(qDistrict).on(qPost.location.district.eq(qDistrict.id))
                 .where(
                         qPost.id.in(postIdsByLocation),
-                        qPost.id.in(postIdsByTag)
+                        qPost.id.in(postIdsByTag),
+                        qPost.id.notIn(hiddenPostIds)
                 )
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -182,14 +183,15 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
                 .fetch();
     }
 
-    private JPAQuery<Long> getPostsQueryCount(List<Long> postIdsByLocation, List<Long> postIdsByTag){
+    private JPAQuery<Long> getPostsQueryCount(List<Long> postIdsByLocation, List<Long> postIdsByTag, List<Long> hiddenPostIds){
 
         return jpaQueryFactory
                 .select(qPost.count())
                 .from(qPost)
                 .where(
                         qPost.id.in(postIdsByLocation),
-                        qPost.id.in(postIdsByTag)
+                        qPost.id.in(postIdsByTag),
+                        qPost.id.notIn(hiddenPostIds)
                 );
     }
 }
