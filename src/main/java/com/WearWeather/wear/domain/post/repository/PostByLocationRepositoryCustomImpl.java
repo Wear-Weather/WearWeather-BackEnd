@@ -16,7 +16,7 @@ import org.springframework.data.support.PageableExecutionUtils;
 import java.util.List;
 
 @RequiredArgsConstructor
-public class PostByLocationCustomImpl implements PostByLocationCustom {
+public class PostByLocationRepositoryCustomImpl implements PostByLocationRepositoryCustom {
     private final JPAQueryFactory jpaQueryFactory;
 
     QPost qPost = QPost.post;

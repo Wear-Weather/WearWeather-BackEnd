@@ -6,7 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface PostRepository extends JpaRepository<Post, Long>, PostByFilterRepositoryCustom, PostByLocationCustom {
+public interface PostRepository extends JpaRepository<Post, Long>, PostByFilterRepositoryCustom, PostByLocationRepositoryCustom {
 
     List<Post> findAllByIdIn(List<Long> postIdList);
     Page<Post> findByUserId(Long userId, Pageable pageable);
