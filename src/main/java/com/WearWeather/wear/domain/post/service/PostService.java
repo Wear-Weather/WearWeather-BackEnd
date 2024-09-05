@@ -48,6 +48,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Transactional(readOnly = true)
 @Service
 @RequiredArgsConstructor
 public class PostService {
@@ -139,13 +140,17 @@ public class PostService {
     }
 
     public List<TopLikedPostResponse> getTopLikedPosts(Long userId) {
-        List<Long> hiddenPostIds = postHiddenService.findHiddenPostsByUserId(userId);
+        List<Long> hiddenPostIds = findHiddenPostsByUserId(userId);
         List<Long> getPostIdsNotInHiddenPostIds = findMostLikedPostIdForDay(hiddenPostIds);
         List<Post> posts = getPostsOrderByPostIds(getPostIdsNotInHiddenPostIds);
 
         return posts.stream()
             .map(post -> getTopLikedPost(post, userId))
             .collect(Collectors.toList());
+    }
+
+    private List<Long> findHiddenPostsByUserId(Long userId){
+        return postHiddenService.findHiddenPostsByUserId(userId);
     }
 
     public List<Post> getPostsOrderByPostIds(List<Long> postIds) {
@@ -249,9 +254,9 @@ public class PostService {
     public List<PostByLocationResponse> getPostByLocation(int page, int size, Location location, SortType sort, Long userId) {
         String sortType = getSortColumnName(sort);
 
-
+        List<Long> hiddenPostIds = findHiddenPostsByUserId(userId);
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortType).descending());
-        Page<Post> posts = postRepository.findAllByLocation(pageable, location);
+        Page<Post> posts = postRepository.getPostsNotInHiddenPosts(pageable, location, hiddenPostIds);
 
         return posts.stream()
             .map(post -> getPostByLocation(post, userId))
