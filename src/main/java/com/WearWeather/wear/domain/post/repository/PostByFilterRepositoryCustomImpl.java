@@ -39,7 +39,7 @@ public class PostByFilterRepositoryCustomImpl implements PostByFilterRepositoryC
 
     @Override
     public Page<PostWithLocationName> findPostsByFilters(PostsByFiltersRequest request, Pageable pageable, List<Long> hiddenPostIds) {
-//전체 게시글 갯수 세는거 확인하기
+
         List<Long> postIdsByLocation = findPostIdByLocationFilter(request);
         List<Long> postIdsByTag = findPostIdByTagFilter(request);
 
