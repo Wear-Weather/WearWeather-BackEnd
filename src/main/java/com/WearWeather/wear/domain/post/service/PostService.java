@@ -246,21 +246,24 @@ public class PostService {
     public PostsByLocationResponse getPostsByLocation(Long userId, int page, int size, String city, String district, SortType sort) {
 
         Location location = locationService.findCityIdAndDistrictId(city, district);
-        List<PostByLocationResponse> responses = getPostByLocation(page, size, location, sort, userId);
+        Page<Post> posts = getPostByLocation(page, size, location, sort, userId);
 
-        return PostsByLocationResponse.of(LocationResponse.of(city, district), responses);
+        List<PostByLocationResponse> responses = posts.stream()
+                .map(post -> getPostByLocation(post, userId))
+                .toList();
+
+        int totalPages = posts.getTotalPages() -1 ;
+
+        return PostsByLocationResponse.of(LocationResponse.of(city, district), responses, totalPages);
     }
 
-    public List<PostByLocationResponse> getPostByLocation(int page, int size, Location location, SortType sort, Long userId) {
+    public Page<Post> getPostByLocation(int page, int size, Location location, SortType sort, Long userId) {
         String sortType = getSortColumnName(sort);
 
         List<Long> hiddenPostIds = findHiddenPostsByUserId(userId);
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortType).descending());
-        Page<Post> posts = postRepository.getPostsNotInHiddenPosts(pageable, location, hiddenPostIds);
 
-        return posts.stream()
-            .map(post -> getPostByLocation(post, userId))
-            .toList();
+        return postRepository.getPostsNotInHiddenPosts(pageable, location, hiddenPostIds);
     }
 
     public String getSortColumnName(SortType sortType) {
