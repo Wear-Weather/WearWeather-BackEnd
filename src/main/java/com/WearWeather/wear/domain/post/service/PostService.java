@@ -367,7 +367,7 @@ public class PostService {
         );
     }
 
-    public List<LikedPostByMeResponse> getLikedPostsByMe(Long userId, List<Long> likedPostIds) {
+    public List<LikedPostByMeResponse> getLikedPostsByMe(Long userId, Page<Long> likedPostIds) {
 
         List<Post> posts = postRepository.findAllById(likedPostIds);
 

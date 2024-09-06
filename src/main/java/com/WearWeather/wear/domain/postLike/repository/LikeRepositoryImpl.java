@@ -1,9 +1,12 @@
 package com.WearWeather.wear.domain.postLike.repository;
 
 import com.WearWeather.wear.domain.postLike.entity.QLike;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -37,7 +40,15 @@ public class LikeRepositoryImpl implements LikeRepositoryCustom{
     }
 
     @Override
-    public List<Long> findByUserId(Long userId, Pageable pageable) {
+    public Page<Long> findByUserId(Long userId, Pageable pageable) {
+
+        List<Long> posts = findLikedPostsByMeQuery(userId, pageable);
+        JPAQuery<Long> postsQueryCount = getLikedPostsQueryCount(userId);
+
+        return PageableExecutionUtils.getPage(posts, pageable, postsQueryCount::fetchOne);
+    }
+
+    private List<Long> findLikedPostsByMeQuery(Long userId, Pageable pageable){
         return jpaQueryFactory
                 .select(qLike.postId)
                 .from(qLike)
@@ -48,5 +59,15 @@ public class LikeRepositoryImpl implements LikeRepositoryCustom{
                 .limit(pageable.getPageSize())
                 .orderBy(qLike.createdAt.desc())
                 .fetch();
+    }
+
+    private JPAQuery<Long> getLikedPostsQueryCount(Long userId){
+
+        return jpaQueryFactory
+                .select(qLike.count())
+                .from(qLike)
+                .where(
+                        qLike.userId.eq(userId)
+                );
     }
 }
