@@ -296,23 +296,25 @@ public class PostService {
 
     public PostsByFiltersResponse searchPostsWithFilters(Long userId, PostsByFiltersRequest request) {
 
-        List<SearchPostResponse> responses = getPostByFilters(request, userId);
+        Page<PostWithLocationName> posts = getPostByFilters(request, userId);
 
-        return PostsByFiltersResponse.of(responses);
+        List<SearchPostResponse> responses = posts.stream()
+                .map(post -> getPostByFilters(post, userId))
+                .toList();
+        int totalPage = posts.getTotalPages() -1 ;
+
+        return PostsByFiltersResponse.of(responses, totalPage);
     }
 
-    public List<SearchPostResponse> getPostByFilters(PostsByFiltersRequest request, Long userId) {
+    public Page<PostWithLocationName> getPostByFilters(PostsByFiltersRequest request, Long userId) {
         //TODO : getPostDetailByLocation()메서드랑 중복 제거하기
 
         String sortType = getSortColumnName(request.getSort());
 
         List<Long> hiddenPostIds = findHiddenPostsByUserId(userId);
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), Sort.by(sortType).descending());
-        Page<PostWithLocationName> posts = postRepository.findPostsByFilters(request, pageable, hiddenPostIds);
 
-        return posts.stream()
-            .map(post -> getPostByFilters(post, userId))
-            .toList();
+        return postRepository.findPostsByFilters(request, pageable, hiddenPostIds);
     }
 
     public SearchPostResponse getPostByFilters(PostWithLocationName post, Long userId) {
