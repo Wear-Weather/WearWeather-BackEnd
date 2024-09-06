@@ -346,7 +346,8 @@ public class PostService {
             .map(this::getPostByMe)
             .toList();
 
-        return PostsByMeResponse.of(postByMe);
+        int totalPage = posts.getTotalPages() -1;
+        return PostsByMeResponse.of(postByMe, totalPage);
     }
 
     private PostByMeResponse getPostByMe(Post post) {

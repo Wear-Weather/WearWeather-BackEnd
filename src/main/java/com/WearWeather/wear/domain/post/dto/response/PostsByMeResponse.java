@@ -6,11 +6,13 @@ import java.util.List;
 
 @Builder
 public record PostsByMeResponse(
-        List<PostByMeResponse> myPosts
+        List<PostByMeResponse> myPosts,
+        int total
 ) {
-    public static PostsByMeResponse of(List<PostByMeResponse> posts){
+    public static PostsByMeResponse of(List<PostByMeResponse> posts, int totalPage){
         return PostsByMeResponse.builder()
                 .myPosts(posts)
+                .total(totalPage)
                 .build();
     }
 }
