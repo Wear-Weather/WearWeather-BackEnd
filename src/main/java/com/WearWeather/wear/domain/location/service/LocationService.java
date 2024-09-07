@@ -1,9 +1,6 @@
 package com.WearWeather.wear.domain.location.service;
 
-import com.WearWeather.wear.domain.location.dto.response.DistrictResponse;
-import com.WearWeather.wear.domain.location.dto.response.GeocodingLocationResponse;
-import com.WearWeather.wear.domain.location.dto.response.RegionResponse;
-import com.WearWeather.wear.domain.location.dto.response.RegionsResponse;
+import com.WearWeather.wear.domain.location.dto.response.*;
 import com.WearWeather.wear.domain.location.entity.City;
 import com.WearWeather.wear.domain.location.entity.District;
 import com.WearWeather.wear.domain.location.repository.CityRepository;
@@ -21,7 +18,6 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 import reactor.core.publisher.Mono;
@@ -35,9 +31,10 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class LocationService {
 
+    @Value("${location.api.base-url}")
+    private String locationBaseUrl;
     @Value("${location.api.key}")
-    private String openApiKey;
-
+    private String locationAccessToken;
     @Value("${kakao.geo.coord.base-url}")
     private String geoCoordBaseUrl;
     @Value("${kakao.geo.coord.path}")
@@ -47,53 +44,145 @@ public class LocationService {
 
     private final CityRepository cityRepository;
     private final DistrictRepository districtRepository;
-    private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
-
 
     @Transactional
     public void saveLocationData() throws Exception  {
-        ObjectMapper objectMapper = new ObjectMapper();
 
-        List<City> cityList = cityRepository.findAll();
+        List<CityResponse> cityIdList = cityDateApi();
+        districtDataApi(cityIdList);
+    }
 
-        for ( City city : cityList) {
-            String apiUrl = "https://api.vworld.kr/req/data?service=data" +
-                    "&request=GetFeature" +
-                    "&data=LT_C_ADSIGG_INFO" +
-                    "&key=" + openApiKey +
-                    "&format=json" +
-                    "&attrFilter=full_nm:like:" + city.getCity() +
-                    "&geometry=false";
+    @Transactional
+    public List<CityResponse> cityDateApi(){
 
-            String responseBody = restTemplate.getForEntity(apiUrl, String.class).getBody();
+        DefaultUriBuilderFactory factory = new DefaultUriBuilderFactory(locationBaseUrl);
+        factory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.VALUES_ONLY);
 
-            if (responseBody != null) {
-                JsonNode root = objectMapper.readTree(responseBody);
-                JsonNode features = root.path("response")
-                        .path("result")
-                        .path("featureCollection")
-                        .path("features");
+        WebClient webClient = WebClient.builder()
+                .uriBuilderFactory(factory)
+                .baseUrl(locationBaseUrl)
+                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .build();
 
-                Set<String> uniqueDistricts = new HashSet<>();
+        return webClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .queryParam("accessToken", locationAccessToken)
+                        .build())
+                .retrieve()
+                .bodyToMono(String.class)
+                .map(this::mapCity).block();
+    }
 
-                for (JsonNode feature : features) {
-                    JsonNode properties = feature.path("properties");
-                    String districtName = properties.path("sig_kor_nm").asText();
+    private List<CityResponse> mapCity(String cityResponseBody) {
 
-                    String processedDistrictName = (districtName.length() > 3)
-                            ? districtName.substring(0, 3)
-                            : districtName;
+        List<City> cityList = new ArrayList<>();
+        List<CityResponse> cityResponses =  new ArrayList<>();
 
-                    uniqueDistricts.add(processedDistrictName);
-                }
+        City entireCity = City.builder()
+                .city("전국")
+                .build();
+        
+        cityList.add(entireCity);
+        
+        try {
+            JsonNode root = objectMapper.readTree(cityResponseBody);
+            JsonNode documents = root.path("result");
 
-                List<District> districtsToSave = uniqueDistricts.stream()
-                        .map(districtName -> new District(city.getId(), districtName))
-                        .collect(Collectors.toList());
+            for (int i =0; i < documents.size(); i++) {
+                String fullAddr = documents.get(i).path("full_addr").asText();
 
-                districtRepository.saveAll(districtsToSave);
+                City city = City.builder()
+                        .city(fullAddr)
+                        .build();
+
+                cityList.add(city);
             }
+
+            List<City> saveCityList = cityRepository.saveAll(cityList);
+
+            Map<String, Long> cityMap = saveCityList.stream()
+                    .collect(Collectors.toMap(City::getCity, City::getId));
+
+            for (int i =0; i < documents.size(); i++) {
+                String fullAddr = documents.get(i).path("full_addr").asText();
+                int cd = documents.get(i).path("cd").asInt();
+
+                CityResponse locationResponse = CityResponse.builder()
+                        .id(cityMap.get(fullAddr))
+                        .city(fullAddr)
+                        .apiCityId(cd)
+                        .build();
+
+                cityResponses.add(locationResponse);
+            }
+
+            return cityResponses;
+
+        } catch (IOException e) {
+            throw new CustomException(ErrorCode.FAIL_SAVE_LOCATION_CITY);
+        }
+    }
+
+    @Transactional
+    private void districtDataApi(List<CityResponse> cityResponses) {
+
+        List<List<District>> districtLists = cityResponses
+                .stream()
+                .map(this::findDistrictByCityId)
+                .toList();
+
+        List<District> districts = districtLists.stream()
+                .flatMap(List::stream).toList();
+
+        districtRepository.saveAll(districts);
+    }
+
+    private List<District> findDistrictByCityId(CityResponse response){
+
+        DefaultUriBuilderFactory factory = new DefaultUriBuilderFactory(locationBaseUrl);
+        factory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.VALUES_ONLY);
+
+        WebClient webClient = WebClient.builder()
+                .uriBuilderFactory(factory)
+                .baseUrl(locationBaseUrl)
+                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .build();
+
+        return webClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .queryParam("accessToken", locationAccessToken)
+                        .queryParam("cd", response.apiCityId())
+                        .build())
+                .retrieve()
+                .bodyToMono(String.class)
+                .map(districtList -> mapDistrict(districtList, response.id()))
+                .block();
+    }
+
+    private List<District> mapDistrict(String districtResponseBody, Long id){
+
+        List<District> districtList = new ArrayList<>();
+
+        try {
+            JsonNode root = objectMapper.readTree(districtResponseBody);
+            JsonNode documents = root.path("result");
+
+            for (int i = 0; i < documents.size(); i++) {
+                String addrName = documents.get(i).path("addr_name").asText();
+
+                District district = District.builder()
+                        .cityId(id)
+                        .district(addrName)
+                        .build();
+
+                districtList.add(district);
+            }
+
+            return districtList;
+
+        } catch (IOException e) {
+            throw new CustomException(ErrorCode.FAIL_SAVE_LOCATION_DISTRICT);
         }
     }
 
@@ -154,7 +243,7 @@ public class LocationService {
             return GeocodingLocationResponse.of(exchangedCityName, district);
 
         } catch (IOException e) {
-            throw new RuntimeException("Failed to parse JSON", e);
+            throw new CustomException(ErrorCode.GEO_COORD_SERVER_ERROR);
         }
     }
 
