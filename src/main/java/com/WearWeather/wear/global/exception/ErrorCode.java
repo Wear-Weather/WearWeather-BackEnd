@@ -54,7 +54,8 @@ public enum ErrorCode {
     INVALID_REQUEST_PARAMETER(BAD_REQUEST, "경도, 위도 값이 유효하지 않습니다."),
     GEO_COORD_SERVER_ERROR(BAD_REQUEST,"서버 오류입니다."),
     FAIL_SAVE_LOCATION_CITY(BAD_REQUEST, "광역시도 저장 오류입니다."),
-    FAIL_SAVE_LOCATION_DISTRICT(BAD_REQUEST, "시군구 저장 오류입니다.")
+    FAIL_SAVE_LOCATION_DISTRICT(BAD_REQUEST, "시군구 저장 오류입니다."),
+    FAIL_CREATE_LOCATION_ACCESS_TOKEN(BAD_REQUEST, "위치 액세스 토큰 생성 오류입니다..")
     ;
 
     private final HttpStatus httpStatus;

@@ -31,10 +31,15 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class LocationService {
 
+    @Value("${location.api.accessToken.url}")
+    private String locationTokenUrl;
+    @Value("${location.api.consumer-key}")
+    private String locationServiceId;
+    @Value("${location.api.consumer-secret}")
+    private String locationServiceSecret;
     @Value("${location.api.base-url}")
     private String locationBaseUrl;
-    @Value("${location.api.key}")
-    private String locationAccessToken;
+
     @Value("${kakao.geo.coord.base-url}")
     private String geoCoordBaseUrl;
     @Value("${kakao.geo.coord.path}")
@@ -48,13 +53,44 @@ public class LocationService {
 
     @Transactional
     public void saveLocationData() throws Exception  {
+        String accessToken = createAccessToken();
 
-        List<CityResponse> cityIdList = cityDateApi();
-        districtDataApi(cityIdList);
+        List<CityResponse> cityIdList = cityDateApi(accessToken);
+        districtDataApi(cityIdList, accessToken);
+    }
+
+    public String createAccessToken(){
+
+        DefaultUriBuilderFactory factory = new DefaultUriBuilderFactory(locationTokenUrl);
+        factory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.VALUES_ONLY);
+
+        WebClient webClient = WebClient.builder()
+                .uriBuilderFactory(factory)
+                .baseUrl(locationTokenUrl)
+                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .build();
+
+         String json = webClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .queryParam("consumer_key", locationServiceId)
+                        .queryParam("consumer_secret", locationServiceSecret)
+                        .build())
+                .retrieve()
+                .bodyToMono(String.class)
+                .block();
+
+        try {
+            JsonNode rootNode = objectMapper.readTree(json);
+
+            return rootNode.path("result").path("accessToken").asText();
+        } catch (Exception e) {
+            throw new CustomException(ErrorCode.FAIL_CREATE_LOCATION_ACCESS_TOKEN);
+        }
+
     }
 
     @Transactional
-    public List<CityResponse> cityDateApi(){
+    public List<CityResponse> cityDateApi(String locationAccessToken){
 
         DefaultUriBuilderFactory factory = new DefaultUriBuilderFactory(locationBaseUrl);
         factory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.VALUES_ONLY);
@@ -71,7 +107,8 @@ public class LocationService {
                         .build())
                 .retrieve()
                 .bodyToMono(String.class)
-                .map(this::mapCity).block();
+                .map(this::mapCity)
+                .block();
     }
 
     private List<CityResponse> mapCity(String cityResponseBody) {
@@ -125,11 +162,11 @@ public class LocationService {
     }
 
     @Transactional
-    private void districtDataApi(List<CityResponse> cityResponses) {
+    private void districtDataApi(List<CityResponse> cityResponses, String locationAccessToken) {
 
         List<List<District>> districtLists = cityResponses
                 .stream()
-                .map(this::findDistrictByCityId)
+                .map(cityResponse -> findDistrictByCityId(locationAccessToken, cityResponse))
                 .toList();
 
         List<District> districts = districtLists.stream()
@@ -138,7 +175,7 @@ public class LocationService {
         districtRepository.saveAll(districts);
     }
 
-    private List<District> findDistrictByCityId(CityResponse response){
+    private List<District> findDistrictByCityId(String locationAccessToken, CityResponse response){
 
         DefaultUriBuilderFactory factory = new DefaultUriBuilderFactory(locationBaseUrl);
         factory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.VALUES_ONLY);
