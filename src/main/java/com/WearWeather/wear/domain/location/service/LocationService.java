@@ -128,9 +128,10 @@ public class LocationService {
 
             for (int i =0; i < documents.size(); i++) {
                 String fullAddr = documents.get(i).path("full_addr").asText();
+                String exchangeCityName = exchangeCityName(fullAddr);
 
                 City city = City.builder()
-                        .city(fullAddr)
+                        .city(exchangeCityName)
                         .build();
 
                 cityList.add(city);
@@ -143,11 +144,13 @@ public class LocationService {
 
             for (int i =0; i < documents.size(); i++) {
                 String fullAddr = documents.get(i).path("full_addr").asText();
+                String exchangeCityName = exchangeCityName(fullAddr);
+
                 int cd = documents.get(i).path("cd").asInt();
 
                 CityResponse locationResponse = CityResponse.builder()
-                        .id(cityMap.get(fullAddr))
-                        .city(fullAddr)
+                        .id(cityMap.get(exchangeCityName))
+                        .city(exchangeCityName)
                         .apiCityId(cd)
                         .build();
 
@@ -223,6 +226,16 @@ public class LocationService {
         }
     }
 
+    public String exchangeCityName(String city){
+
+        Set<String> matchCityName = new HashSet<>(Arrays.asList("충청남도", "충청북도", "전라남도", "전라북도", "경상남도", "경상북도"));
+
+        if (!matchCityName.contains(city)) {
+            return city.substring(0, 2) + city.charAt(city.length() - 1);
+        }
+        return city;
+    }
+
     public Mono<GeocodingLocationResponse> findLocationByGeoCoordApi(double longitude, double latitude){
 
         isValidCoordinates(longitude, latitude);
@@ -282,20 +295,6 @@ public class LocationService {
         } catch (IOException e) {
             throw new CustomException(ErrorCode.GEO_COORD_SERVER_ERROR);
         }
-    }
-
-    public String exchangeCityName(String city){
-
-        Set<String> matchCityName = new HashSet<>(Arrays.asList("충청북도", "충청남도", "전라남도", "경상북도", "경상남도", "전북특별자치도"));
-
-        if (!matchCityName.contains(city)) {
-            return city.substring(0, 2) + city.charAt(city.length() - 1);
-        }
-
-        if(city.equals("전북특별자치도")){
-            return city.substring(0, 2);
-        }
-        return city;
     }
 
     public static String extractDistrict(String address) {
