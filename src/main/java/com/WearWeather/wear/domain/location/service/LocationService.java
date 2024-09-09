@@ -14,6 +14,7 @@ import com.WearWeather.wear.global.exception.CustomException;
 import com.WearWeather.wear.global.exception.ErrorCode;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
