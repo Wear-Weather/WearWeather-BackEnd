@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class LocationService {
 
-    @Value("${location.api.key}")
+    @Value("${location.api.consumer-key}")
     private String openApiKey;
 
     @Value("${kakao.geo.coord.base-url}")
