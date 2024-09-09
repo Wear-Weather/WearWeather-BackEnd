@@ -136,6 +136,12 @@ public class LocationService {
                  .map(this::mapLocation);
     }
 
+    public void isValidCoordinates(double longitude, double latitude){
+        if (longitude < -180 || longitude > 180 || latitude < -90 || latitude > 90) {
+            throw new CustomException(ErrorCode.INVALID_REQUEST_PARAMETER);
+        }
+    }
+
     private GeocodingLocationResponse mapLocation(String responseBody) {
 
         String region_1depth_city = "region_1depth_name";
@@ -146,19 +152,28 @@ public class LocationService {
             JsonNode documents = root.path("documents").get(0);
 
             String city = documents.path(region_1depth_city).asText();
+            String exchangedCityName = exchangeCityName(city);
             String district = extractDistrict(documents.path(region_2depth_district).asText());
 
-            return GeocodingLocationResponse.of(city, district);
+            return GeocodingLocationResponse.of(exchangedCityName, district);
 
         } catch (IOException e) {
             throw new RuntimeException("Failed to parse JSON", e);
         }
     }
 
-    public void isValidCoordinates(double longitude, double latitude){
-        if (longitude < -180 || longitude > 180 || latitude < -90 || latitude > 90) {
-            throw new CustomException(ErrorCode.INVALID_REQUEST_PARAMETER);
+    public String exchangeCityName(String city){
+
+        Set<String> matchCityName = new HashSet<>(Arrays.asList("충청북도", "충청남도", "전라남도", "경상북도", "경상남도", "전북특별자치도"));
+
+        if (!matchCityName.contains(city)) {
+            return city.substring(0, 2) + city.charAt(city.length() - 1);
         }
+
+        if(city.equals("전북특별자치도")){
+            return city.substring(0, 2);
+        }
+        return city;
     }
 
     public static String extractDistrict(String address) {
