@@ -24,15 +24,15 @@ public class LikeController {
 
     private final LikeService likeService;
 
-    @PostMapping
+    @PostMapping("/{postId}")
     public ResponseEntity<ResponseCommonDTO> addLike(@LoggedInUser Long userId, @PathVariable("postId") Long postId) {
         likeService.addLike(userId, postId);
         return ResponseEntity.ok(new ResponseCommonDTO(true, ResponseMessage.SUCCESS_POST_LIKE));
     }
 
-    @DeleteMapping
+    @DeleteMapping("/{postId}")
     public ResponseEntity<ResponseCommonDTO> removeLike(@LoggedInUser Long userId, @PathVariable("postId") Long postId) {
-        likeService.removeLike(postId, userId);
+        likeService.removeLike(userId, postId);
         return ResponseEntity.ok(new ResponseCommonDTO(true, ResponseMessage.SUCCESS_POST_LIKE_CANCEL));
     }
 
