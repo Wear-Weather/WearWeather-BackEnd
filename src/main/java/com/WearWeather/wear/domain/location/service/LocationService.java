@@ -9,11 +9,19 @@ import com.WearWeather.wear.domain.location.entity.District;
 import com.WearWeather.wear.domain.location.repository.CityRepository;
 import com.WearWeather.wear.domain.location.repository.DistrictRepository;
 import com.WearWeather.wear.domain.post.dto.response.LocationResponse;
+import com.WearWeather.wear.domain.post.entity.Location;
 import com.WearWeather.wear.global.exception.CustomException;
 import com.WearWeather.wear.global.exception.ErrorCode;
-import com.WearWeather.wear.domain.post.entity.Location;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -26,16 +34,12 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 import reactor.core.publisher.Mono;
 
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
-
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class LocationService {
 
-    @Value("${location.api.key}")
+    @Value("${location.api.consumer-key}")
     private String openApiKey;
 
     @Value("${kakao.geo.coord.base-url}")
