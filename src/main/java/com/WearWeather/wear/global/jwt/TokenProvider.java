@@ -74,7 +74,7 @@ public class TokenProvider implements InitializingBean {
         return false;
     }
 
-    public String createAccessToken(Long userId, Authentication authentication) {
+    public String createAccessToken(Authentication authentication) {
         String authorities = authentication.getAuthorities().stream()
             .map(GrantedAuthority::getAuthority)
             .collect(Collectors.joining(","));
@@ -83,13 +83,17 @@ public class TokenProvider implements InitializingBean {
         Date validity = new Date(now + this.accessTokenValidityInMilliseconds);
 
         return Jwts.builder()
-            .setSubject(String.valueOf(userId))
+            .setSubject(authentication.getName())
             .claim(AUTHORITIES_KEY, authorities)
             .setExpiration(validity)
             .signWith(key, SignatureAlgorithm.HS512)
             .compact();
     }
 
+    public String renewRefreshToken(String token) {
+        Long userId = getTokenInfo(token);
+        return createRefreshToken(userId);
+    }
 
     public String createRefreshToken(Long userId) {
         long now = (new Date()).getTime();
@@ -106,7 +110,7 @@ public class TokenProvider implements InitializingBean {
         return refreshToken;
     }
 
-    public Long getRefreshTokenInfo(String token) {
+    public Long getTokenInfo(String token) {
         Claims claims = Jwts
             .parserBuilder()
             .setSigningKey(key)

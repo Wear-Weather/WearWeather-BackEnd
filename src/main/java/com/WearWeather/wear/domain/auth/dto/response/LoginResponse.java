@@ -18,17 +18,15 @@ public class LoginResponse {
     private final boolean isSocial;
     private final Set<Authority> authorities;
     private final String accessToken;
-    private final String refreshToken;
 
-    public static LoginResponse of(User user, String at, String rt) {
+    public static LoginResponse of(User user, String accessToken) {
         return LoginResponse.builder()
             .email(user.getEmail())
             .name(user.getName())
             .nickName(user.getNickname())
             .isSocial(user.isSocial())
             .authorities(user.getAuthorities())
-            .accessToken(at)
-            .refreshToken(rt)
+            .accessToken(accessToken)
             .build();
     }
 }

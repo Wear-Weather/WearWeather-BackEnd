@@ -1,7 +1,6 @@
 package com.WearWeather.wear.domain.auth.service;
 
 import com.WearWeather.wear.domain.auth.dto.request.LoginRequest;
-import com.WearWeather.wear.domain.auth.dto.request.RefresehTokenRequest;
 import com.WearWeather.wear.domain.auth.dto.response.LoginResponse;
 import com.WearWeather.wear.domain.auth.dto.response.TokenResponse;
 import com.WearWeather.wear.domain.user.entity.User;
@@ -29,17 +28,13 @@ public class AuthService {
     private final UserService userService;
 
     public LoginResponse checkLogin(LoginRequest request) {
-        User user = userRepository.findByEmail(request.getEmail())
-            .orElseThrow(() -> new CustomException(ErrorCode.EMAIL_IS_NULL_EXCEPTION));
+        User user = userService.getUserByEmail(request.getEmail());
 
-        UsernamePasswordAuthenticationToken authenticationToken =
-            new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword());
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword());
         Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
 
-        String accessToken = tokenProvider.createAccessToken(user.getUserId(), authentication);
-        String refreshToken = tokenProvider.createRefreshToken(user.getUserId());
-
-        return LoginResponse.of(user, accessToken, refreshToken);
+        String accessToken = tokenProvider.createAccessToken(authentication);
+        return LoginResponse.of(user, accessToken);
     }
 
     public void logout(Long userId, String accessToken) {
@@ -49,20 +44,15 @@ public class AuthService {
         redisService.logoutFromRedis(userId, accessToken, accessTokenExpiration);
     }
 
-    public TokenResponse reissue(RefresehTokenRequest request) {
-        Long userId = tokenProvider.getRefreshTokenInfo(request.getRefreshToken());
+    public TokenResponse reissue(String refreshToken) {
+        Long userId = tokenProvider.getTokenInfo(refreshToken);
 
-        User user = userService.getUserById(userId);
-        validateRefreshToken(userId, request.getRefreshToken());
+        validateRefreshToken(userId, refreshToken);
 
         Authentication authentication = new UsernamePasswordAuthenticationToken(userId, null, Collections.emptyList());
-
-        String newAccessToken = tokenProvider.createAccessToken(user.getUserId(), authentication);
-        String newRefreshToken = tokenProvider.createRefreshToken(user.getUserId());
-
-        return new TokenResponse(newAccessToken, newRefreshToken);
+        String newAccessToken = tokenProvider.createAccessToken(authentication);
+        return new TokenResponse(newAccessToken);
     }
-
 
     private void validateRefreshToken(Long userId, String token) {
         String storedToken = redisService.getValues(userId);
