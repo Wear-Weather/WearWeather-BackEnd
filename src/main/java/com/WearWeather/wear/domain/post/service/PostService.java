@@ -20,6 +20,7 @@ import com.WearWeather.wear.domain.post.entity.Location;
 import com.WearWeather.wear.domain.post.entity.Post;
 import com.WearWeather.wear.domain.post.entity.SortType;
 import com.WearWeather.wear.domain.post.repository.PostRepository;
+import com.WearWeather.wear.domain.postHidden.service.PostHiddenService;
 import com.WearWeather.wear.domain.postImage.dto.request.PostImageRequest;
 import com.WearWeather.wear.domain.postImage.entity.PostImage;
 import com.WearWeather.wear.domain.postImage.repository.PostImageRepository;
@@ -47,6 +48,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Transactional(readOnly = true)
 @Service
 @RequiredArgsConstructor
 public class PostService {
@@ -61,6 +63,7 @@ public class PostService {
     private final PostTagRepository postTagRepository;
     private final LocationService locationService;
     private final PostReportService postReportService;
+    private final PostHiddenService postHiddenService;
 
     private static final String SORT_COLUMN_BY_CREATE_AT = "createdAt";
     private static final String SORT_COLUMN_BY_LIKE_COUNT = "likeCount";
@@ -137,17 +140,32 @@ public class PostService {
     }
 
     public List<TopLikedPostResponse> getTopLikedPosts(Long userId) {
-        List<Post> posts = getPostsOrderByLikeCountDesc();
+        List<Long> hiddenPostIds = findHiddenPostsByUserId(userId);
+        List<Long> getPostIdsNotInHiddenPostIds = findMostLikedPostIdForDay(hiddenPostIds);
+        List<Post> posts = getPostsOrderByPostIds(getPostIdsNotInHiddenPostIds);
 
         return posts.stream()
             .map(post -> getTopLikedPost(post, userId))
             .collect(Collectors.toList());
     }
 
-    public List<Post> getPostsOrderByLikeCountDesc() {
-        List<Long> postIds = likeRepository.findMostLikedPostIdForDay();
+    private List<Long> findHiddenPostsByUserId(Long userId){
+        return postHiddenService.findHiddenPostsByUserId(userId);
+    }
 
-        return postRepository.findAllByIdInOrderByLikeCountDesc(postIds);
+    public List<Post> getPostsOrderByPostIds(List<Long> postIds) {
+        List<Post> posts = postRepository.findAllByIdIn(postIds);
+
+        return postIds.stream()
+                .map(postId -> posts.stream()
+                        .filter(post -> post.getId().equals(postId))
+                        .findFirst()
+                        .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_POST)))
+                .toList();
+    }
+
+    public List<Long> findMostLikedPostIdForDay(List<Long> hiddenPostIds) {
+        return likeRepository.findMostLikedPostIdForDay(hiddenPostIds); //TODO : 서비스 레이어 분리 후 likeService로의 의존으로 수정
     }
 
     public TopLikedPostResponse getTopLikedPost(Post post, Long userId) {
@@ -228,20 +246,24 @@ public class PostService {
     public PostsByLocationResponse getPostsByLocation(Long userId, int page, int size, String city, String district, SortType sort) {
 
         Location location = locationService.findCityIdAndDistrictId(city, district);
-        List<PostByLocationResponse> responses = getPostByLocation(page, size, location, sort, userId);
+        Page<Post> posts = getPostByLocation(page, size, location, sort, userId);
 
-        return PostsByLocationResponse.of(LocationResponse.of(city, district), responses);
+        List<PostByLocationResponse> responses = posts.stream()
+                .map(post -> getPostByLocation(post, userId))
+                .toList();
+
+        int totalPages = posts.getTotalPages() -1 ;
+
+        return PostsByLocationResponse.of(LocationResponse.of(city, district), responses, totalPages);
     }
 
-    public List<PostByLocationResponse> getPostByLocation(int page, int size, Location location, SortType sort, Long userId) {
+    public Page<Post> getPostByLocation(int page, int size, Location location, SortType sort, Long userId) {
         String sortType = getSortColumnName(sort);
 
+        List<Long> hiddenPostIds = findHiddenPostsByUserId(userId);
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortType).descending());
-        Page<Post> posts = postRepository.findAllByLocation(pageable, location);
 
-        return posts.stream()
-            .map(post -> getPostByLocation(post, userId))
-            .toList();
+        return postRepository.getPostsNotInHiddenPosts(pageable, location, hiddenPostIds);
     }
 
     public String getSortColumnName(SortType sortType) {
@@ -274,22 +296,25 @@ public class PostService {
 
     public PostsByFiltersResponse searchPostsWithFilters(Long userId, PostsByFiltersRequest request) {
 
-        List<SearchPostResponse> responses = getPostByFilters(request, userId);
+        Page<PostWithLocationName> posts = getPostByFilters(request, userId);
 
-        return PostsByFiltersResponse.of(responses);
+        List<SearchPostResponse> responses = posts.stream()
+                .map(post -> getPostByFilters(post, userId))
+                .toList();
+        int totalPage = posts.getTotalPages() -1 ;
+
+        return PostsByFiltersResponse.of(responses, totalPage);
     }
 
-    public List<SearchPostResponse> getPostByFilters(PostsByFiltersRequest request, Long userId) {
+    public Page<PostWithLocationName> getPostByFilters(PostsByFiltersRequest request, Long userId) {
         //TODO : getPostDetailByLocation()메서드랑 중복 제거하기
 
         String sortType = getSortColumnName(request.getSort());
 
+        List<Long> hiddenPostIds = findHiddenPostsByUserId(userId);
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), Sort.by(sortType).descending());
-        Page<PostWithLocationName> posts = postRepository.findPostsByFilters(request, pageable);
 
-        return posts.stream()
-            .map(post -> getPostByFilters(post, userId))
-            .toList();
+        return postRepository.findPostsByFilters(request, pageable, hiddenPostIds);
     }
 
     public SearchPostResponse getPostByFilters(PostWithLocationName post, Long userId) {
@@ -321,7 +346,8 @@ public class PostService {
             .map(this::getPostByMe)
             .toList();
 
-        return PostsByMeResponse.of(postByMe);
+        int totalPage = posts.getTotalPages() -1;
+        return PostsByMeResponse.of(postByMe, totalPage);
     }
 
     private PostByMeResponse getPostByMe(Post post) {
@@ -341,7 +367,7 @@ public class PostService {
         );
     }
 
-    public List<LikedPostByMeResponse> getLikedPostsByMe(Long userId, List<Long> likedPostIds) {
+    public List<LikedPostByMeResponse> getLikedPostsByMe(Long userId, Page<Long> likedPostIds) {
 
         List<Post> posts = postRepository.findAllById(likedPostIds);
 

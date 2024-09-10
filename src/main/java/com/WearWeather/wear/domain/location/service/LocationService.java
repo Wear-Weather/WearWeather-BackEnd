@@ -6,11 +6,14 @@ import com.WearWeather.wear.domain.location.entity.District;
 import com.WearWeather.wear.domain.location.repository.CityRepository;
 import com.WearWeather.wear.domain.location.repository.DistrictRepository;
 import com.WearWeather.wear.domain.post.dto.response.LocationResponse;
+import com.WearWeather.wear.domain.post.entity.Location;
 import com.WearWeather.wear.global.exception.CustomException;
 import com.WearWeather.wear.global.exception.ErrorCode;
-import com.WearWeather.wear.domain.post.entity.Location;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.*;
+import java.io.IOException;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -21,10 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 import reactor.core.publisher.Mono;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -52,7 +51,7 @@ public class LocationService {
     private final ObjectMapper objectMapper;
 
     @Transactional
-    public void saveLocationData() throws Exception  {
+    public void saveLocationData(){
         String accessToken = createAccessToken();
 
         List<CityResponse> cityIdList = cityDateApi(accessToken);
@@ -119,9 +118,9 @@ public class LocationService {
         City entireCity = City.builder()
                 .city("전국")
                 .build();
-        
+
         cityList.add(entireCity);
-        
+
         try {
             JsonNode root = objectMapper.readTree(cityResponseBody);
             JsonNode documents = root.path("result");

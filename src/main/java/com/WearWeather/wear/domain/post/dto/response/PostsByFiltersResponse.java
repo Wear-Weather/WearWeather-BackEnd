@@ -11,10 +11,12 @@ import java.util.List;
 @Builder
 public class PostsByFiltersResponse {
     private final List<SearchPostResponse> posts;
+    private final int total;
 
-    public static PostsByFiltersResponse of(List<SearchPostResponse> posts){
+    public static PostsByFiltersResponse of(List<SearchPostResponse> posts, int totalPage){
         return PostsByFiltersResponse.builder()
                 .posts(posts)
+                .total(totalPage)
                 .build();
     }
 }
