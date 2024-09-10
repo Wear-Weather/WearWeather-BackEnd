@@ -203,20 +203,27 @@ public class LocationService {
     private List<District> mapDistrict(String districtResponseBody, Long id){
 
         List<District> districtList = new ArrayList<>();
+        Set<String> uniqueDistrictNames = new HashSet<>();
 
         try {
             JsonNode root = objectMapper.readTree(districtResponseBody);
             JsonNode documents = root.path("result");
 
             for (int i = 0; i < documents.size(); i++) {
-                String addrName = documents.get(i).path("addr_name").asText();
+                String districtName = documents.get(i).path("addr_name").asText();
 
-                District district = District.builder()
-                        .cityId(id)
-                        .district(addrName)
-                        .build();
+                if(districtName.contains(" ")){
+                    districtName = extractDistrictName(districtName);
+                }
 
-                districtList.add(district);
+                if(uniqueDistrictNames.add(districtName)){
+                    District district = District.builder()
+                            .cityId(id)
+                            .district(districtName)
+                            .build();
+
+                    districtList.add(district);
+                }
             }
 
             return districtList;
@@ -228,12 +235,30 @@ public class LocationService {
 
     public String exchangeCityName(String city){
 
-        Set<String> matchCityName = new HashSet<>(Arrays.asList("충청남도", "충청북도", "전라남도", "전라북도", "경상남도", "경상북도"));
+        Set<String> combineFirstAndThirdCharsCityName = new HashSet<>(Arrays.asList("충청남도", "충청북도", "전라남도", "전라북도", "경상남도", "경상북도"));
+        Set<String> appendCityToLocationCityName = new HashSet<>(Arrays.asList("세종특별자치시", "제주특별자치도", "강원특별자치도"));
 
-        if (!matchCityName.contains(city)) {
-            return city.substring(0, 2) + city.charAt(city.length() - 1);
+        if (combineFirstAndThirdCharsCityName.contains(city)) {
+            return city.charAt(0) + "" + city.charAt(2);
         }
-        return city;
+
+        if(appendCityToLocationCityName.contains(city)){
+            return city.substring(0,2) + city.charAt(city.length() - 1);
+        }
+
+        return city.substring(0, 2);
+    }
+
+    public String extractDistrictName(String districtName){
+
+            int spaceIndex = districtName.indexOf(" ");
+
+            if (spaceIndex == -1) {
+                return districtName;
+            }
+
+            return districtName.substring(0, spaceIndex);
+
     }
 
     public Mono<GeocodingLocationResponse> findLocationByGeoCoordApi(double longitude, double latitude){
@@ -351,8 +376,10 @@ public class LocationService {
     }
 
     private RegionResponse setRegionInitialData(){
-        Long cityId = 1L;
-        String cityName = "전체";
+        String cityName = "전국";
+
+        Long cityId = cityRepository.findIdByCity(cityName)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_CITY_ID)).getId();
         List<DistrictResponse> emptyResponse = Collections.emptyList();
 
         return RegionResponse.of(cityId, cityName, emptyResponse);
