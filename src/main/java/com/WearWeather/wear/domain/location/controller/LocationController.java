@@ -15,7 +15,7 @@ public class LocationController {
     private final LocationService locationService;
 
     @GetMapping("/basic-location")
-    public void getLocationDistrictData() throws Exception {
+    public void getLocationData() throws Exception {
         locationService.saveLocationData();
     }
 
