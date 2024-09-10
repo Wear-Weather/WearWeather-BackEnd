@@ -116,7 +116,7 @@ public class UserService {
 
     public User getUserByEmail(String userEmail) {
 
-        return userRepository.findByEmail(userEmail)
+        return userRepository.findByEmailAndIsDeleteFalse(userEmail)
             .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_EMAIL));
 
     }
