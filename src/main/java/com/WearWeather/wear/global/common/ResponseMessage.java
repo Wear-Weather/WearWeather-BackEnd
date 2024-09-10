@@ -17,6 +17,7 @@ public class ResponseMessage {
     public static final String SUCCESS_POST_HIDDEN = "게시물 숨김 처리 되었습니다.";
 
     public static final String SUCCESS_REPORT_POST = "게시물 신고 완료하였습니다.";
+    public static final String SUCCESS_DELETE_USER = "회원 탈퇴 완료되었습니다.";
 
 
 }

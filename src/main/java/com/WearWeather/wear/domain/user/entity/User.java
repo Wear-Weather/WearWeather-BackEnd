@@ -50,6 +50,10 @@ public class User extends BaseTimeEntity implements Serializable {
     @Column(name = "is_social", nullable = false)
     private boolean isSocial;
 
+    @Builder.Default
+    @Column(name = "is_delete", nullable = false)
+    private boolean isDelete = false;
+
     @ManyToMany
     @JoinTable(
         name = "user_authority",
@@ -63,7 +67,6 @@ public class User extends BaseTimeEntity implements Serializable {
 
     public void isSocialLogin() {
         this.isSocial = true;
-
     }
 
     public void updatePassword(String password, boolean isSocial) {
@@ -92,6 +95,10 @@ public class User extends BaseTimeEntity implements Serializable {
 
         updatePassword(password, isSocial);
         updateNickname(nickname);
+    }
+
+    public void updateIsDelete(){
+        this.isDelete = true;
     }
 
     @Override

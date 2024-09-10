@@ -1,10 +1,13 @@
 package com.WearWeather.wear.domain.user.service;
 
+import com.WearWeather.wear.domain.user.dto.request.DeleteUserRequest;
 import com.WearWeather.wear.domain.user.dto.request.ModifyUserPasswordRequest;
 import com.WearWeather.wear.domain.user.dto.request.RegisterUserRequest;
 import com.WearWeather.wear.domain.user.dto.response.UserIdForPasswordUpdateResponse;
 import com.WearWeather.wear.domain.user.dto.response.UserInfoResponse;
 import com.WearWeather.wear.domain.user.entity.User;
+import com.WearWeather.wear.domain.user.entity.UserDelete;
+import com.WearWeather.wear.domain.user.repository.UserDeleteRepository;
 import com.WearWeather.wear.domain.user.repository.UserRepository;
 import com.WearWeather.wear.global.exception.CustomException;
 import com.WearWeather.wear.global.exception.ErrorCode;
@@ -22,6 +25,7 @@ public class UserService {
     private final UserRepository userRepository;
 
     private final PasswordEncoder passwordEncoder;
+    private final UserDeleteRepository userDeleteRepository;
 
     @Transactional
     public void registerUser(RegisterUserRequest registerUserRequest) {
@@ -128,5 +132,23 @@ public class UserService {
         return userRepository.findNicknameByUserId(userId)
             .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_USER))
             .getNickname();
+    }
+
+    @Transactional
+    public void deleteUser(Long userId, DeleteUserRequest request) {
+        User user = getUserById(userId);
+
+        if(user.isDelete()){
+            throw new CustomException(ErrorCode.ALREADY_DELETE_USER);
+        }
+
+        user.updateIsDelete();
+
+        UserDelete userDelete = request.toEntity(userId, request.deleteReasonId());
+        userDeleteRepository.save(userDelete);
+
+        if(user.isSocial()){ //카카오 로그인 사용자 연동 해제
+
+        }
     }
 }
