@@ -1,9 +1,6 @@
 package com.WearWeather.wear.domain.location.service;
 
-import com.WearWeather.wear.domain.location.dto.response.DistrictResponse;
-import com.WearWeather.wear.domain.location.dto.response.GeocodingLocationResponse;
-import com.WearWeather.wear.domain.location.dto.response.RegionResponse;
-import com.WearWeather.wear.domain.location.dto.response.RegionsResponse;
+import com.WearWeather.wear.domain.location.dto.response.*;
 import com.WearWeather.wear.domain.location.entity.City;
 import com.WearWeather.wear.domain.location.entity.District;
 import com.WearWeather.wear.domain.location.repository.CityRepository;
@@ -16,12 +13,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.*;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,7 +21,6 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 import reactor.core.publisher.Mono;
@@ -40,8 +30,14 @@ import reactor.core.publisher.Mono;
 @Transactional(readOnly = true)
 public class LocationService {
 
+    @Value("${location.api.accessToken.url}")
+    private String locationTokenUrl;
     @Value("${location.api.consumer-key}")
-    private String openApiKey;
+    private String locationServiceId;
+    @Value("${location.api.consumer-secret}")
+    private String locationServiceSecret;
+    @Value("${location.api.base-url}")
+    private String locationBaseUrl;
 
     @Value("${kakao.geo.coord.base-url}")
     private String geoCoordBaseUrl;
@@ -52,54 +48,216 @@ public class LocationService {
 
     private final CityRepository cityRepository;
     private final DistrictRepository districtRepository;
-    private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
+    @Transactional
+    public void saveLocationData(){
+        String accessToken = createAccessToken();
+
+        List<CityResponse> cityIdList = cityDateApi(accessToken);
+        districtDataApi(cityIdList, accessToken);
+    }
+
+    public String createAccessToken(){
+
+        DefaultUriBuilderFactory factory = new DefaultUriBuilderFactory(locationTokenUrl);
+        factory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.VALUES_ONLY);
+
+        WebClient webClient = WebClient.builder()
+                .uriBuilderFactory(factory)
+                .baseUrl(locationTokenUrl)
+                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .build();
+
+         String json = webClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .queryParam("consumer_key", locationServiceId)
+                        .queryParam("consumer_secret", locationServiceSecret)
+                        .build())
+                .retrieve()
+                .bodyToMono(String.class)
+                .block();
+
+        try {
+            JsonNode rootNode = objectMapper.readTree(json);
+
+            return rootNode.path("result").path("accessToken").asText();
+        } catch (Exception e) {
+            throw new CustomException(ErrorCode.FAIL_CREATE_LOCATION_ACCESS_TOKEN);
+        }
+
+    }
 
     @Transactional
-    public void saveLocationData() throws Exception  {
-        ObjectMapper objectMapper = new ObjectMapper();
+    public List<CityResponse> cityDateApi(String locationAccessToken){
 
-        List<City> cityList = cityRepository.findAll();
+        DefaultUriBuilderFactory factory = new DefaultUriBuilderFactory(locationBaseUrl);
+        factory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.VALUES_ONLY);
 
-        for ( City city : cityList) {
-            String apiUrl = "https://api.vworld.kr/req/data?service=data" +
-                    "&request=GetFeature" +
-                    "&data=LT_C_ADSIGG_INFO" +
-                    "&key=" + openApiKey +
-                    "&format=json" +
-                    "&attrFilter=full_nm:like:" + city.getCity() +
-                    "&geometry=false";
+        WebClient webClient = WebClient.builder()
+                .uriBuilderFactory(factory)
+                .baseUrl(locationBaseUrl)
+                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .build();
 
-            String responseBody = restTemplate.getForEntity(apiUrl, String.class).getBody();
+        return webClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .queryParam("accessToken", locationAccessToken)
+                        .build())
+                .retrieve()
+                .bodyToMono(String.class)
+                .map(this::mapCity)
+                .block();
+    }
 
-            if (responseBody != null) {
-                JsonNode root = objectMapper.readTree(responseBody);
-                JsonNode features = root.path("response")
-                        .path("result")
-                        .path("featureCollection")
-                        .path("features");
+    private List<CityResponse> mapCity(String cityResponseBody) {
 
-                Set<String> uniqueDistricts = new HashSet<>();
+        List<City> cityList = new ArrayList<>();
+        List<CityResponse> cityResponses =  new ArrayList<>();
 
-                for (JsonNode feature : features) {
-                    JsonNode properties = feature.path("properties");
-                    String districtName = properties.path("sig_kor_nm").asText();
+        City entireCity = City.builder()
+                .city("전국")
+                .build();
 
-                    String processedDistrictName = (districtName.length() > 3)
-                            ? districtName.substring(0, 3)
-                            : districtName;
+        cityList.add(entireCity);
 
-                    uniqueDistricts.add(processedDistrictName);
+        try {
+            JsonNode root = objectMapper.readTree(cityResponseBody);
+            JsonNode documents = root.path("result");
+
+            for (int i =0; i < documents.size(); i++) {
+                String fullAddr = documents.get(i).path("full_addr").asText();
+                String exchangeCityName = exchangeCityName(fullAddr);
+
+                City city = City.builder()
+                        .city(exchangeCityName)
+                        .build();
+
+                cityList.add(city);
+            }
+
+            List<City> saveCityList = cityRepository.saveAll(cityList);
+
+            Map<String, Long> cityMap = saveCityList.stream()
+                    .collect(Collectors.toMap(City::getCity, City::getId));
+
+            for (int i =0; i < documents.size(); i++) {
+                String fullAddr = documents.get(i).path("full_addr").asText();
+                String exchangeCityName = exchangeCityName(fullAddr);
+
+                int cd = documents.get(i).path("cd").asInt();
+
+                CityResponse locationResponse = CityResponse.builder()
+                        .id(cityMap.get(exchangeCityName))
+                        .city(exchangeCityName)
+                        .apiCityId(cd)
+                        .build();
+
+                cityResponses.add(locationResponse);
+            }
+
+            return cityResponses;
+
+        } catch (IOException e) {
+            throw new CustomException(ErrorCode.FAIL_SAVE_LOCATION_CITY);
+        }
+    }
+
+    @Transactional
+    private void districtDataApi(List<CityResponse> cityResponses, String locationAccessToken) {
+
+        List<List<District>> districtLists = cityResponses
+                .stream()
+                .map(cityResponse -> findDistrictByCityId(locationAccessToken, cityResponse))
+                .toList();
+
+        List<District> districts = districtLists.stream()
+                .flatMap(List::stream).toList();
+
+        districtRepository.saveAll(districts);
+    }
+
+    private List<District> findDistrictByCityId(String locationAccessToken, CityResponse response){
+
+        DefaultUriBuilderFactory factory = new DefaultUriBuilderFactory(locationBaseUrl);
+        factory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.VALUES_ONLY);
+
+        WebClient webClient = WebClient.builder()
+                .uriBuilderFactory(factory)
+                .baseUrl(locationBaseUrl)
+                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .build();
+
+        return webClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .queryParam("accessToken", locationAccessToken)
+                        .queryParam("cd", response.apiCityId())
+                        .build())
+                .retrieve()
+                .bodyToMono(String.class)
+                .map(districtList -> mapDistrict(districtList, response.id()))
+                .block();
+    }
+
+    private List<District> mapDistrict(String districtResponseBody, Long id){
+
+        List<District> districtList = new ArrayList<>();
+        Set<String> uniqueDistrictNames = new HashSet<>();
+
+        try {
+            JsonNode root = objectMapper.readTree(districtResponseBody);
+            JsonNode documents = root.path("result");
+
+            for (int i = 0; i < documents.size(); i++) {
+                String districtName = documents.get(i).path("addr_name").asText();
+
+                if(districtName.contains(" ")){
+                    districtName = extractDistrictName(districtName);
                 }
 
-                List<District> districtsToSave = uniqueDistricts.stream()
-                        .map(districtName -> new District(city.getId(), districtName))
-                        .collect(Collectors.toList());
+                if(uniqueDistrictNames.add(districtName)){
+                    District district = District.builder()
+                            .cityId(id)
+                            .district(districtName)
+                            .build();
 
-                districtRepository.saveAll(districtsToSave);
+                    districtList.add(district);
+                }
             }
+
+            return districtList;
+
+        } catch (IOException e) {
+            throw new CustomException(ErrorCode.FAIL_SAVE_LOCATION_DISTRICT);
         }
+    }
+
+    public String exchangeCityName(String city){
+
+        Set<String> combineFirstAndThirdCharsCityName = new HashSet<>(Arrays.asList("충청남도", "충청북도", "전라남도", "전라북도", "경상남도", "경상북도"));
+        Set<String> appendCityToLocationCityName = new HashSet<>(Arrays.asList("세종특별자치시", "제주특별자치도", "강원특별자치도"));
+
+        if (combineFirstAndThirdCharsCityName.contains(city)) {
+            return city.charAt(0) + "" + city.charAt(2);
+        }
+
+        if(appendCityToLocationCityName.contains(city)){
+            return city.substring(0,2) + city.charAt(city.length() - 1);
+        }
+
+        return city.substring(0, 2);
+    }
+
+    public String extractDistrictName(String districtName){
+
+            int spaceIndex = districtName.indexOf(" ");
+
+            if (spaceIndex == -1) {
+                return districtName;
+            }
+
+            return districtName.substring(0, spaceIndex);
+
     }
 
     public Mono<GeocodingLocationResponse> findLocationByGeoCoordApi(double longitude, double latitude){
@@ -159,22 +317,8 @@ public class LocationService {
             return GeocodingLocationResponse.of(exchangedCityName, district);
 
         } catch (IOException e) {
-            throw new RuntimeException("Failed to parse JSON", e);
+            throw new CustomException(ErrorCode.GEO_COORD_SERVER_ERROR);
         }
-    }
-
-    public String exchangeCityName(String city){
-
-        Set<String> matchCityName = new HashSet<>(Arrays.asList("충청북도", "충청남도", "전라남도", "경상북도", "경상남도", "전북특별자치도"));
-
-        if (!matchCityName.contains(city)) {
-            return city.substring(0, 2) + city.charAt(city.length() - 1);
-        }
-
-        if(city.equals("전북특별자치도")){
-            return city.substring(0, 2);
-        }
-        return city;
     }
 
     public static String extractDistrict(String address) {
@@ -231,8 +375,10 @@ public class LocationService {
     }
 
     private RegionResponse setRegionInitialData(){
-        Long cityId = 1L;
-        String cityName = "전체";
+        String cityName = "전국";
+
+        Long cityId = cityRepository.findIdByCity(cityName)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_CITY_ID)).getId();
         List<DistrictResponse> emptyResponse = Collections.emptyList();
 
         return RegionResponse.of(cityId, cityName, emptyResponse);
