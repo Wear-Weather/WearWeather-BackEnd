@@ -31,7 +31,7 @@ public class AwsS3Controller {
 
     @DeleteMapping("/post-image/{imageId}")
     public ResponseEntity<Void> delete(@PathVariable Long imageId) {
-        postImageService.deletePostImage(imageId);
+        postImageService.deleteImage(imageId);
         return ResponseEntity.noContent().build();
     }
 }
