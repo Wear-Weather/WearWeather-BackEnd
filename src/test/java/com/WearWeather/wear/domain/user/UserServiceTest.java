@@ -65,7 +65,7 @@ public class UserServiceTest {
     public void registerWithExistenEmailTest() {
 
         User user = mock(User.class);
-        when(userRepository.existsByEmail(UserFixture.email)).thenReturn(true);
+        when(userRepository.existsByEmailAndIsDeleteFalse(UserFixture.email)).thenReturn(true);
 
         assertThatThrownBy(() -> userService.checkDuplicatedUserEmail(UserFixture.email))
             .isInstanceOf(CustomException.class)
@@ -77,7 +77,7 @@ public class UserServiceTest {
     @DisplayName("예외 테스트 : 이미 존재하는 닉네임 확인하기")
     public void registerWithExistentNicknameTest() {
 
-        when(userRepository.existsByNickname(UserFixture.nickname)).thenReturn(true);
+        when(userRepository.existsByNicknameAndIsDeleteFalse(UserFixture.nickname)).thenReturn(true);
 
         assertThatThrownBy(() -> userService.checkDuplicatedUserNickName(UserFixture.nickname))
             .isInstanceOf(CustomException.class)
@@ -90,7 +90,7 @@ public class UserServiceTest {
     public void findEmailTest() {
 
         User user = UserFixture.createUser();
-        when(userRepository.findByNameAndNickname(UserFixture.name, UserFixture.nickname)).thenReturn(Optional.of(user));
+        when(userRepository.findByNameAndNicknameAndIsDeleteFalse(UserFixture.name, UserFixture.nickname)).thenReturn(Optional.of(user));
 
         String email = userService.findUserEmail(UserFixture.name, UserFixture.nickname);
 
@@ -112,7 +112,7 @@ public class UserServiceTest {
     @DisplayName("예외 테스트 : 비밀번호 찾기 시 일치하는 정보가 없을 때")
     public void findPasswordNotMatchRequestTest() {
 
-        when(userRepository.findByEmailAndNameAndNickname(UserFixture.email, UserFixture.name, UserFixture.nickname)).thenReturn(Optional.empty());
+        when(userRepository.findByEmailAndNameAndNicknameAndIsDeleteFalse(UserFixture.email, UserFixture.name, UserFixture.nickname)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> userService.findUserPassword(UserFixture.email, UserFixture.name, UserFixture.nickname))
             .isInstanceOf(CustomException.class)
@@ -190,7 +190,7 @@ public class UserServiceTest {
         User user = UserFixture.createUser();
         UserInfoResponse response = new UserInfoResponse(UserFixture.email, UserFixture.name, UserFixture.nickname);
 
-        when(userRepository.findByUserId(UserFixture.userId)).thenReturn(Optional.of(user));
+        when(userRepository.findByUserIdAndIsDeleteFalse(UserFixture.userId)).thenReturn(Optional.of(user));
 
         UserInfoResponse actualResponse = userService.getUserInfo(UserFixture.userId);
 
@@ -203,7 +203,7 @@ public class UserServiceTest {
     @DisplayName("예외 테스트 : 회원 정보 조회 시 존재하지 않는 이메일")
     public void getUserInfoNonexistentEmailTest() {
 
-        when(userRepository.findByUserId(UserFixture.userId)).thenReturn(Optional.empty());
+        when(userRepository.findByUserIdAndIsDeleteFalse(UserFixture.userId)).thenReturn(Optional.empty());
 
         CustomException exception = assertThrows(CustomException.class, () ->
             userService.getUserInfo(UserFixture.userId));
@@ -215,9 +215,8 @@ public class UserServiceTest {
     public void modifyUserInfoTest() {
 
         User user = mock(User.class);
-        UserInfoResponse response = new UserInfoResponse(UserFixture.email, UserFixture.name, UserFixture.nickname);
 
-        when(userRepository.findByUserId(UserFixture.userId)).thenReturn(Optional.of(user));
+        when(userRepository.findByUserIdAndIsDeleteFalse(UserFixture.userId)).thenReturn(Optional.of(user));
         when(passwordEncoder.encode(UserFixture.password)).thenReturn(UserFixture.password);
 
         userService.modifyUserInfo(UserFixture.userId, UserFixture.password, UserFixture.nickname);
@@ -230,7 +229,7 @@ public class UserServiceTest {
     @DisplayName("예외 테스트 : 회원 정보 수정 시 존재하지 않는 이메일")
     public void modifyUserInfoNonexistentEmailTest() {
 
-        when(userRepository.findByUserId(UserFixture.userId)).thenReturn(Optional.empty());
+        when(userRepository.findByUserIdAndIsDeleteFalse(UserFixture.userId)).thenReturn(Optional.empty());
 
         CustomException exception = assertThrows(CustomException.class, () ->
             userService.modifyUserInfo(UserFixture.userId, UserFixture.password, UserFixture.nickname));
@@ -243,7 +242,7 @@ public class UserServiceTest {
 
         User user = mock(User.class);
 
-        when(userRepository.findByUserId(UserFixture.userId)).thenReturn(Optional.of(user));
+        when(userRepository.findByUserIdAndIsDeleteFalse(UserFixture.userId)).thenReturn(Optional.of(user));
         when(passwordEncoder.encode(UserFixture.password)).thenReturn(UserFixture.password);
 
         doThrow(new CustomException(ErrorCode.INVALID_NICKNAME))

@@ -47,7 +47,7 @@ public class UserService {
 
     public void checkDuplicatedUserEmail(String email) {
 
-        boolean user = userRepository.existsByEmail(email);
+        boolean user = userRepository.existsByEmailAndIsDeleteFalse(email);
 
         if (user) {
             throw new CustomException(ErrorCode.EMAIL_ALREADY_EXIST);
@@ -57,7 +57,7 @@ public class UserService {
 
     public void checkDuplicatedUserNickName(String nickname) {
 
-        boolean user = userRepository.existsByNickname(nickname);
+        boolean user = userRepository.existsByNicknameAndIsDeleteFalse(nickname);
 
         if (user) {
             throw new CustomException(ErrorCode.NICKNAME_ALREADY_EXIST);
@@ -65,7 +65,7 @@ public class UserService {
     }
 
     public String findUserEmail(String name, String nickname) {
-        Optional<User> user = userRepository.findByNameAndNickname(name, nickname);
+        Optional<User> user = userRepository.findByNameAndNicknameAndIsDeleteFalse(name, nickname);
 
         if (user.isEmpty()) {
             throw new CustomException(ErrorCode.NOT_MATCH_EMAIL);
@@ -76,7 +76,7 @@ public class UserService {
 
     public UserIdForPasswordUpdateResponse findUserPassword(String email, String name, String nickname) {
 
-        User user = userRepository.findByEmailAndNameAndNickname(email, name, nickname)
+        User user = userRepository.findByEmailAndNameAndNicknameAndIsDeleteFalse(email, name, nickname)
             .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_USER));
         return UserIdForPasswordUpdateResponse.of(user.getUserId());
 
@@ -123,13 +123,13 @@ public class UserService {
 
     public User getUserById(Long userId) {
 
-        return userRepository.findByUserId(userId)
+        return userRepository.findByUserIdAndIsDeleteFalse(userId)
             .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_EMAIL));
 
     }
 
     public String getNicknameById(Long userId) {
-        return userRepository.findNicknameByUserId(userId)
+        return userRepository.findNicknameByUserIdAndIsDeleteFalse(userId)
             .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_USER))
             .getNickname();
     }

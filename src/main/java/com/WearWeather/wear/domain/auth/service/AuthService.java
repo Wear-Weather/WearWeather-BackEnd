@@ -61,9 +61,8 @@ public class AuthService {
         }
     }
 
-    public User validatedUserId(Long userId) {
-
-        return userRepository.findByUserId(userId)
+    public void validatedUserId(Long userId) {
+        userRepository.findByUserIdAndIsDeleteFalse(userId)
             .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_EMAIL));
 
     }

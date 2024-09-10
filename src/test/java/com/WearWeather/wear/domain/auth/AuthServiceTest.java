@@ -122,7 +122,7 @@ public class AuthServiceTest {
         // given
         Long userId = 1L;
         String accessToken = "someAccessToken";
-        when(userRepository.findByUserId(userId)).thenReturn(Optional.empty());
+        when(userRepository.findByUserIdAndIsDeleteFalse(userId)).thenReturn(Optional.empty());
 
         // when & then
         CustomException exception = assertThrows(CustomException.class, () -> authService.logout(userId, accessToken));
@@ -137,7 +137,7 @@ public class AuthServiceTest {
         Long expiration = 3600L;
         User user = UserFixture.createUser("user@example.com", "encodedPassword");
 
-        when(userRepository.findByUserId(user.getUserId())).thenReturn(Optional.of(user));
+        when(userRepository.findByUserIdAndIsDeleteFalse(user.getUserId())).thenReturn(Optional.of(user));
         when(tokenProvider.getExpiration(anyString())).thenReturn(expiration);
 
         // when
