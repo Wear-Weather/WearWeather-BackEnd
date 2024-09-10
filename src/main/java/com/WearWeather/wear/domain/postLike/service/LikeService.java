@@ -11,6 +11,7 @@ import com.WearWeather.wear.global.exception.CustomException;
 import com.WearWeather.wear.global.exception.ErrorCode;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -79,10 +80,11 @@ public class LikeService {
 
         Sort sort = Sort.by(Sort.Order.desc("createdAt"));
         Pageable pageable = PageRequest.of(page, size, sort);
-        List<Long> likedPostIds = likeRepository.findByUserId(userId, pageable);
+        Page<Long> likedPostIds = likeRepository.findByUserId(userId, pageable);
 
         List<LikedPostByMeResponse> likedPosts = postService.getLikedPostsByMe(userId, likedPostIds);
+        int totalPage = likedPostIds.getTotalPages() -1 ;
 
-        return LikedPostsByMeResponse.of(likedPosts);
+        return LikedPostsByMeResponse.of(likedPosts, totalPage);
     }
 }

@@ -6,8 +6,6 @@ import com.WearWeather.wear.domain.oauth.domain.oauth.OAuthUserInfo;
 import com.WearWeather.wear.domain.user.entity.Authority;
 import com.WearWeather.wear.domain.user.entity.User;
 import com.WearWeather.wear.domain.user.repository.UserRepository;
-import com.WearWeather.wear.global.exception.CustomException;
-import com.WearWeather.wear.global.exception.ErrorCode;
 import com.WearWeather.wear.global.jwt.TokenProvider;
 import java.util.Collections;
 import lombok.RequiredArgsConstructor;
@@ -30,22 +28,25 @@ public class OAuthLoginService {
     private final PasswordEncoder passwordEncoder;
 
     public LoginResponse login(OAuthLoginParams params) {
-        try {
-            OAuthUserInfo oAuthUserInfo = requestOAuthInfoService.request(params);
-            User user = userRepository.findByEmail(oAuthUserInfo.getEmail())
-                .orElseGet(() -> registerNewUser(oAuthUserInfo));
+        OAuthUserInfo oAuthUserInfo = requestOAuthInfoService.request(params);
+        User user = findOrRegisterUser(oAuthUserInfo);
+        Authentication authentication = authenticateUser(user);
+        String accessToken = tokenProvider.createAccessToken(authentication);
 
-            UsernamePasswordAuthenticationToken authenticationToken =
-                new UsernamePasswordAuthenticationToken(user.getEmail(), user.getEmail());
-            Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
+        return LoginResponse.of(user, accessToken);
+    }
 
-            String accessToken = tokenProvider.createAccessToken(user.getUserId(), authentication);
-            String refreshToken = tokenProvider.createRefreshToken(user.getUserId());
+    private User findOrRegisterUser(OAuthUserInfo oAuthUserInfo) {
+        return userRepository.findByEmail(oAuthUserInfo.getEmail())
+            .map(user -> validateSocialUser(user, oAuthUserInfo))
+            .orElseGet(() -> registerNewUser(oAuthUserInfo));
+    }
 
-            return LoginResponse.of(user, accessToken, refreshToken);
-        } catch (Exception ex) {
-            throw new CustomException(ErrorCode.KAKAO_LOGIN_FAIL);
+    private User validateSocialUser(User existingUser, OAuthUserInfo oAuthUserInfo) {
+        if (existingUser.isSocial()) {
+            return existingUser;
         }
+        return registerNewUser(oAuthUserInfo);
     }
 
     protected User registerNewUser(OAuthUserInfo oAuthUserInfo) {
@@ -63,6 +64,11 @@ public class OAuthLoginService {
             .build();
 
         return userRepository.save(newUser);
+    }
 
+    private Authentication authenticateUser(User user) {
+        UsernamePasswordAuthenticationToken authenticationToken =
+            new UsernamePasswordAuthenticationToken(user.getEmail(), user.getEmail());
+        return authenticationManagerBuilder.getObject().authenticate(authenticationToken);
     }
 }

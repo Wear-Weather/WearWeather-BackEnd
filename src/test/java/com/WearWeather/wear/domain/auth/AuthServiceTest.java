@@ -3,14 +3,11 @@ package com.WearWeather.wear.domain.auth;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.WearWeather.wear.domain.auth.dto.request.LoginRequest;
-import com.WearWeather.wear.domain.auth.dto.request.RefresehTokenRequest;
 import com.WearWeather.wear.domain.auth.dto.response.LoginResponse;
 import com.WearWeather.wear.domain.auth.dto.response.TokenResponse;
 import com.WearWeather.wear.domain.auth.service.AuthService;
@@ -64,67 +61,60 @@ public class AuthServiceTest {
     public void loginWithNonexistentEmail() {
         // given
         LoginRequest request = new LoginRequest("nonexistent@example.com", "password");
-        when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
+        when(userService.getUserByEmail(request.getEmail())).thenThrow(new CustomException(ErrorCode.NOT_EXIST_EMAIL));
 
         // when & then
         CustomException exception = assertThrows(CustomException.class, () -> authService.checkLogin(request));
-        assertEquals(ErrorCode.EMAIL_IS_NULL_EXCEPTION, exception.getErrorCode());
+        assertEquals(ErrorCode.NOT_EXIST_EMAIL, exception.getErrorCode());
     }
 
     @Test
     @DisplayName("정상 테스트 : 스프링 시큐리티 내부에서 진행된 인증을 통해 로그인에 성공한다.")
     public void successfulLogin() {
         // given
-        LoginRequest request = new LoginRequest("user@example.com", "correctPassword");
-        User user = UserFixture.createUser(request.getEmail(), "encodedPassword");
+        User user = UserFixture.createUser();
+        LoginRequest request = new LoginRequest("abcd@gmail.com", "abcd12!@");
 
         UsernamePasswordAuthenticationToken authenticationToken =
             new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword());
         Authentication authentication = new UsernamePasswordAuthenticationToken(user.getUserId(), null, Collections.emptyList());
 
-        when(userRepository.findByEmail(request.getEmail())).thenReturn(Optional.of(user));
+        when(userService.getUserByEmail(request.getEmail())).thenReturn(user);
         when(authenticationManagerBuilder.getObject()).thenReturn(authenticationManager);
         when(authenticationManager.authenticate(authenticationToken)).thenReturn(authentication);
-        when(tokenProvider.createAccessToken(user.getUserId(), authentication)).thenReturn("accessToken");
-        when(tokenProvider.createRefreshToken(user.getUserId())).thenReturn("refreshToken");
+        when(tokenProvider.createAccessToken(authentication)).thenReturn("accessToken");
 
         // when
         LoginResponse result = authService.checkLogin(request);
 
         // then
         assertNotNull(result);
-        assertEquals("accessToken", result.getAccessToken());
-        assertEquals("refreshToken", result.getRefreshToken());
     }
 
 
     @Test
-    @DisplayName("정상 테스트 : 로그인 성공 시 AccessToken, RefreshToken이 생성된다.")
+    @DisplayName("정상 테스트 : 로그인 성공 시 AccessToken이 생성된다.")
     public void tokenCreationOnLogin() {
         // given
-        User user = UserFixture.createUser("user@example.com", "encodedPassword");
-        LoginRequest request = new LoginRequest("user@example.com", "correctPassword");
+        User user = UserFixture.createUser();
+        LoginRequest request = new LoginRequest("abcd@gmail.com", "abcd12!@");
 
         UsernamePasswordAuthenticationToken authenticationToken =
             new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword());
         Authentication authentication = new UsernamePasswordAuthenticationToken(user.getUserId(), null, Collections.emptyList());
 
-        when(userRepository.findByEmail(request.getEmail())).thenReturn(Optional.of(user));
+        when(userService.getUserByEmail(request.getEmail())).thenReturn(user);
         when(authenticationManagerBuilder.getObject()).thenReturn(authenticationManager);
         when(authenticationManager.authenticate(authenticationToken)).thenReturn(authentication);
-        when(tokenProvider.createAccessToken(user.getUserId(), authentication)).thenReturn("accessToken");
-        when(tokenProvider.createRefreshToken(user.getUserId())).thenReturn("refreshToken");
+        when(tokenProvider.createAccessToken(authentication)).thenReturn("accessToken");
 
         // when
         LoginResponse response = authService.checkLogin(request);
 
         // then
         assertEquals("accessToken", response.getAccessToken());
-        assertEquals("refreshToken", response.getRefreshToken());
-        verify(tokenProvider).createAccessToken(user.getUserId(), authentication);
-        verify(tokenProvider).createRefreshToken(user.getUserId());
+        verify(tokenProvider).createAccessToken(authentication);
     }
-
 
     @Test
     @DisplayName("예외 테스트 : 로그아웃 시 존재하지 않는 이메일")
@@ -161,45 +151,37 @@ public class AuthServiceTest {
     @DisplayName("예외 테스트 : 유효하지 않은 refresh token으로 재발급 시도하여 예외가 발생한다.")
     public void reissueWithInvalidRefreshToken() {
         // given
-        User user = UserFixture.createUser();
         Long userId = 1L;
         String refreshToken = "invalid_refresh_token";
-        RefresehTokenRequest request = new RefresehTokenRequest(refreshToken);
 
-        when(tokenProvider.getRefreshTokenInfo(request.getRefreshToken())).thenReturn(userId);
-        when(userService.getUserById(userId)).thenReturn(user);
-        when(redisService.getValues(user.getUserId())).thenReturn(null);
+        when(tokenProvider.getTokenInfo(refreshToken)).thenReturn(userId);
+        when(redisService.getValues(userId)).thenReturn(null);
 
         // when & then
-        CustomException exception = assertThrows(CustomException.class, () -> authService.reissue(request));
+        CustomException exception = assertThrows(CustomException.class, () -> authService.reissue(refreshToken));
         assertEquals(ErrorCode.INVALID_REFRESH_TOKEN, exception.getErrorCode());
     }
 
 
     @Test
-    @DisplayName("정상 테스트 : 정상적인 토큰 재발급 시 새로운 access token과 refresh token이 생성된다.")
+    @DisplayName("정상 테스트 : 정상적인 토큰 재발급 시 새로운 accessToken이 생성된다.")
     public void successfulReissueTokens() {
         // given
-        User user = UserFixture.createUser();
         Long userId = 1L;
         String refreshToken = "valid_refresh_token";
         String newAccessToken = "new_access_token";
-        String newRefreshToken = "new_refresh_token";
-        RefresehTokenRequest request = new RefresehTokenRequest(refreshToken);
 
-        when(tokenProvider.getRefreshTokenInfo(request.getRefreshToken())).thenReturn(userId);
-        when(userService.getUserById(userId)).thenReturn(user);
+        Authentication authentication = new UsernamePasswordAuthenticationToken(userId, null, Collections.emptyList());
+
+        when(tokenProvider.getTokenInfo(refreshToken)).thenReturn(userId);
         when(redisService.getValues(userId)).thenReturn(refreshToken);
-        when(tokenProvider.createAccessToken(eq(userId), any(Authentication.class))).thenReturn(newAccessToken); // 수정된 부분
-        when(tokenProvider.createRefreshToken(eq(userId))).thenReturn(newRefreshToken); // 여기도 eq를 추가해주면 더 명확함
+        when(tokenProvider.createAccessToken(authentication)).thenReturn(newAccessToken);
 
         // when
-        TokenResponse response = authService.reissue(request);
+        TokenResponse response = authService.reissue(refreshToken);
 
         // then
         assertNotNull(response);
         assertEquals(newAccessToken, response.getAccessToken());
-        assertEquals(newRefreshToken, response.getRefreshToken());
     }
-
 }
