@@ -138,6 +138,10 @@ public class UserService {
     public void deleteUser(Long userId, DeleteUserRequest request) {
         User user = getUserById(userId);
 
+        if(!isValidDeleteReason(request.deleteReasonId())){
+            throw new CustomException(ErrorCode.INVALID_DELETE_REASON);
+        }
+
         if(user.isDelete()){
             throw new CustomException(ErrorCode.ALREADY_DELETE_USER);
         }
@@ -150,5 +154,9 @@ public class UserService {
         if(user.isSocial()){ //카카오 로그인 사용자 연동 해제
 
         }
+    }
+
+    public boolean isValidDeleteReason(Long reasonId){
+        return userDeleteRepository.existsById(reasonId);
     }
 }

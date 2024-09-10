@@ -53,7 +53,8 @@ public enum ErrorCode {
     REPORT_POST_ALREADY_EXIST(BAD_REQUEST, "이미 신고한 게시글입니다."),
     INVALID_REQUEST_PARAMETER(BAD_REQUEST, "경도, 위도 값이 유효하지 않습니다."),
     GEO_COORD_SERVER_ERROR(BAD_REQUEST,"서버 오류입니다."),
-    ALREADY_DELETE_USER(BAD_REQUEST, "이미 탈퇴된 회원입니다.")
+    ALREADY_DELETE_USER(BAD_REQUEST, "이미 탈퇴된 회원입니다."),
+    INVALID_DELETE_REASON(BAD_REQUEST, "탈퇴 이유 값이 유효하지 않습니다."),
     ;
 
     private final HttpStatus httpStatus;
