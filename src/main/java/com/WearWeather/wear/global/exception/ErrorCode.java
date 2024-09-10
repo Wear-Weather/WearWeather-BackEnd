@@ -53,6 +53,9 @@ public enum ErrorCode {
     REPORT_POST_ALREADY_EXIST(BAD_REQUEST, "이미 신고한 게시글입니다."),
     INVALID_REQUEST_PARAMETER(BAD_REQUEST, "경도, 위도 값이 유효하지 않습니다."),
     GEO_COORD_SERVER_ERROR(BAD_REQUEST,"서버 오류입니다."),
+
+    UNAUTHORIZED_USER(UNAUTHORIZED,"게시글 수정 권한이 없습니다."),
+    IMAGE_ALREADY_USED(BAD_REQUEST, "이미 다른 게시글에 사용된 이미지ID가 있습니다.")
     ;
 
     private final HttpStatus httpStatus;
