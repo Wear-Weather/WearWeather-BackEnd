@@ -11,19 +11,19 @@ public record TopLikedPostResponse(
         Long postId,
         String thumbnail,
         LocationResponse location,
-        Long seasonTagId,
-        List<Long> weatherTagIds,
-        List<Long> temperatureTagIds,
+        String seasonTag,
+        List<String> weatherTags,
+        List<String> temperatureTags,
         boolean likeByUser
 ) {
-    public static TopLikedPostResponse of(Post post, String url, LocationResponse location, Map<String, List<Long>> tags, boolean like) {
+    public static TopLikedPostResponse of(Post post, String url, LocationResponse location, Map<String, List<String>> tags, boolean like) {
         return TopLikedPostResponse.builder()
             .postId(post.getId())
             .thumbnail(url)
             .location(location)
-            .seasonTagId(tags.get("SEASON").get(0))
-            .weatherTagIds(tags.get("WEATHER"))
-            .temperatureTagIds(tags.get("TEMPERATURE"))
+            .seasonTag(tags.get("SEASON").get(0))
+            .weatherTags(tags.get("WEATHER"))
+            .temperatureTags(tags.get("TEMPERATURE"))
             .likeByUser(like)
             .build();
     }

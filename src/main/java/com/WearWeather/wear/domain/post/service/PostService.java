@@ -171,7 +171,7 @@ public class PostService {
     public TopLikedPostResponse getTopLikedPost(Post post, Long userId) {
         String url = getImageUrl(post.getThumbnailImageId());
 
-        Map<String, List<Long>> tags = getTagsByPostId(post.getId());
+        Map<String, List<String>> tags = getTagsByPostId(post.getId());
         LocationResponse location = locationService.findCityIdAndDistrictId(post.getLocation().getCity(), post.getLocation().getDistrict());
         boolean like = checkLikeByPostAndUser(post.getId(), userId);
 
@@ -189,7 +189,7 @@ public class PostService {
         Post post = findById(postId);
         ImagesResponse imageUrlList = getImagesResponse(post.getId());
         LocationResponse location = locationService.findCityIdAndDistrictId(post.getLocation().getCity(), post.getLocation().getDistrict());
-        Map<String, List<Long>> tags = getTagsByPostId(post.getId());
+        Map<String, List<String>> tags = getTagsByPostId(post.getId());
 
         boolean like = checkLikeByPostAndUser(post.getId(), userId);
         boolean report = postReportService.hasReports(post.getId());
@@ -223,7 +223,7 @@ public class PostService {
         return awsS3Service.getUrl(postImage.getName());
     }
 
-    public Map<String, List<Long>> getTagsByPostId(Long postId) {
+    public Map<String, List<String>> getTagsByPostId(Long postId) {
         List<PostTag> postTags = postTagRepository.findByPostId(postId);
 
         List<Long> tagIds = postTags.stream()
@@ -235,7 +235,7 @@ public class PostService {
         return tags.stream()
             .collect(Collectors.groupingBy(
                 Tag::getCategory,
-                Collectors.mapping(Tag::getTagId, Collectors.toList())
+                Collectors.mapping(Tag::getContent, Collectors.toList())
             ));
     }
 
@@ -280,7 +280,7 @@ public class PostService {
 
     public PostByLocationResponse getPostByLocation(Post post, Long userId) {
         String url = getImageUrl(post.getThumbnailImageId());
-        Map<String, List<Long>> tags = getTagsByPostId(post.getId());
+        Map<String, List<String>> tags = getTagsByPostId(post.getId());
 
         boolean like = checkLikeByPostAndUser(post.getId(), userId);
         boolean report = postReportService.hasReports(post.getId());
@@ -321,7 +321,7 @@ public class PostService {
 
         String url = getImageUrl(post.thumbnailImageId());
 
-        Map<String, List<Long>> tags = getTagsByPostId(post.postId());
+        Map<String, List<String>> tags = getTagsByPostId(post.postId());
 
         boolean like = checkLikeByPostAndUser(post.postId(), userId);
 
@@ -354,7 +354,7 @@ public class PostService {
 
         String url = getImageUrl(post.getThumbnailImageId());
         LocationResponse location = locationService.findCityIdAndDistrictId(post.getLocation().getCity(), post.getLocation().getDistrict());
-        Map<String, List<Long>> tags = getTagsByPostId(post.getId());
+        Map<String, List<String>> tags = getTagsByPostId(post.getId());
 
         boolean report = postReportService.hasReports(post.getId());
 
@@ -381,7 +381,7 @@ public class PostService {
         String url = getImageUrl(post.getThumbnailImageId());
         LocationResponse location = locationService.findCityIdAndDistrictId(post.getLocation().getCity(), post.getLocation().getDistrict());
 
-        Map<String, List<Long>> tags = getTagsByPostId(post.getId());
+        Map<String, List<String>> tags = getTagsByPostId(post.getId());
 
         boolean like = checkLikeByPostAndUser(post.getId(), userId);
 
