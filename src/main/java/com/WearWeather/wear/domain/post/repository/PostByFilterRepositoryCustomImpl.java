@@ -23,7 +23,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.support.PageableExecutionUtils;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @RequiredArgsConstructor
 public class PostByFilterRepositoryCustomImpl implements PostByFilterRepositoryCustom {
@@ -90,11 +92,11 @@ public class PostByFilterRepositoryCustomImpl implements PostByFilterRepositoryC
                 .select(qPost.id)
                 .from(qPost);
 
-        List<Location> allCity = List.of(new Location(1L,0L));
-
         if (!locationList.isEmpty()) {
 
-            if (!locationList.equals(allCity)) {
+            boolean hasCityEntireValue = checkSearchAllCity(locationList);
+
+            if (!hasCityEntireValue) {
                 BooleanExpression locationTagCondition;
 
                 Long districtEntireValue = 0L;
@@ -102,14 +104,14 @@ public class PostByFilterRepositoryCustomImpl implements PostByFilterRepositoryC
                 boolean hasDistrictEntireValue = locationList.stream()
                         .anyMatch(location -> location.getDistrict().equals(districtEntireValue));
 
-                if(hasDistrictEntireValue){
+                if (hasDistrictEntireValue) {
                     List<Long> city = locationList.stream()
                             .filter(location -> location.getDistrict().equals(districtEntireValue))
                             .map(Location::getCity)
                             .distinct()
                             .toList();
                     locationTagCondition = qPost.location.city.in(city);
-                }else {
+                } else {
                     locationTagCondition = qPost.location.in(locationList);
                 }
 
@@ -120,7 +122,21 @@ public class PostByFilterRepositoryCustomImpl implements PostByFilterRepositoryC
         return postIdByLocationFilter.fetch();
     }
 
-        public BooleanExpression createTagCondition(QPostTag postTag, List<Long> tagIds){
+    private boolean checkSearchAllCity(List<Location> locationList){
+        List<Location> allCity = List.of(new Location(findAllCityId(),0L));
+        return locationList.equals(allCity);
+    }
+
+    private Long findAllCityId(){
+
+        return jpaQueryFactory
+                .select(qCity.id)
+                .from(qCity)
+                .where(qCity.city.eq("전국"))
+                .fetchOne();
+    }
+
+    public BooleanExpression createTagCondition(QPostTag postTag, List<Long> tagIds){
 
         if(tagIds == null || tagIds.isEmpty()){
             return null;
