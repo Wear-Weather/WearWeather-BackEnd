@@ -23,9 +23,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.support.PageableExecutionUtils;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @RequiredArgsConstructor
 public class PostByFilterRepositoryCustomImpl implements PostByFilterRepositoryCustom {
@@ -97,28 +95,11 @@ public class PostByFilterRepositoryCustomImpl implements PostByFilterRepositoryC
             boolean hasCityEntireValue = checkSearchAllCity(locationList);
 
             if (!hasCityEntireValue) {
-                BooleanExpression locationTagCondition;
-
-                Long districtEntireValue = 0L;
-
-                boolean hasDistrictEntireValue = locationList.stream()
-                        .anyMatch(location -> location.getDistrict().equals(districtEntireValue));
-
-                if (hasDistrictEntireValue) {
-                    List<Long> city = locationList.stream()
-                            .filter(location -> location.getDistrict().equals(districtEntireValue))
-                            .map(Location::getCity)
-                            .distinct()
-                            .toList();
-                    locationTagCondition = qPost.location.city.in(city);
-                } else {
-                    locationTagCondition = qPost.location.in(locationList);
-                }
+                BooleanExpression locationTagCondition = checkSearchAllDistrictInCity(locationList);
 
                 postIdByLocationFilter.where(locationTagCondition);
             }
         }
-
         return postIdByLocationFilter.fetch();
     }
 
@@ -143,6 +124,42 @@ public class PostByFilterRepositoryCustomImpl implements PostByFilterRepositoryC
         }
 
         return postTag.tagId.in(tagIds);
+    }
+
+    private BooleanExpression checkSearchAllDistrictInCity(List<Location> locationList){
+        Long districtEntireValue = 0L;
+
+        boolean hasDistrictEntireValue = locationList.stream()
+                .anyMatch(location -> location.getDistrict().equals(districtEntireValue));
+
+        if (hasDistrictEntireValue) {
+            List<Long> city = extractCityListForEntireDistrict(locationList, districtEntireValue);
+            List<Location> otherCityList = extractCityListForOtherDistrict(locationList, districtEntireValue);
+
+            if(!otherCityList.isEmpty()){
+                return qPost.location.city.in(city)
+                        .or(qPost.location.in(otherCityList));
+            }
+
+            return qPost.location.city.in(city);
+
+        }
+        return qPost.location.in(locationList);
+    }
+
+    private List<Long> extractCityListForEntireDistrict(List<Location> locationList, Long districtEntireValue){
+
+        return locationList.stream()
+                .filter(location -> location.getDistrict().equals(districtEntireValue))
+                .map(Location::getCity)
+                .distinct()
+                .toList();
+    }
+
+    private List<Location> extractCityListForOtherDistrict(List<Location> locationList, Long districtEntireValue){
+        return locationList.stream()
+                .filter(location -> !location.getDistrict().equals(districtEntireValue))
+                .toList();
     }
 
     public BooleanExpression havingCondition(NumberPath<Long> tagId, List<Long> tagIds){
