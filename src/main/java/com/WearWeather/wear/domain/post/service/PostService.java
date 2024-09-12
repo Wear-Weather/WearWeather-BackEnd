@@ -123,15 +123,15 @@ public class PostService {
     }
 
     @Transactional
-    public void incrementLikeCount(Long postId) {
+    public Integer incrementLikeCount(Long postId) {
         Post post = findById(postId);
-        post.updateLikeCount();
+        return post.updateLikeCount();
     }
 
     @Transactional
-    public void removeLikeCount(Long postId) {
+    public Integer removeLikeCount(Long postId) {
         Post post = findById(postId);
-        post.removeLikeCount();
+        return post.removeLikeCount();
     }
 
     public Post findById(Long postId) {

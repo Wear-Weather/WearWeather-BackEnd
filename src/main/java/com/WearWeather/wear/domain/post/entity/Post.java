@@ -54,12 +54,14 @@ public class Post extends BaseTimeEntity implements Serializable {
         this.thumbnailImageId = postImageId;
     }
 
-    public void updateLikeCount() {
+    public Integer updateLikeCount() {
         this.likeCount++;
+        return this.likeCount;
     }
 
-    public void removeLikeCount() {
+    public Integer removeLikeCount() {
         this.likeCount--;
+        return this.likeCount;
     }
 
     public void modifyPostAttributes(String title, String content, Location location) {

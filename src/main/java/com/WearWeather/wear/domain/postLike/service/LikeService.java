@@ -3,6 +3,8 @@ package com.WearWeather.wear.domain.postLike.service;
 import com.WearWeather.wear.domain.post.service.PostService;
 import com.WearWeather.wear.domain.postLike.dto.response.LikedPostByMeResponse;
 import com.WearWeather.wear.domain.postLike.dto.response.LikedPostsByMeResponse;
+import com.WearWeather.wear.domain.postLike.dto.response.TotalLikedCountAfterLike;
+import com.WearWeather.wear.domain.postLike.dto.response.TotalLikedCountAfterUnlike;
 import com.WearWeather.wear.domain.postLike.entity.Like;
 import com.WearWeather.wear.domain.postLike.repository.LikeRepository;
 import com.WearWeather.wear.domain.user.entity.User;
@@ -28,7 +30,7 @@ public class LikeService {
     private final PostService postService;
 
     @Transactional
-    public void addLike(Long userId, Long postId) {
+    public TotalLikedCountAfterLike addLike(Long userId, Long postId) {
 
         validatePostExists(postId);
         checkIfAlreadyLiked(postId, userId);
@@ -40,19 +42,22 @@ public class LikeService {
 
         likeRepository.save(like);
 
-        postService.incrementLikeCount(postId);
+        int likedCount = postService.incrementLikeCount(postId);
+
+        return TotalLikedCountAfterLike.of(likedCount);
     }
 
     @Transactional
-    public void removeLike(Long userId, Long postId) {
+    public TotalLikedCountAfterUnlike removeLike(Long userId, Long postId) {
 
         validatePostExists(postId);
 
         Like like = findLike(postId, userId);
         likeRepository.delete(like);
 
-        postService.removeLikeCount(postId);
+        int likedCount = postService.removeLikeCount(postId);
 
+        return TotalLikedCountAfterUnlike.of(likedCount);
     }
 
     public void validatePostExists(Long postId) {
