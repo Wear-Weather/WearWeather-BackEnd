@@ -1,5 +1,9 @@
 package com.WearWeather.wear.domain.user.service;
 
+import com.WearWeather.wear.domain.oauth.infrastructure.kakao.entity.KakaoUser;
+import com.WearWeather.wear.domain.oauth.infrastructure.kakao.repository.KakaoUserRepository;
+import com.WearWeather.wear.domain.oauth.service.RequestOAuthInfoService;
+import com.WearWeather.wear.domain.oauth.service.RequestOAuthUnlinkService;
 import com.WearWeather.wear.domain.user.dto.request.DeleteUserRequest;
 import com.WearWeather.wear.domain.user.dto.request.ModifyUserPasswordRequest;
 import com.WearWeather.wear.domain.user.dto.request.RegisterUserRequest;
@@ -7,6 +11,7 @@ import com.WearWeather.wear.domain.user.dto.response.UserIdForPasswordUpdateResp
 import com.WearWeather.wear.domain.user.dto.response.UserInfoResponse;
 import com.WearWeather.wear.domain.user.entity.User;
 import com.WearWeather.wear.domain.user.entity.UserDelete;
+import com.WearWeather.wear.domain.user.repository.DeleteReasonRepository;
 import com.WearWeather.wear.domain.user.repository.UserDeleteRepository;
 import com.WearWeather.wear.domain.user.repository.UserRepository;
 import com.WearWeather.wear.global.exception.CustomException;
@@ -26,6 +31,9 @@ public class UserService {
 
     private final PasswordEncoder passwordEncoder;
     private final UserDeleteRepository userDeleteRepository;
+    private final DeleteReasonRepository deleteReasonRepository;
+    private final KakaoUserRepository kakaoUserRepository;
+    private final RequestOAuthUnlinkService requestOAuthUnlinkService;
 
     @Transactional
     public void registerUser(RegisterUserRequest registerUserRequest) {
@@ -138,7 +146,7 @@ public class UserService {
     public void deleteUser(Long userId, DeleteUserRequest request) {
         User user = getUserById(userId);
 
-        if(!isValidDeleteReason(request.deleteReasonId())){
+        if(!existsDeleteReason(request.deleteReasonId())){
             throw new CustomException(ErrorCode.INVALID_DELETE_REASON);
         }
 
@@ -148,15 +156,23 @@ public class UserService {
 
         user.updateIsDelete();
 
-        UserDelete userDelete = request.toEntity(userId, request.deleteReasonId());
-        userDeleteRepository.save(userDelete);
+        if (!userDeleteRepository.existsByUserId(userId)) {
+            UserDelete userDelete = request.toEntity(userId);
+            userDeleteRepository.save(userDelete);
+        }
 
-        if(user.isSocial()){ //카카오 로그인 사용자 연동 해제
+        if(user.isSocial()){
+            Long kakaoUserId = kakaoUserRepository.findKakaoUserIdByUserId(userId);
+            if (kakaoUserId == null) {
+                throw new CustomException(ErrorCode.KAKAO_USER_NOT_FOUND);
+            }
 
+            requestOAuthUnlinkService.request(kakaoUserId);
+            kakaoUserRepository.deleteByKakaoUserId(kakaoUserId);
         }
     }
 
-    public boolean isValidDeleteReason(Long reasonId){
-        return userDeleteRepository.existsById(reasonId);
+    public boolean existsDeleteReason(Long reasonId){
+        return deleteReasonRepository.existsById(reasonId);
     }
 }

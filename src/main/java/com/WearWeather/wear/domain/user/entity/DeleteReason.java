@@ -18,7 +18,7 @@ public class DeleteReason{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column(name = "delete_Reason", nullable = false)
-    private String deleteReason;
+    @Column(name = "reason_description", nullable = false)
+    private String reason;
 
 }

@@ -10,6 +10,9 @@ import lombok.Getter;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class KaKaoUserInfo implements OAuthUserInfo {
 
+    @JsonProperty("id")
+    private Long id;
+
     @JsonProperty("kakao_account")
     private KakaouAccount kakaouAccount;
 
@@ -44,6 +47,11 @@ public class KaKaoUserInfo implements OAuthUserInfo {
 
         @JsonProperty("nickname")
         private String nickname;
+    }
+
+    @Override
+    public Long getId() {
+        return id;
     }
 
     @Override

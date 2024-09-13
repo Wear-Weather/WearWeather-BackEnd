@@ -55,6 +55,8 @@ public enum ErrorCode {
     GEO_COORD_SERVER_ERROR(BAD_REQUEST,"서버 오류입니다."),
     ALREADY_DELETE_USER(BAD_REQUEST, "이미 탈퇴된 회원입니다."),
     INVALID_DELETE_REASON(BAD_REQUEST, "탈퇴 이유 값이 유효하지 않습니다."),
+
+    KAKAO_USER_NOT_FOUND(BAD_REQUEST, "카카오 연동 해제된 사용자입니다."),
     ;
 
     private final HttpStatus httpStatus;

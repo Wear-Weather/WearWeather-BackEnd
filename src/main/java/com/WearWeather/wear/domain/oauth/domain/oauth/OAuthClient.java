@@ -7,4 +7,6 @@ public interface OAuthClient {
     String requestAccessToken(OAuthLoginParams params);
 
     OAuthUserInfo requestOAuthInfo(String accessToken);
+
+    void unlinkOauthUser(Long socialUserId);
 }

@@ -8,7 +8,7 @@ public record DeleteUserRequest(
         Long deleteReasonId
 ){
 
-        public UserDelete toEntity(Long userId, Long deleteReasonId){
+        public UserDelete toEntity(Long userId){
                 return UserDelete.builder()
                         .userId(userId)
                         .deleteReasonId(deleteReasonId)
