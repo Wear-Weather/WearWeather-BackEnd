@@ -64,7 +64,7 @@ public class Post extends BaseTimeEntity implements Serializable {
         return this.likeCount;
     }
 
-    public void modifyPostAttributes(String title, String content, Location location) {
+    public void updatePostDetails(String title, String content, Location location) {
         this.title = title;
         this.content = content;
         this.location = location;

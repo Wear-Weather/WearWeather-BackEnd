@@ -6,7 +6,6 @@ import com.WearWeather.wear.domain.postImage.dto.request.PostImageRequest;
 import com.WearWeather.wear.domain.tag.dto.TaggableRequest;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -28,8 +27,11 @@ public class PostCreateRequest implements PostImageRequest, TaggableRequest {
     @Size(max = 50)
     private final String content;
 
-    @Valid
-    private final Location location;
+    @NotBlank
+    private final String city;
+
+    @NotBlank
+    private final String district;
 
     @NotNull
     @Size(max = 2)
@@ -42,26 +44,28 @@ public class PostCreateRequest implements PostImageRequest, TaggableRequest {
     @NotNull
     private final Long seasonTagId;
 
-    private final List<Long> imageId = new ArrayList<>();
+    private final List<Long> imageIds = new ArrayList<>();
 
     @JsonCreator
     public PostCreateRequest(
         @JsonProperty("title") String title,
         @JsonProperty("content") String content,
-        @JsonProperty("location") Location location,
+        @JsonProperty("city") String city,
+        @JsonProperty("district") String district,
         @JsonProperty("weatherTagIds") Set<Long> weatherTagIds,
         @JsonProperty("temperatureTagIds") Set<Long> temperatureTagIds,
         @JsonProperty("seasonTagId") Long seasonTagId
     ) {
         this.title = title;
         this.content = content;
-        this.location = location;
+        this.city = city;
+        this.district = district;
         this.weatherTagIds = weatherTagIds;
         this.temperatureTagIds = temperatureTagIds;
         this.seasonTagId = seasonTagId;
     }
 
-    public Post toEntity(Long userId) {
+    public Post toEntity(Long userId,Location location) {
         return Post.builder()
             .userId(userId)
             .title(title)

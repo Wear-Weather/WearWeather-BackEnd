@@ -44,4 +44,9 @@ public class PostHiddenService {
                 .map(PostIdMapping::getPostId)
                 .toList();
     }
+
+    @Transactional
+    public void deleteHiddenByPostId(Long postId) {
+        postHiddenRepository.deleteByPostId(postId);
+    }
 }

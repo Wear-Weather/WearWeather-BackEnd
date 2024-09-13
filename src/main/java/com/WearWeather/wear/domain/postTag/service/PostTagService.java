@@ -1,9 +1,9 @@
 package com.WearWeather.wear.domain.postTag.service;
 
+import com.WearWeather.wear.domain.post.entity.Post;
 import com.WearWeather.wear.domain.postTag.entity.PostTag;
 import com.WearWeather.wear.domain.postTag.repository.PostTagRepository;
 import com.WearWeather.wear.domain.tag.dto.TaggableRequest;
-import com.WearWeather.wear.domain.tag.entity.Tag;
 import com.WearWeather.wear.domain.tag.repository.TagRepository;
 import com.WearWeather.wear.global.exception.CustomException;
 import com.WearWeather.wear.global.exception.ErrorCode;
@@ -23,14 +23,14 @@ public class PostTagService {
     private final PostTagRepository postTagRepository;
 
     @Transactional
-    public void saveAllTag(Long postId, TaggableRequest request) {
-        saveTags(postId, request.getWeatherTagIds());
-        saveTags(postId, request.getTemperatureTagIds());
-        saveTag(postId, request.getSeasonTagId());
+    public void saveTags(Post post, TaggableRequest request) {
+        saveMultipleTags(post.getId(), request.getWeatherTagIds());
+        saveMultipleTags(post.getId(), request.getTemperatureTagIds());
+        saveTag(post.getId(), request.getSeasonTagId());
     }
 
     @Transactional
-    private void saveTags(Long postId, Set<Long> tagIds) {
+    private void saveMultipleTags(Long postId, Set<Long> tagIds) {
         for (Long tagId : tagIds) {
             saveTag(postId, tagId);
         }
@@ -38,8 +38,8 @@ public class PostTagService {
 
     @Transactional
     private void saveTag(Long postId, Long tagId) {
-        Tag tag = tagRepository.findById(tagId)
-            .orElseThrow(() -> new CustomException(ErrorCode.TAG_NOT_FOUND));
+        validateTagId(tagId);
+
         PostTag postTag = PostTag.builder()
             .postId(postId)
             .tagId(tagId)
@@ -47,13 +47,23 @@ public class PostTagService {
         postTagRepository.save(postTag);
     }
 
-    @Transactional
-    public void deleteTagsByPost(Long postId) {
-        postTagRepository.deleteByPostId(postId);
+    private void validateTagId(Long tagId) {
+        tagRepository.findById(tagId)
+            .orElseThrow(() -> new CustomException(ErrorCode.TAG_NOT_FOUND));
     }
 
+    @Transactional
+    public void updatePostTags(Post post, TaggableRequest request) {
+        deleteTagsByPostId(post.getId());
+        saveTags(post, request);
+    }
     public List<PostTag> findPostTagsByPostId(Long postId){
          return postTagRepository.findByPostId(postId);
+    }
+
+    @Transactional
+    public void deleteTagsByPostId(Long postId) {
+        postTagRepository.deleteByPostId(postId);
     }
 
 
