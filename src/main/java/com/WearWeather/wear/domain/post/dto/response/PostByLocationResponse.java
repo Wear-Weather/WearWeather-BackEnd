@@ -9,19 +9,19 @@ import java.util.Map;
 public record PostByLocationResponse(
         Long postId,
         String thumbnail,
-        Long seasonTagId,
-        List<Long> weatherTagIds,
-        List<Long> temperatureTagIds,
+        String seasonTag,
+        List<String> weatherTags,
+        List<String> temperatureTags,
         boolean likeByUser,
         boolean reportPost
 ) {
-    public static PostByLocationResponse of(Long postId, String url, Map<String, List<Long>> tags, boolean like, boolean report){
+    public static PostByLocationResponse of(Long postId, String url, Map<String, List<String>> tags, boolean like, boolean report){
         return PostByLocationResponse.builder()
                 .postId(postId)
                 .thumbnail(url)
-                .seasonTagId(tags.get("SEASON").get(0))
-                .weatherTagIds(tags.get("WEATHER"))
-                .temperatureTagIds(tags.get("TEMPERATURE"))
+                .seasonTag(tags.get("SEASON").get(0))
+                .weatherTags(tags.get("WEATHER"))
+                .temperatureTags(tags.get("TEMPERATURE"))
                 .likeByUser(like)
                 .reportPost(report)
                 .build();
