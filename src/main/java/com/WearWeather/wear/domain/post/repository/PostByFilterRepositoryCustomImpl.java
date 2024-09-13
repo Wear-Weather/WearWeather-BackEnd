@@ -90,43 +90,76 @@ public class PostByFilterRepositoryCustomImpl implements PostByFilterRepositoryC
                 .select(qPost.id)
                 .from(qPost);
 
-        List<Location> allCity = List.of(new Location(1L,0L));
-
         if (!locationList.isEmpty()) {
 
-            if (!locationList.equals(allCity)) {
-                BooleanExpression locationTagCondition;
+            boolean hasCityEntireValue = checkSearchAllCity(locationList);
 
-                Long districtEntireValue = 0L;
-
-                boolean hasDistrictEntireValue = locationList.stream()
-                        .anyMatch(location -> location.getDistrict().equals(districtEntireValue));
-
-                if(hasDistrictEntireValue){
-                    List<Long> city = locationList.stream()
-                            .filter(location -> location.getDistrict().equals(districtEntireValue))
-                            .map(Location::getCity)
-                            .distinct()
-                            .toList();
-                    locationTagCondition = qPost.location.city.in(city);
-                }else {
-                    locationTagCondition = qPost.location.in(locationList);
-                }
+            if (!hasCityEntireValue) {
+                BooleanExpression locationTagCondition = checkSearchAllDistrictInCity(locationList);
 
                 postIdByLocationFilter.where(locationTagCondition);
             }
         }
-
         return postIdByLocationFilter.fetch();
     }
 
-        public BooleanExpression createTagCondition(QPostTag postTag, List<Long> tagIds){
+    private boolean checkSearchAllCity(List<Location> locationList){
+        List<Location> allCity = List.of(new Location(findAllCityId(),0L));
+        return locationList.equals(allCity);
+    }
+
+    private Long findAllCityId(){
+
+        return jpaQueryFactory
+                .select(qCity.id)
+                .from(qCity)
+                .where(qCity.city.eq("전국"))
+                .fetchOne();
+    }
+
+    public BooleanExpression createTagCondition(QPostTag postTag, List<Long> tagIds){
 
         if(tagIds == null || tagIds.isEmpty()){
             return null;
         }
 
         return postTag.tagId.in(tagIds);
+    }
+
+    private BooleanExpression checkSearchAllDistrictInCity(List<Location> locationList){
+        Long districtEntireValue = 0L;
+
+        boolean hasDistrictEntireValue = locationList.stream()
+                .anyMatch(location -> location.getDistrict().equals(districtEntireValue));
+
+        if (hasDistrictEntireValue) {
+            List<Long> city = extractCityListForEntireDistrict(locationList, districtEntireValue);
+            List<Location> otherCityList = extractCityListForOtherDistrict(locationList, districtEntireValue);
+
+            if(!otherCityList.isEmpty()){
+                return qPost.location.city.in(city)
+                        .or(qPost.location.in(otherCityList));
+            }
+
+            return qPost.location.city.in(city);
+
+        }
+        return qPost.location.in(locationList);
+    }
+
+    private List<Long> extractCityListForEntireDistrict(List<Location> locationList, Long districtEntireValue){
+
+        return locationList.stream()
+                .filter(location -> location.getDistrict().equals(districtEntireValue))
+                .map(Location::getCity)
+                .distinct()
+                .toList();
+    }
+
+    private List<Location> extractCityListForOtherDistrict(List<Location> locationList, Long districtEntireValue){
+        return locationList.stream()
+                .filter(location -> !location.getDistrict().equals(districtEntireValue))
+                .toList();
     }
 
     public BooleanExpression havingCondition(NumberPath<Long> tagId, List<Long> tagIds){
