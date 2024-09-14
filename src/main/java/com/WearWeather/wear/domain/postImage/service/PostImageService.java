@@ -9,6 +9,8 @@ import com.WearWeather.wear.domain.storage.dto.ImageInfoDto;
 import com.WearWeather.wear.domain.storage.service.AwsS3Service;
 import com.WearWeather.wear.global.exception.CustomException;
 import com.WearWeather.wear.global.exception.ErrorCode;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -100,5 +102,17 @@ public class PostImageService {
         }
 
         postImageRepository.deleteByPostId(postId);
+    }
+
+    @Transactional
+    public void deleteUnNecessaryImage() {
+        final List<PostImage> images = postImageRepository.findByPostIdIsNull();
+
+        images.stream()
+            .filter(image -> Duration.between(image.getCreatedAt(), LocalDateTime.now()).toHours() >= 24)
+            .forEach(image -> {
+                awsS3Service.delete(image.getName());
+                postImageRepository.delete(image);
+            });
     }
 }
