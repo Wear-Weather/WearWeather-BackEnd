@@ -72,7 +72,7 @@ public class UserController {
     }
 
     @DeleteMapping
-    public ResponseEntity<ResponseCommonDTO> deleteUser(@LoggedInUser Long userId, @Valid @RequestBody DeleteUserRequest request) {
+    public ResponseEntity<ResponseCommonDTO> deleteUser(@LoggedInUser Long userId, @Valid @RequestBody DeleteReasonRequest request) {
 
         userService.deleteUser(userId, request);
         return ResponseEntity.ok(new ResponseCommonDTO(true, ResponseMessage.SUCCESS_DELETE_USER));
