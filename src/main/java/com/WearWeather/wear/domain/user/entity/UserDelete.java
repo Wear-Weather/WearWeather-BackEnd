@@ -2,6 +2,7 @@ package com.WearWeather.wear.domain.user.entity;
 
 import com.WearWeather.wear.global.common.BaseTimeEntity;
 import jakarta.persistence.*;
+import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -14,7 +15,7 @@ import java.util.Objects;
 @Builder
 @Getter
 @Entity
-public class UserDelete extends BaseTimeEntity {
+public class UserDelete extends BaseTimeEntity implements Serializable {
 
     @Id
     @Column(name = "delete_id")
@@ -24,8 +25,8 @@ public class UserDelete extends BaseTimeEntity {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
-    @Column(name = "delete_reason_id", nullable = false)
-    private Long deleteReasonId;
+    @Column(name = "delete_reason", nullable = false)
+    private String deleteReason;
 
     @Override
     public boolean equals(Object o) {
