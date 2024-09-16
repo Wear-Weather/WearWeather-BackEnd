@@ -23,7 +23,6 @@ public class PostCreateRequest implements PostImageRequest, TaggableRequest {
     @Size(max = 50)
     private final String title;
 
-    @NotBlank
     @Size(max = 50)
     private final String content;
 
