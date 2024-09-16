@@ -64,7 +64,7 @@ public class SecurityConfig {
                     "/login/page",
                     "/users/nickname-check/**", "/email/send-verification", "/email/verify-code",
                     "/users/register", "/users/email", "/users/password",
-                    "/basic-location", "/location", "/regions"
+                    "/basic-location", "/location", "/regions","/users/delete-reasons"
                 ).permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
                 .anyRequest().authenticated()
