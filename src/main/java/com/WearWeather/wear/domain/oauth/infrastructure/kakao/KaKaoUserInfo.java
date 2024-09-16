@@ -14,14 +14,14 @@ public class KaKaoUserInfo implements OAuthUserInfo {
     private Long id;
 
     @JsonProperty("kakao_account")
-    private KakaouAccount kakaouAccount;
+    private KakaoAccount kakaoAccount;
 
     @JsonProperty("properties")
     private Properties properties;
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     @Getter
-    static class KakaouAccount {
+    static class KakaoAccount {
 
         @JsonProperty("email")
         private String email;
@@ -56,13 +56,13 @@ public class KaKaoUserInfo implements OAuthUserInfo {
 
     @Override
     public String getEmail() {
-        return kakaouAccount.getEmail();
+        return kakaoAccount.getEmail();
     }
 
     @Override
     public String getName() {
         // 카카오 계정에서 이름 정보는 직접 제공하지 않기 때문에 닉네임을 이름으로 사용
-        return kakaouAccount.getProfile().getNickname();
+        return kakaoAccount.getProfile().getNickname();
     }
 
     @Override

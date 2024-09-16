@@ -10,12 +10,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface KakaoUserRepository extends JpaRepository<KakaoUser, Long> {
 
-    Optional<KakaoUser> findByKakaoUserId(Long kakaoUserId);
-
-    @Query("SELECT k.kakaoUserId FROM KakaoUser k WHERE k.userId = :userId")
-    Long findKakaoUserIdByUserId(@Param("userId") Long userId);
-
-
-    void deleteByKakaoUserId(Long kakaoUserId);
+    Optional<KakaoUser> findByUserId(Long UserId);
 
 }
