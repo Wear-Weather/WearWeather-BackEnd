@@ -1,5 +1,8 @@
 package com.WearWeather.wear.domain.postImage.service;
 
+import com.WearWeather.wear.domain.post.dto.request.PostUpdateRequest;
+import com.WearWeather.wear.domain.post.entity.Post;
+import com.WearWeather.wear.domain.postImage.dto.request.PostImageRequest;
 import com.WearWeather.wear.domain.postImage.entity.PostImage;
 import com.WearWeather.wear.domain.postImage.repository.PostImageRepository;
 import com.WearWeather.wear.domain.storage.dto.ImageInfoDto;
@@ -36,28 +39,66 @@ public class PostImageService {
     }
 
     @Transactional
-    public void deletePostImage(Long imageId) {
+    public void savePostIdInImages(Post post,PostImageRequest request) {
+        List<PostImage> postImages = postImageRepository.findByIdIn(request.getImageIds());
+
+        for (int i = 0; i < postImages.size(); i++) {
+            PostImage postImage = postImages.get(i);
+            if (postImage.getPostId() != null) {
+                throw new CustomException(ErrorCode.INVALID_IMAGE_IMAGE);
+            }
+            postImage.updatePostId(post.getId());
+
+            if (i == 0) {
+                post.addThumbnailImageId(postImage.getId());
+            }
+        }
+    }
+
+    @Transactional
+    public void updatePostImages(Post post, PostUpdateRequest request) {
+        List<Long> existingImageIds = postImageRepository.findImageIdsByPostId(post.getId());
+
+        for (Long imageId : request.getImageIds()) {
+            if (!existingImageIds.contains(imageId)) {
+                PostImage postImage = getValidatedImage(imageId);
+                postImage.updatePostId(post.getId());
+            }
+        }
+
+        if (!request.getImageIds().isEmpty()) {
+            post.addThumbnailImageId(request.getImageIds().get(0));
+        }
+    }
+
+    private PostImage getValidatedImage(Long imageId) {
+        PostImage postImage = postImageRepository.findById(imageId)
+            .orElseThrow(() -> new CustomException(ErrorCode.INVALID_IMAGE_IMAGE));
+
+        if (postImage.getPostId() != null) {
+            throw new CustomException(ErrorCode.IMAGE_ALREADY_USED);
+        }
+
+        return postImage;
+    }
+
+    @Transactional
+    public void deleteImage(Long imageId) {
         PostImage postImage = postImageRepository.findById(imageId)
             .orElseThrow(() -> new CustomException(ErrorCode.IMAGE_NOT_FOUND));
 
-        // S3에서 이미지 삭제
         awsS3Service.delete(postImage.getName());
-
-        // DB에서 이미지 정보 삭제
         postImageRepository.delete(postImage);
     }
 
-    public List<PostImage> findPostImagesByPostId(Long postId){
-         return postImageRepository.findByPostId(postId);
-    }
+    @Transactional
+    public void deleteImagesByPostId(Long postId) {
+        List<PostImage> postImages = postImageRepository.findByPostId(postId);
 
-    public PostImage findPostImageById(Long thumbnailId){
-         return postImageRepository.findById(thumbnailId)
-                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_POST_IMAGE));
-    }
+        for (PostImage postImage : postImages) {
+            awsS3Service.delete(postImage.getName());
+        }
 
-    public List<PostImage> findPostImagesByIdIn(List<Long> imageIds){
-        return postImageRepository.findByIdIn(imageIds);
+        postImageRepository.deleteByPostId(postId);
     }
 }
-

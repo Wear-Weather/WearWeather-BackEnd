@@ -50,4 +50,9 @@ public class PostReportService {
     public boolean hasReports(Long postId){
         return checkPostReported(postId) && hasExceededReportCount(postId);
     }
+
+    @Transactional
+    public void deleteReportByPostId(Long postId) {
+        postReportRepository.deleteByPostId(postId);
+    }
 }

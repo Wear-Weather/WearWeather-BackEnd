@@ -21,11 +21,12 @@ import com.WearWeather.wear.domain.post.entity.Post;
 import com.WearWeather.wear.domain.post.entity.SortType;
 import com.WearWeather.wear.domain.post.repository.PostRepository;
 import com.WearWeather.wear.domain.postHidden.service.PostHiddenService;
-import com.WearWeather.wear.domain.postImage.dto.request.PostImageRequest;
 import com.WearWeather.wear.domain.postImage.entity.PostImage;
 import com.WearWeather.wear.domain.postImage.repository.PostImageRepository;
+import com.WearWeather.wear.domain.postImage.service.PostImageService;
 import com.WearWeather.wear.domain.postLike.dto.response.LikedPostByMeResponse;
 import com.WearWeather.wear.domain.postLike.repository.LikeRepository;
+import com.WearWeather.wear.domain.postLike.service.LikeService;
 import com.WearWeather.wear.domain.postReport.service.PostReportService;
 import com.WearWeather.wear.domain.postTag.entity.PostTag;
 import com.WearWeather.wear.domain.postTag.repository.PostTagRepository;
@@ -64,56 +65,57 @@ public class PostService {
     private final LocationService locationService;
     private final PostReportService postReportService;
     private final PostHiddenService postHiddenService;
+    private final PostImageService postImageService;
 
     private static final String SORT_COLUMN_BY_CREATE_AT = "createdAt";
     private static final String SORT_COLUMN_BY_LIKE_COUNT = "likeCount";
 
     @Transactional
     public Long createPost(Long userId, PostCreateRequest request) {
-        Post post = request.toEntity(userId);
-
+        Location location = locationService.findCityIdAndDistrictId(request.getCity(),request.getDistrict());
+        Post post = request.toEntity(userId,location);
         postRepository.save(post);
 
-        updateImagesInPost(request, post);
-        postTagService.saveAllTag(post.getId(), request);
+        postImageService.savePostIdInImages(post,request);
+        postTagService.saveTags(post, request);
 
         return post.getId();
     }
 
     @Transactional
     public void updatePost(Long userId, Long postId, PostUpdateRequest request) {
-        // TODO : 코드 수정 필요
-        Post post = findById(postId);
-        post.modifyPostAttributes(request.getTitle(), request.getContent(), request.getLocation());
+        Location location = locationService.findCityIdAndDistrictId(request.getCity(),request.getDistrict());
+        Post post = validateUserPermission(userId, postId);
 
-        updateImagesInPost(request, post);
-
-        postTagService.deleteTagsByPost(postId);
-        postTagService.saveAllTag(postId, request);
+        post.updatePostDetails(request.getTitle(), request.getContent(), location);
+        postImageService.updatePostImages(post, request);
+        postTagService.updatePostTags(post,request);
     }
 
     @Transactional
     public void deletePost(Long userId, Long postId) {
+        Post post = validateUserPermission(userId, postId);
 
-        Post post = findById(postId);
-        postRepository.delete(post);
+        deleteRelatedDataByPostId(postId);
+         postRepository.delete(post);
     }
 
-    @Transactional
-    public void updateImagesInPost(PostImageRequest request, Post post) {
-        List<PostImage> postImages = postImageRepository.findByIdIn(request.getImageId());
+    private void deleteRelatedDataByPostId(Long postId) {
+        postImageService.deleteImagesByPostId(postId);
+        postTagService.deleteTagsByPostId(postId);
+        postHiddenService.deleteHiddenByPostId(postId);
+        postReportService.deleteReportByPostId(postId);
 
-        for (int i = 0; i < postImages.size(); i++) {
-            PostImage postImage = postImages.get(i);
-            if (postImage.getPostId() != null) {
-                throw new CustomException(ErrorCode.INVALID_IMAGE_IMAGE);
-            }
-            postImage.updatePostId(post.getId());
+        //TODO : 임시 Repository 코드 작성 -> 전체적인 프로젝트 구조 개선 필요
+        likeRepository.deleteByPostId(postId);
+    }
 
-            if (i == 0) {
-                post.addThumbnailImageId(postImage.getId());
-            }
+    private Post validateUserPermission(Long userId, Long postId) {
+        Post post = findById(postId);
+        if (!post.getUserId().equals(userId)) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED_USER);
         }
+        return post;
     }
 
     public void validatePostExists(Long postId) {
@@ -123,15 +125,15 @@ public class PostService {
     }
 
     @Transactional
-    public void incrementLikeCount(Long postId) {
+    public Integer incrementLikeCount(Long postId) {
         Post post = findById(postId);
-        post.updateLikeCount();
+        return post.updateLikeCount();
     }
 
     @Transactional
-    public void removeLikeCount(Long postId) {
+    public Integer removeLikeCount(Long postId) {
         Post post = findById(postId);
-        post.removeLikeCount();
+        return post.removeLikeCount();
     }
 
     public Post findById(Long postId) {
@@ -171,7 +173,7 @@ public class PostService {
     public TopLikedPostResponse getTopLikedPost(Post post, Long userId) {
         String url = getImageUrl(post.getThumbnailImageId());
 
-        Map<String, List<Long>> tags = getTagsByPostId(post.getId());
+        Map<String, List<String>> tags = getTagsByPostId(post.getId());
         LocationResponse location = locationService.findCityIdAndDistrictId(post.getLocation().getCity(), post.getLocation().getDistrict());
         boolean like = checkLikeByPostAndUser(post.getId(), userId);
 
@@ -189,7 +191,7 @@ public class PostService {
         Post post = findById(postId);
         ImagesResponse imageUrlList = getImagesResponse(post.getId());
         LocationResponse location = locationService.findCityIdAndDistrictId(post.getLocation().getCity(), post.getLocation().getDistrict());
-        Map<String, List<Long>> tags = getTagsByPostId(post.getId());
+        Map<String, List<String>> tags = getTagsByPostId(post.getId());
 
         boolean like = checkLikeByPostAndUser(post.getId(), userId);
         boolean report = postReportService.hasReports(post.getId());
@@ -223,7 +225,7 @@ public class PostService {
         return awsS3Service.getUrl(postImage.getName());
     }
 
-    public Map<String, List<Long>> getTagsByPostId(Long postId) {
+    public Map<String, List<String>> getTagsByPostId(Long postId) {
         List<PostTag> postTags = postTagRepository.findByPostId(postId);
 
         List<Long> tagIds = postTags.stream()
@@ -235,7 +237,7 @@ public class PostService {
         return tags.stream()
             .collect(Collectors.groupingBy(
                 Tag::getCategory,
-                Collectors.mapping(Tag::getTagId, Collectors.toList())
+                Collectors.mapping(Tag::getContent, Collectors.toList())
             ));
     }
 
@@ -280,7 +282,7 @@ public class PostService {
 
     public PostByLocationResponse getPostByLocation(Post post, Long userId) {
         String url = getImageUrl(post.getThumbnailImageId());
-        Map<String, List<Long>> tags = getTagsByPostId(post.getId());
+        Map<String, List<String>> tags = getTagsByPostId(post.getId());
 
         boolean like = checkLikeByPostAndUser(post.getId(), userId);
         boolean report = postReportService.hasReports(post.getId());
@@ -321,7 +323,7 @@ public class PostService {
 
         String url = getImageUrl(post.thumbnailImageId());
 
-        Map<String, List<Long>> tags = getTagsByPostId(post.postId());
+        Map<String, List<String>> tags = getTagsByPostId(post.postId());
 
         boolean like = checkLikeByPostAndUser(post.postId(), userId);
 
@@ -354,7 +356,7 @@ public class PostService {
 
         String url = getImageUrl(post.getThumbnailImageId());
         LocationResponse location = locationService.findCityIdAndDistrictId(post.getLocation().getCity(), post.getLocation().getDistrict());
-        Map<String, List<Long>> tags = getTagsByPostId(post.getId());
+        Map<String, List<String>> tags = getTagsByPostId(post.getId());
 
         boolean report = postReportService.hasReports(post.getId());
 
@@ -381,7 +383,7 @@ public class PostService {
         String url = getImageUrl(post.getThumbnailImageId());
         LocationResponse location = locationService.findCityIdAndDistrictId(post.getLocation().getCity(), post.getLocation().getDistrict());
 
-        Map<String, List<Long>> tags = getTagsByPostId(post.getId());
+        Map<String, List<String>> tags = getTagsByPostId(post.getId());
 
         boolean like = checkLikeByPostAndUser(post.getId(), userId);
 

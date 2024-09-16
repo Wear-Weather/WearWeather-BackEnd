@@ -1,6 +1,5 @@
 package com.WearWeather.wear.domain.post.dto.request;
 
-import com.WearWeather.wear.domain.post.entity.Location;
 import com.WearWeather.wear.domain.postImage.dto.request.PostImageRequest;
 import com.WearWeather.wear.domain.tag.dto.TaggableRequest;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -26,7 +25,11 @@ public class PostUpdateRequest implements PostImageRequest, TaggableRequest {
     @Size(max = 50)
     private final String content;
 
-    private final Location location;
+    @NotBlank
+    private final String city;
+
+    @NotBlank
+    private final String district;
 
     @NotNull
     @Size(max = 2)
@@ -39,20 +42,22 @@ public class PostUpdateRequest implements PostImageRequest, TaggableRequest {
     @NotNull
     private final Long seasonTagId;
 
-    private final List<Long> imageId = new ArrayList<>();
+    private final List<Long> imageIds = new ArrayList<>();
 
     @JsonCreator
     public PostUpdateRequest(
         @JsonProperty("title") String title,
         @JsonProperty("content") String content,
-        @JsonProperty("location") Location location,
+        @JsonProperty("city") String city,
+        @JsonProperty("district") String district,
         @JsonProperty("weatherTagIds") Set<Long> weatherTagIds,
         @JsonProperty("temperatureTagIds") Set<Long> temperatureTagIds,
         @JsonProperty("seasonTagId") Long seasonTagId
     ) {
         this.title = title;
         this.content = content;
-        this.location = location;
+        this.city = city;
+        this.district = district;
         this.weatherTagIds = weatherTagIds;
         this.temperatureTagIds = temperatureTagIds;
         this.seasonTagId = seasonTagId;
