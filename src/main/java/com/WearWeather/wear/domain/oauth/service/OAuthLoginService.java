@@ -3,7 +3,7 @@ package com.WearWeather.wear.domain.oauth.service;
 import com.WearWeather.wear.domain.auth.dto.response.LoginResponse;
 import com.WearWeather.wear.domain.oauth.domain.oauth.OAuthLoginParams;
 import com.WearWeather.wear.domain.oauth.domain.oauth.OAuthUserInfo;
-import com.WearWeather.wear.domain.oauth.infrastructure.kakao.repository.KakaoUserRepository;
+import com.WearWeather.wear.domain.oauth.infrastructure.kakao.KaKaoUserInfo;
 import com.WearWeather.wear.domain.oauth.infrastructure.kakao.service.KakaoUserService;
 import com.WearWeather.wear.domain.user.entity.Authority;
 import com.WearWeather.wear.domain.user.entity.User;
@@ -34,7 +34,7 @@ public class OAuthLoginService {
         OAuthUserInfo oAuthUserInfo = requestOAuthInfoService.request(params);
         User user = findOrRegisterUser(oAuthUserInfo);
 
-        kakaoUserService.saveUser(oAuthUserInfo.getId(),user.getUserId());
+        kakaoUserService.save((KaKaoUserInfo) oAuthUserInfo,user);
 
         Authentication authentication = authenticateUser(user);
         String accessToken = tokenProvider.createAccessToken(authentication);

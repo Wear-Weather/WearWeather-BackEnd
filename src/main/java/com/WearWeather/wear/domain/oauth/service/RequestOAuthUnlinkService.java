@@ -3,6 +3,7 @@ package com.WearWeather.wear.domain.oauth.service;
 import com.WearWeather.wear.domain.oauth.domain.oauth.OAuthClient;
 import com.WearWeather.wear.domain.oauth.domain.oauth.OAuthProvider;
 import com.WearWeather.wear.domain.oauth.domain.oauth.OAuthUserInfo;
+import com.WearWeather.wear.domain.oauth.infrastructure.kakao.service.KakaoUserService;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -20,8 +21,8 @@ public class RequestOAuthUnlinkService {
         );
     }
 
-    public void request(Long kakaoUserId) {
-        OAuthClient client = clients.get(OAuthProvider.KAKAO);
-        client.unlinkOauthUser(kakaoUserId);
+    public void request(OAuthUserInfo oAuthUserInfo) {
+        OAuthClient client = clients.get(oAuthUserInfo.getOAuthProvider());
+        client.unlinkOauthUser(oAuthUserInfo.getId());
     }
 }
