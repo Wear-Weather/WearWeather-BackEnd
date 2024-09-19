@@ -186,9 +186,9 @@ public class PostService {
     }
 
     public PostDetailResponse getPostDetail(Long userId, Long postId) {
-        String postUserNickname = userService.getNicknameById(userId);
-
         Post post = findById(postId);
+
+        String postUserNickname = userService.getNicknameById(post.getUserId());
         ImagesResponse imageUrlList = getImagesResponse(post.getId());
         LocationResponse location = locationService.findCityIdAndDistrictId(post.getLocation().getCity(), post.getLocation().getDistrict());
         Map<String, List<String>> tags = getTagsByPostId(post.getId());
