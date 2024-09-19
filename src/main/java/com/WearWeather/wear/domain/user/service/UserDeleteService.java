@@ -9,6 +9,7 @@ import com.WearWeather.wear.global.exception.ErrorCode;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -16,6 +17,7 @@ public class UserDeleteService {
 
     private final UserDeleteRepository userDeleteRepository;
 
+    @Transactional
     public void save(User user, DeleteReason deleteReason) {
 
         if (getUserDeleteByUserId(user.getUserId()).isPresent()) {
