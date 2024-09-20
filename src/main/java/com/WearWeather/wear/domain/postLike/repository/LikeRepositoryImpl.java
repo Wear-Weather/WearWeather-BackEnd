@@ -40,20 +40,21 @@ public class LikeRepositoryImpl implements LikeRepositoryCustom{
     }
 
     @Override
-    public Page<Long> findByUserId(Long userId, Pageable pageable) {
+    public Page<Long> findByUserIdNotInHiddenPosts(Long userId, Pageable pageable, List<Long> hiddenPosts) {
 
-        List<Long> posts = findLikedPostsByMeQuery(userId, pageable);
-        JPAQuery<Long> postsQueryCount = getLikedPostsQueryCount(userId);
+        List<Long> posts = findLikedPostsByMeQuery(userId, pageable, hiddenPosts);
+        JPAQuery<Long> postsQueryCount = getLikedPostsQueryCount(userId, hiddenPosts);
 
         return PageableExecutionUtils.getPage(posts, pageable, postsQueryCount::fetchOne);
     }
 
-    private List<Long> findLikedPostsByMeQuery(Long userId, Pageable pageable){
+    private List<Long> findLikedPostsByMeQuery(Long userId, Pageable pageable, List<Long> hiddenPosts){
         return jpaQueryFactory
                 .select(qLike.postId)
                 .from(qLike)
                 .where(
-                        qLike.userId.eq(userId)
+                        qLike.userId.eq(userId),
+                        qLike.postId.notIn(hiddenPosts)
                 )
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -61,13 +62,14 @@ public class LikeRepositoryImpl implements LikeRepositoryCustom{
                 .fetch();
     }
 
-    private JPAQuery<Long> getLikedPostsQueryCount(Long userId){
+    private JPAQuery<Long> getLikedPostsQueryCount(Long userId, List<Long> hiddenPosts){
 
         return jpaQueryFactory
                 .select(qLike.count())
                 .from(qLike)
                 .where(
-                        qLike.userId.eq(userId)
+                        qLike.userId.eq(userId),
+                        qLike.postId.notIn(hiddenPosts)
                 );
     }
 }

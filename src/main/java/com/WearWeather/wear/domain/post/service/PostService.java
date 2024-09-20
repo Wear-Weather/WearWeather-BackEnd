@@ -151,7 +151,7 @@ public class PostService {
             .collect(Collectors.toList());
     }
 
-    private List<Long> findHiddenPostsByUserId(Long userId){
+    public List<Long> findHiddenPostsByUserId(Long userId){
         return postHiddenService.findHiddenPostsByUserId(userId);
     }
 

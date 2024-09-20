@@ -8,5 +8,5 @@ import java.util.List;
 public interface LikeRepositoryCustom {
         List<Long> findMostLikedPostIdForDay(List<Long> hiddenPostIds);
 
-        Page<Long> findByUserId(Long userId, Pageable pageable);
+        Page<Long> findByUserIdNotInHiddenPosts(Long userId, Pageable pageable, List<Long> hiddenPosts);
 }
