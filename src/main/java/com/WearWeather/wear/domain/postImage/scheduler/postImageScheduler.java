@@ -15,7 +15,7 @@ public class postImageScheduler {
 
     private final PostImageService postImageService;
 
-    @Scheduled(cron = "${schedule.cron}")
+    @Scheduled(cron = "0 0 3  * * ?")
     public void runDeleteNecessaryImages() {
         postImageService.deleteUnNecessaryImage();
         log.info("Delete necessary images");
