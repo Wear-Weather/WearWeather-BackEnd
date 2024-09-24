@@ -83,9 +83,11 @@ public class LikeService {
 
     public LikedPostsByMeResponse getLikedPostsByMe(Long userId, int page, int size) {
 
+        List<Long> hiddenPostIds = postService.findHiddenPostsByUserId(userId);
+
         Sort sort = Sort.by(Sort.Order.desc("createdAt"));
         Pageable pageable = PageRequest.of(page, size, sort);
-        Page<Long> likedPostIds = likeRepository.findByUserId(userId, pageable);
+        Page<Long> likedPostIds = likeRepository.findByUserIdNotInHiddenPosts(userId, pageable, hiddenPostIds);
 
         List<LikedPostByMeResponse> likedPosts = postService.getLikedPostsByMe(userId, likedPostIds);
         int totalPage = likedPostIds.getTotalPages() -1 ;
