@@ -3,6 +3,8 @@ package com.WearWeather.wear.domain.oauth.service;
 import com.WearWeather.wear.domain.auth.dto.response.LoginResponse;
 import com.WearWeather.wear.domain.oauth.domain.oauth.OAuthLoginParams;
 import com.WearWeather.wear.domain.oauth.domain.oauth.OAuthUserInfo;
+import com.WearWeather.wear.domain.oauth.infrastructure.kakao.KaKaoUserInfo;
+import com.WearWeather.wear.domain.oauth.infrastructure.kakao.service.KakaoUserService;
 import com.WearWeather.wear.domain.user.entity.Authority;
 import com.WearWeather.wear.domain.user.entity.User;
 import com.WearWeather.wear.domain.user.repository.UserRepository;
@@ -26,10 +28,14 @@ public class OAuthLoginService {
     private final TokenProvider tokenProvider;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final PasswordEncoder passwordEncoder;
+    private final KakaoUserService kakaoUserService;
 
     public LoginResponse login(OAuthLoginParams params) {
         OAuthUserInfo oAuthUserInfo = requestOAuthInfoService.request(params);
         User user = findOrRegisterUser(oAuthUserInfo);
+
+        kakaoUserService.save((KaKaoUserInfo) oAuthUserInfo,user);
+
         Authentication authentication = authenticateUser(user);
         String accessToken = tokenProvider.createAccessToken(authentication);
 
@@ -37,7 +43,7 @@ public class OAuthLoginService {
     }
 
     private User findOrRegisterUser(OAuthUserInfo oAuthUserInfo) {
-        return userRepository.findByEmail(oAuthUserInfo.getEmail())
+        return userRepository.findByEmailAndIsDeleteFalse(oAuthUserInfo.getEmail())
             .map(user -> validateSocialUser(user, oAuthUserInfo))
             .orElseGet(() -> registerNewUser(oAuthUserInfo));
     }

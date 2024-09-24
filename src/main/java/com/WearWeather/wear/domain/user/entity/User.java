@@ -68,7 +68,6 @@ public class User extends BaseTimeEntity implements Serializable {
 
     public void isSocialLogin() {
         this.isSocial = true;
-
     }
 
     public void updatePassword(String password, boolean isSocial) {
@@ -97,6 +96,10 @@ public class User extends BaseTimeEntity implements Serializable {
 
         updatePassword(password, isSocial);
         updateNickname(nickname);
+    }
+
+    public void updateIsDelete(){
+        this.isDelete = true;
     }
 
     @Override

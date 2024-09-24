@@ -29,6 +29,8 @@ public class KaKaoApiClient implements OAuthClient {
     private String apiUrl;
     @Value("${oauth.kakao.client-id}")
     private String clientId;
+    @Value("${oauth.kakao.admin-key}")
+    private String adminKey;
 
     private final RestTemplate restTemplate;
 
@@ -49,12 +51,29 @@ public class KaKaoApiClient implements OAuthClient {
 
         log.info(" [Kakao Service] Access Token ------> {}", kaKaoToken.accessToken());
         log.info(" [Kakao Service] Refresh Token ------> {}", kaKaoToken.refreshToken());
-        //제공 조건: OpenID Connect가 활성화 된 앱의 토큰 발급 요청인 경우 또는 scope에 openid를 포함한 추가 항목 동의 받기 요청을 거친 토큰 발급 요청인 경우
-        //  log.info(" [Kakao Service] Id Token ------> {}", kaKaoToken.getIdToken());
         log.info(" [Kakao Service] Scope ------> {}", kaKaoToken.scope());
 
         return kaKaoToken.accessToken();
     }
+
+    // 연결 끊기
+    @Override
+    public void unlinkOauthUser(Long kakaoUserId) {
+        String url = apiUrl + "/v1/user/unlink";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        headers.set("Authorization", "KakaoAK " + adminKey);
+
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.add("target_id_type", "user_id");
+        body.add("target_id", kakaoUserId.toString());
+
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
+
+        restTemplate.postForObject(url, request, Void.class);
+    }
+
 
     @Override
     public OAuthUserInfo requestOAuthInfo(String accessToken) {
@@ -66,15 +85,14 @@ public class KaKaoApiClient implements OAuthClient {
         httpHeaders.set("Authorization", requestToken);
 
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-        body.add("property_keys", "[\"kakao_account.email\", \"properties.nickname\", \"kakao_account.profile\"]");
-
         HttpEntity<?> request = new HttpEntity<>(body, httpHeaders);
 
         KaKaoUserInfo userInfo = restTemplate.postForObject(url, request, KaKaoUserInfo.class);
 
+        log.info("[Kakao Service] User Info ------> {}", userInfo);
+
         return userInfo;
     }
-
 
     private HttpEntity<MultiValueMap<String, String>> generateHttpRequest(OAuthLoginParams params) {
         HttpHeaders httpHeaders = new HttpHeaders();

@@ -1,13 +1,20 @@
 package com.WearWeather.wear.domain.user.service;
 
+import com.WearWeather.wear.domain.oauth.infrastructure.kakao.dto.KakaoUserDto;
+import com.WearWeather.wear.domain.oauth.infrastructure.kakao.entity.KakaoUser;
+import com.WearWeather.wear.domain.oauth.infrastructure.kakao.service.KakaoUserService;
+import com.WearWeather.wear.domain.oauth.service.RequestOAuthUnlinkService;
+import com.WearWeather.wear.domain.user.dto.request.DeleteReasonRequest;
 import com.WearWeather.wear.domain.user.dto.request.ModifyUserPasswordRequest;
 import com.WearWeather.wear.domain.user.dto.request.RegisterUserRequest;
 import com.WearWeather.wear.domain.user.dto.response.UserIdForPasswordUpdateResponse;
 import com.WearWeather.wear.domain.user.dto.response.UserInfoResponse;
+import com.WearWeather.wear.domain.user.enums.DeleteReason;
 import com.WearWeather.wear.domain.user.entity.User;
 import com.WearWeather.wear.domain.user.repository.UserRepository;
 import com.WearWeather.wear.global.exception.CustomException;
 import com.WearWeather.wear.global.exception.ErrorCode;
+import java.util.Arrays;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,9 +26,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class UserService {
 
-    private final UserRepository userRepository;
-
     private final PasswordEncoder passwordEncoder;
+    private final RequestOAuthUnlinkService requestOAuthUnlinkService;
+    private final KakaoUserService kakaoUserService;
+    private final UserDeleteService userDeleteService;
+    private final UserRepository userRepository;
 
     @Transactional
     public void registerUser(RegisterUserRequest registerUserRequest) {
@@ -43,7 +52,7 @@ public class UserService {
 
     public void checkDuplicatedUserEmail(String email) {
 
-        boolean user = userRepository.existsByEmail(email);
+        boolean user = userRepository.existsByEmailAndIsDeleteFalse(email);
 
         if (user) {
             throw new CustomException(ErrorCode.EMAIL_ALREADY_EXIST);
@@ -53,7 +62,7 @@ public class UserService {
 
     public void checkDuplicatedUserNickName(String nickname) {
 
-        boolean user = userRepository.existsByNickname(nickname);
+        boolean user = userRepository.existsByNicknameAndIsDeleteFalse(nickname);
 
         if (user) {
             throw new CustomException(ErrorCode.NICKNAME_ALREADY_EXIST);
@@ -61,7 +70,7 @@ public class UserService {
     }
 
     public String findUserEmail(String name, String nickname) {
-        Optional<User> user = userRepository.findByNameAndNickname(name, nickname);
+        Optional<User> user = userRepository.findByNameAndNicknameAndIsDeleteFalse(name, nickname);
 
         if (user.isEmpty()) {
             throw new CustomException(ErrorCode.NOT_MATCH_EMAIL);
@@ -72,7 +81,7 @@ public class UserService {
 
     public UserIdForPasswordUpdateResponse findUserPassword(String email, String name, String nickname) {
 
-        User user = userRepository.findByEmailAndNameAndNickname(email, name, nickname)
+        User user = userRepository.findByEmailAndNameAndNicknameAndIsDeleteFalse(email, name, nickname)
             .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_USER));
         return UserIdForPasswordUpdateResponse.of(user.getUserId());
 
@@ -92,7 +101,7 @@ public class UserService {
 
     public UserInfoResponse getUserInfo(Long userId) {
 
-        User user = getUserById(userId);
+        User user = getUser(userId);
 
         return UserInfoResponse.of(user);
 
@@ -101,7 +110,7 @@ public class UserService {
     @Transactional
     public void modifyUserInfo(Long userId, String password, String nickname) {
 
-        User user = getUserById(userId);
+        User user = getUser(userId);
 
         try {
             user.updateUserInfo(passwordEncoder.encode(password), nickname, user.isSocial());
@@ -112,21 +121,45 @@ public class UserService {
 
     public User getUserByEmail(String userEmail) {
 
-        return userRepository.findByEmail(userEmail)
+        return userRepository.findByEmailAndIsDeleteFalse(userEmail)
             .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_EMAIL));
 
     }
 
-    public User getUserById(Long userId) {
+    public User getUser(Long userId) {
 
-        return userRepository.findByUserId(userId)
-            .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_EMAIL));
+        return userRepository.findByUserIdAndIsDeleteFalse(userId)
+            .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_USER));
 
     }
 
     public String getNicknameById(Long userId) {
-        return userRepository.findNicknameByUserId(userId)
+        return userRepository.findNicknameByUserIdAndIsDeleteFalse(userId)
             .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_USER))
             .getNickname();
+    }
+
+    @Transactional
+    public void deleteUser(Long userId, DeleteReasonRequest request) {
+        DeleteReason deleteReason = getDeleteReason(request.deleteReason());
+        User user = getUser(userId);
+        user.updateIsDelete();
+
+        userDeleteService.save(user, deleteReason);
+
+        if (user.isSocial()) {
+            KakaoUser kakaoUser = kakaoUserService.getKakaoUserByUserId(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.KAKAO_USER_NOT_FOUND));
+
+            requestOAuthUnlinkService.request(KakaoUserDto.of(kakaoUser));
+            kakaoUserService.deleteKakaoUser(kakaoUser);
+        }
+    }
+
+    private DeleteReason getDeleteReason(String reason) {
+        return Arrays.stream(DeleteReason.values())
+            .filter(deleteReason -> deleteReason.getDescription().equals(reason))
+            .findFirst()
+            .orElseThrow(() -> new CustomException(ErrorCode.INVALID_DELETE_REASON));
     }
 }

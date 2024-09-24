@@ -17,7 +17,7 @@ public enum ErrorCode {
     EMAIL_ALREADY_EXIST(BAD_REQUEST, "이메일이 중복되었습니다."),
     NOT_EXIST_EMAIL(BAD_REQUEST, "일치하는 이메일이 없습니다."),
     PASSWORD_INVALID_EXCEPTION(BAD_REQUEST, "유효하지 않은 비밀번호 값 입니다."),
-    NOT_EXIST_USER(BAD_REQUEST, "일치하는 계정이 없습니다."),
+    NOT_EXIST_USER(NOT_FOUND, "존재하지 않는 사용자 입니다."),
     NOT_MATCH_EMAIL(BAD_REQUEST, "일치하는 이메일이 없습니다."),
     NO_SUCH_ALGORITHM(BAD_REQUEST, "해당 알고리즘이 존재하지 않습니다."),
 
@@ -54,13 +54,19 @@ public enum ErrorCode {
     REPORT_POST_ALREADY_EXIST(BAD_REQUEST, "이미 신고한 게시글입니다."),
     INVALID_REQUEST_PARAMETER(BAD_REQUEST, "경도, 위도 값이 유효하지 않습니다."),
     GEO_COORD_SERVER_ERROR(BAD_REQUEST,"서버 오류입니다."),
+  
+    ALREADY_DELETE_USER(BAD_REQUEST, "해당 사용자는 이미 탈퇴한 사용자입니다."),
+    NOT_FOUND_DELETE_REASON(NOT_FOUND, "존재하지 않는 탈퇴 이유 ID 입니다."),
+
+    KAKAO_USER_NOT_FOUND(BAD_REQUEST, "카카오 사용자 정보가 존재하지 않습니다."),
+    INVALID_DELETE_REASON(BAD_REQUEST,"올바르지 않은 탈퇴 이유 값 입니다"),
 
     UNAUTHORIZED_USER(UNAUTHORIZED,"게시글 수정 권한이 없습니다."),
     IMAGE_ALREADY_USED(BAD_REQUEST, "이미 다른 게시글에 사용된 이미지ID가 있습니다."),
-      
+
     FAIL_SAVE_LOCATION_CITY(BAD_REQUEST, "광역시도 저장 오류입니다."),
     FAIL_SAVE_LOCATION_DISTRICT(BAD_REQUEST, "시군구 저장 오류입니다."),
-    FAIL_CREATE_LOCATION_ACCESS_TOKEN(BAD_REQUEST, "위치 액세스 토큰 생성 오류입니다..")
+    FAIL_CREATE_LOCATION_ACCESS_TOKEN(BAD_REQUEST, "위치 액세스 토큰 생성 오류입니다.."),
     ;
 
     private final HttpStatus httpStatus;
