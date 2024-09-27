@@ -10,6 +10,7 @@ import com.WearWeather.wear.global.common.ResponseMessage;
 import com.WearWeather.wear.global.common.dto.ResponseCommonDTO;
 import com.WearWeather.wear.global.jwt.LoggedInUser;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -72,9 +73,9 @@ public class UserController {
     }
 
     @DeleteMapping
-    public ResponseEntity<ResponseCommonDTO> deleteUser(@LoggedInUser Long userId, @Valid @RequestBody DeleteReasonRequest request) {
+    public ResponseEntity<ResponseCommonDTO> deleteUser(@LoggedInUser Long userId,@RequestParam @NotBlank String deleteReason) {
 
-        userService.deleteUser(userId, request);
+        userService.deleteUser(userId, deleteReason);
         return ResponseEntity.ok(new ResponseCommonDTO(true, ResponseMessage.SUCCESS_DELETE_USER));
     }
 
