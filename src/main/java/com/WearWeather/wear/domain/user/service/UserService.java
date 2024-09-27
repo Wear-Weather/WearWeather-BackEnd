@@ -140,8 +140,8 @@ public class UserService {
     }
 
     @Transactional
-    public void deleteUser(Long userId, DeleteReasonRequest request) {
-        DeleteReason deleteReason = getDeleteReason(request.deleteReason());
+    public void deleteUser(Long userId, String reason) {
+        DeleteReason deleteReason = getDeleteReason(reason);
         User user = getUser(userId);
         user.updateIsDelete();
 
