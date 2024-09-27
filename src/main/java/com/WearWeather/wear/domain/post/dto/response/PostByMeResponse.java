@@ -13,9 +13,10 @@ public record PostByMeResponse(
         String seasonTag,
         List<String> weatherTags,
         List<String> temperatureTags,
+        boolean likeByUser,
         boolean reportPost
 ) {
-    public static PostByMeResponse of(Long postId, String url, LocationResponse location, Map<String, List<String>> tags, boolean report){
+    public static PostByMeResponse of(Long postId, String url, LocationResponse location, Map<String, List<String>> tags, boolean like, boolean report){
         return PostByMeResponse.builder()
                 .postId(postId)
                 .thumbnail(url)
@@ -23,6 +24,7 @@ public record PostByMeResponse(
                 .seasonTag(tags.get("SEASON").get(0))
                 .weatherTags(tags.get("WEATHER"))
                 .temperatureTags(tags.get("TEMPERATURE"))
+                .likeByUser(like)
                 .reportPost(report)
                 .build();
     }
