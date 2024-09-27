@@ -283,7 +283,6 @@ public class UserServiceTest {
         // given
         Long userId = 1L;
         String deleteReason = "오류가 잦아요";
-        DeleteReasonRequest request = new DeleteReasonRequest(deleteReason);
 
         User user = mock(User.class);
         DeleteReason enumReason = DeleteReason.ERROR_FREQUENT;
@@ -291,7 +290,7 @@ public class UserServiceTest {
         when(userRepository.findByUserIdAndIsDeleteFalse(userId)).thenReturn(Optional.of(user));
 
         // when
-        userService.deleteUser(userId, request);
+        userService.deleteUser(userId, deleteReason);
 
         // then
         verify(user).updateIsDelete();
@@ -304,12 +303,11 @@ public class UserServiceTest {
         // given
         Long userId = 1L;
         String deleteReason = "오류가 잦아요";
-        DeleteReasonRequest request = new DeleteReasonRequest(deleteReason);
 
         when(userRepository.findByUserIdAndIsDeleteFalse(userId)).thenReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> userService.deleteUser(userId, request))
+        assertThatThrownBy(() -> userService.deleteUser(userId, deleteReason))
             .isInstanceOf(CustomException.class)
             .hasFieldOrPropertyWithValue("errorCode", ErrorCode.NOT_EXIST_USER);
     }
@@ -319,12 +317,10 @@ public class UserServiceTest {
     public void deleteUserWithInvalidReasonTest() {
         // given
         Long userId = 1L;
-
         String invalidReason = "유효하지 않은 탈퇴 이유";
-        DeleteReasonRequest request = new DeleteReasonRequest(invalidReason);
 
         // when & then
-        assertThatThrownBy(() -> userService.deleteUser(userId, request))
+        assertThatThrownBy(() -> userService.deleteUser(userId, invalidReason))
             .isInstanceOf(CustomException.class)
             .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_DELETE_REASON);
     }
@@ -335,7 +331,6 @@ public class UserServiceTest {
         // given
         Long userId = 1L;
         String deleteReason = "서비스 기능이 미흡해요";
-        DeleteReasonRequest request = new DeleteReasonRequest(deleteReason);
 
         User user = mock(User.class);
         DeleteReason enumReason = DeleteReason.POOR_FUNCTIONALITY;
@@ -345,7 +340,7 @@ public class UserServiceTest {
         when(kakaoUserService.getKakaoUserByUserId(userId)).thenReturn(Optional.of(kakaoUser));
 
         // when
-        userService.deleteUser(userId, request);
+        userService.deleteUser(userId, deleteReason);
 
         // then
         verify(user).updateIsDelete();
@@ -359,7 +354,6 @@ public class UserServiceTest {
         // given
         Long userId = 1L;
         String deleteReason = "서비스 기능이 미흡해요";
-        DeleteReasonRequest request = new DeleteReasonRequest(deleteReason);
 
         User user = mock(User.class);
         when(userRepository.findByUserIdAndIsDeleteFalse(userId)).thenReturn(Optional.of(user));
@@ -367,7 +361,7 @@ public class UserServiceTest {
         when(kakaoUserService.getKakaoUserByUserId(userId)).thenReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> userService.deleteUser(userId, request))
+        assertThatThrownBy(() -> userService.deleteUser(userId, deleteReason))
             .isInstanceOf(CustomException.class)
             .hasFieldOrPropertyWithValue("errorCode", ErrorCode.KAKAO_USER_NOT_FOUND);
     }
