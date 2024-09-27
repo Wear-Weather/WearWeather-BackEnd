@@ -345,19 +345,20 @@ public class PostService {
         Page<Post> posts = postRepository.findByUserId(userId, pageable);
 
         List<PostByMeResponse> postByMe = posts.stream()
-            .map(this::getPostByMe)
+            .map(post -> getPostByMe(userId, post))
             .toList();
 
         int totalPage = posts.getTotalPages() -1;
         return PostsByMeResponse.of(postByMe, totalPage);
     }
 
-    private PostByMeResponse getPostByMe(Post post) {
+    private PostByMeResponse getPostByMe(Long userId, Post post) {
 
         String url = getImageUrl(post.getThumbnailImageId());
         LocationResponse location = locationService.findCityIdAndDistrictId(post.getLocation().getCity(), post.getLocation().getDistrict());
         Map<String, List<String>> tags = getTagsByPostId(post.getId());
 
+        boolean like = checkLikeByPostAndUser(post.getId(), userId);
         boolean report = postReportService.hasReports(post.getId());
 
         return PostByMeResponse.of(
@@ -365,6 +366,7 @@ public class PostService {
             url,
             location,
             tags,
+            like,
             report
         );
     }
