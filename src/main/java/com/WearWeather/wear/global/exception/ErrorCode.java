@@ -67,6 +67,9 @@ public enum ErrorCode {
     FAIL_SAVE_LOCATION_CITY(BAD_REQUEST, "광역시도 저장 오류입니다."),
     FAIL_SAVE_LOCATION_DISTRICT(BAD_REQUEST, "시군구 저장 오류입니다."),
     FAIL_CREATE_LOCATION_ACCESS_TOKEN(BAD_REQUEST, "위치 액세스 토큰 생성 오류입니다.."),
+
+    NOT_FOUND_COOKIE(NOT_FOUND,"인증 쿠키가 존재하지 않습니다. 다시 로그인 해주세요."),
+    NOT_FOUND_REFRESH_TOKEN_IN_COOKIE(NOT_FOUND,"쿠키에 리프레시 토큰이 존재하지 않습니다."),
     ;
 
     private final HttpStatus httpStatus;

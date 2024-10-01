@@ -105,7 +105,8 @@ public class TokenProvider implements InitializingBean {
             .signWith(key, SignatureAlgorithm.HS512)
             .compact();
 
-        redisService.setValues(String.valueOf(userId), refreshToken);
+        Long expirationInSeconds = this.refreshTokenValidityInMilliseconds / 1000;
+        redisService.setValues(String.valueOf(userId), refreshToken, expirationInSeconds);
 
         return refreshToken;
     }

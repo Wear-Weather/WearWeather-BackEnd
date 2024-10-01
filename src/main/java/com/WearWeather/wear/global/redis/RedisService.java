@@ -14,8 +14,8 @@ public class RedisService {
 
     private final RedisDao redisDao;
 
-    public Boolean setValues(String key, String value) {
-        redisDao.setValues(key, value);
+    public Boolean setValues(String key, String value, Long expirationInSeconds) {
+        redisDao.setValues(key, value,Duration.ofMillis(expirationInSeconds));
         return true;
     }
 
