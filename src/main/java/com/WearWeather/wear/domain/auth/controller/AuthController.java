@@ -7,13 +7,16 @@ import com.WearWeather.wear.domain.auth.dto.response.LoginResponse;
 import com.WearWeather.wear.domain.auth.dto.response.TokenResponse;
 import com.WearWeather.wear.domain.auth.service.AuthService;
 import com.WearWeather.wear.global.common.dto.ResponseCommonDTO;
+import com.WearWeather.wear.global.exception.CustomException;
+import com.WearWeather.wear.global.exception.ErrorCode;
 import com.WearWeather.wear.global.jwt.LoggedInUser;
 import com.WearWeather.wear.global.jwt.TokenProvider;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import java.util.Arrays;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -55,7 +58,22 @@ public class AuthController {
     }
 
     @PostMapping("/reissue")
-    public ResponseEntity<TokenResponse> reissue(@CookieValue("refreshToken") String refreshToken) {
+    public ResponseEntity<TokenResponse> reissue(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            throw new CustomException(ErrorCode.NOT_FOUND_COOKIE);
+        }
+
+        String refreshToken = Arrays.stream(cookies)
+            .filter(cookie -> "refreshToken".equals(cookie.getName()))
+            .map(Cookie::getValue)
+            .findFirst()
+            .orElse(null);
+
+        if (refreshToken == null || refreshToken.isEmpty()) {
+            throw new CustomException(ErrorCode.NOT_FOUND_REFRESH_TOKEN_IN_COOKIE);
+        }
+
         TokenResponse newToken = authService.reissue(refreshToken);
         return ResponseEntity.ok(newToken);
     }
