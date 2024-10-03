@@ -42,7 +42,7 @@ public class AuthController {
         String refreshToken = tokenProvider.renewRefreshToken(loginResponse.getAccessToken());
         Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
         refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(true);
+        refreshTokenCookie.setSecure(false); // 백,프론트 서버 모두 https여야 해당 보안 설정 사용 가능
         refreshTokenCookie.setPath("/");
         refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60);
         response.addCookie(refreshTokenCookie);
