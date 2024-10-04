@@ -17,6 +17,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import java.util.Arrays;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -47,6 +48,11 @@ public class AuthController {
         refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60);
         response.addCookie(refreshTokenCookie);
 
+        // SameSite=Lax 설정을 위한 수동 Set-Cookie 헤더 추가
+        response.setHeader("Set-Cookie", String.format(
+            "refreshToken=%s; HttpOnly; SameSite=Lax; Path=/; Max-Age=%d",
+            refreshToken, 7 * 24 * 60 * 60));
+
         return ResponseEntity.ok(loginResponse);
     }
 
@@ -57,7 +63,7 @@ public class AuthController {
         return ResponseEntity.ok(new ResponseCommonDTO(true, "success logout"));
     }
 
-    @PostMapping("/reissue")
+    @GetMapping("/reissue")
     public ResponseEntity<TokenResponse> reissue(HttpServletRequest request) {
         Cookie[] cookies = request.getCookies();
         if (cookies == null) {
