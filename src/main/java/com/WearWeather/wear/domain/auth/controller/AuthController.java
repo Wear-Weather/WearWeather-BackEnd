@@ -49,9 +49,9 @@ public class AuthController {
         response.addCookie(refreshTokenCookie);
 
         // SameSite=Lax 설정을 위한 수동 Set-Cookie 헤더 추가
-        response.setHeader("Set-Cookie", String.format(
-            "refreshToken=%s; HttpOnly; SameSite=Lax; Path=/; Max-Age=%d",
-            refreshToken, 7 * 24 * 60 * 60));
+//        response.setHeader("Set-Cookie", String.format(
+//            "refreshToken=%s; HttpOnly; SameSite=Lax; Path=/; Max-Age=%d",
+//            refreshToken, 7 * 24 * 60 * 60));
 
         return ResponseEntity.ok(loginResponse);
     }
