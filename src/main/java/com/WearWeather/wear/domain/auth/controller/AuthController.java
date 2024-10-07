@@ -47,8 +47,8 @@ public class AuthController {
             .sameSite("None")
             .httpOnly(true)
             .secure(true)
-            .domain("lookattheweather.store")  // 도메인 이름만 설정
-            .maxAge(7 * 24 * 60 * 60)  // 쿠키의 만료 시간
+            .domain("lookattheweather.store")
+            .maxAge(7 * 24 * 60 * 60)
             .build();
 
         response.addHeader("Set-Cookie", refreshTokenCookie.toString());
