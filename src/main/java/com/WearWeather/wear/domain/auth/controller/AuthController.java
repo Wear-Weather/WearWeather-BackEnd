@@ -16,6 +16,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import java.util.Arrays;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -41,18 +42,20 @@ public class AuthController {
         LoginResponse loginResponse = authService.checkLogin(request);
 
         String refreshToken = tokenProvider.renewRefreshToken(loginResponse.getAccessToken());
-        Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(true); // 백,프론트 서버 모두 https여야 해당 보안 설정 사용 가능
-        refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60);
-        response.addCookie(refreshTokenCookie);
+        ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", refreshToken)
+            .path("/")
+            .sameSite("None")
+            .httpOnly(true)
+            .secure(true)
+            .domain("lookattheweather.store")  // 도메인 이름만 설정
+            .maxAge(7 * 24 * 60 * 60)  // 쿠키의 만료 시간
+            .build();
 
-        response.addCookie(refreshTokenCookie);
-        response.setHeader("Set-Cookie", String.format("refreshToken=%s; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=%d", refreshToken, 7 * 24 * 60 * 60));
+        response.addHeader("Set-Cookie", refreshTokenCookie.toString());
 
         return ResponseEntity.ok(loginResponse);
     }
+
 
     @PostMapping("/logout")
     public ResponseEntity<ResponseCommonDTO> logout(@LoggedInUser Long userId, @RequestHeader(AUTHORIZATION_HEADER) String tokenHeader) {
