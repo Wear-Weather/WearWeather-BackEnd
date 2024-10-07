@@ -61,7 +61,7 @@ public class AuthController {
         return ResponseEntity.ok(new ResponseCommonDTO(true, "success logout"));
     }
 
-    @GetMapping("/reissue")
+    @PostMapping("/reissue")
     public ResponseEntity<TokenResponse> reissue(HttpServletRequest request) {
         Cookie[] cookies = request.getCookies();
         if (cookies == null) {
