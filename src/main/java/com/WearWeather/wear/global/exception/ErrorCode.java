@@ -24,11 +24,11 @@ public enum ErrorCode {
     UNABLE_TO_SEND_EMAIL(BAD_REQUEST, "해당 이메일로 코드를 발송하지 못했습니다."),
     FAIL_EMAIL_VERIFICATION(BAD_REQUEST, "이메일 검증이 실패하였습니다."),
 
-    INVALID_REFRESH_TOKEN(UNAUTHORIZED, "RefreshToekn이 유효하지 않습니다."),
+    REFRESH_TOKEN_INVALID(UNAUTHORIZED, "올바르지 않은 리프레시토큰 입니다."),
     INVALID_ACCESS_TOKEN(UNAUTHORIZED, "AccessToken이 유효하지 않습니다."),
     KAKAO_LOGIN_FAIL(BAD_REQUEST, "카카오 로그인 실패"),
     REDIS_VALUE_NOT_FOUND(NOT_FOUND, "Redis에 저장된 값을 찾을 수 없습니다."),
-    REFRESH_TOKEN_INVALID(BAD_REQUEST, "Redis에 저장된 값이 유효하지 않습니다."),
+    REDIS_VALUE_INVALID(BAD_REQUEST, "올바르지 않은 레디스 값입니다."),
 
     FAIL_UPDATE_PASSWORD(BAD_REQUEST, "비밀번호 수정 실패하였습니다."),
     INVALID_NICKNAME(BAD_REQUEST, "유효하지 않은 닉네임 값 입니다."),
@@ -71,6 +71,7 @@ public enum ErrorCode {
 
     NOT_FOUND_COOKIE(NOT_FOUND,"인증 쿠키가 존재하지 않습니다. 다시 로그인 해주세요."),
     NOT_FOUND_REFRESH_TOKEN_IN_COOKIE(NOT_FOUND,"쿠키에 리프레시 토큰이 존재하지 않습니다."),
+    REFRESH_TOKEN_EXPIRED(NOT_FOUND,"리프레시토큰이 만료되었습니다. 다시 로그인해주세요."),
     ;
 
     private final HttpStatus httpStatus;

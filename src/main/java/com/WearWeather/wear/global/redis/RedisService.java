@@ -1,8 +1,8 @@
 package com.WearWeather.wear.global.redis;
 
 
+import static com.WearWeather.wear.global.exception.ErrorCode.REDIS_VALUE_INVALID;
 import static com.WearWeather.wear.global.exception.ErrorCode.REDIS_VALUE_NOT_FOUND;
-import static com.WearWeather.wear.global.exception.ErrorCode.REFRESH_TOKEN_INVALID;
 
 import com.WearWeather.wear.global.exception.CustomException;
 import java.time.Duration;
@@ -23,12 +23,8 @@ public class RedisService {
     public String getValues(Long key) {
         String values = redisDao.getValues(String.valueOf(key));
 
-        if(values == null) {
-            throw new CustomException(REDIS_VALUE_NOT_FOUND);
-        }
-
-        if(values.isBlank()){
-            throw new CustomException(REFRESH_TOKEN_INVALID);
+        if(values != null && values.isBlank()) {
+            throw new CustomException(REDIS_VALUE_INVALID);
         }
 
         return values;

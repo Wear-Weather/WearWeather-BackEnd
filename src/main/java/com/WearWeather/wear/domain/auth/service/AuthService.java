@@ -56,8 +56,12 @@ public class AuthService {
 
     private void validateRefreshToken(Long userId, String token) {
         String storedToken = redisService.getValues(userId);
+        if(storedToken == null) {
+            throw new CustomException(ErrorCode.REFRESH_TOKEN_EXPIRED);
+        }
+
         if (!storedToken.equals(token)) {
-            throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
+            throw new CustomException(ErrorCode.REFRESH_TOKEN_INVALID);
         }
     }
 
