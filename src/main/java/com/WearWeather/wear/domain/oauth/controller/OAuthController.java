@@ -35,7 +35,10 @@ public class OAuthController {
         refreshTokenCookie.setSecure(true);
         refreshTokenCookie.setPath("/");
         refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60);
+
         response.addCookie(refreshTokenCookie);
+        response.setHeader("Set-Cookie", String.format("refreshToken=%s; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=%d", refreshToken, 7 * 24 * 60 * 60));
+
 
         return new ResponseEntity<>(loginResponse, HttpStatus.OK);
     }
