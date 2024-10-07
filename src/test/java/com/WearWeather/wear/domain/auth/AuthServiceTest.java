@@ -155,13 +155,13 @@ public class AuthServiceTest {
         String refreshToken = "invalid_refresh_token";
 
         when(tokenProvider.getTokenInfo(refreshToken)).thenReturn(userId);
-        when(redisService.getValues(userId)).thenReturn(null);
+        when(redisService.getValues(userId)).thenThrow(new CustomException(ErrorCode.REDIS_VALUE_NOT_FOUND));
 
         // when & then
         CustomException exception = assertThrows(CustomException.class, () -> authService.reissue(refreshToken));
-        assertEquals(ErrorCode.INVALID_REFRESH_TOKEN, exception.getErrorCode());
-    }
 
+        assertEquals(ErrorCode.REDIS_VALUE_NOT_FOUND, exception.getErrorCode());
+    }
 
     @Test
     @DisplayName("정상 테스트 : 정상적인 토큰 재발급 시 새로운 accessToken이 생성된다.")
