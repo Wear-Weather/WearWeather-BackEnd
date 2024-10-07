@@ -56,7 +56,7 @@ public class AuthService {
 
     private void validateRefreshToken(Long userId, String token) {
         String storedToken = redisService.getValues(userId);
-        if (storedToken == null || !storedToken.equals(token)) {
+        if (!storedToken.equals(token)) {
             throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
     }
