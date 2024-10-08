@@ -11,10 +11,12 @@ import com.WearWeather.wear.global.exception.ErrorCode;
 import com.WearWeather.wear.global.jwt.TokenProvider;
 import com.WearWeather.wear.global.redis.RedisService;
 import java.util.Collections;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -49,7 +51,15 @@ public class AuthService {
 
         validateRefreshToken(userId, refreshToken);
 
-        Authentication authentication = new UsernamePasswordAuthenticationToken(userId, null, Collections.emptyList());
+        User user = userService.getUser(userId);
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+            userId,
+            null,
+            user.getAuthorities().stream()
+                .map(authority -> new SimpleGrantedAuthority(authority.getAuthorityName()))
+                .collect(Collectors.toList())
+        );
+
         String newAccessToken = tokenProvider.createAccessToken(authentication);
         return new TokenResponse(newAccessToken);
     }
