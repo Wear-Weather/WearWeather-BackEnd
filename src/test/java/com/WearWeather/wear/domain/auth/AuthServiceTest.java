@@ -11,6 +11,7 @@ import com.WearWeather.wear.domain.auth.dto.request.LoginRequest;
 import com.WearWeather.wear.domain.auth.dto.response.LoginResponse;
 import com.WearWeather.wear.domain.auth.dto.response.TokenResponse;
 import com.WearWeather.wear.domain.auth.service.AuthService;
+import com.WearWeather.wear.domain.user.entity.Authority;
 import com.WearWeather.wear.domain.user.entity.User;
 import com.WearWeather.wear.domain.user.repository.UserRepository;
 import com.WearWeather.wear.domain.user.service.UserService;
@@ -20,7 +21,9 @@ import com.WearWeather.wear.global.exception.ErrorCode;
 import com.WearWeather.wear.global.jwt.TokenProvider;
 import com.WearWeather.wear.global.redis.RedisService;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,6 +34,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 @ExtendWith(MockitoExtension.class)
 public class AuthServiceTest {
@@ -167,15 +172,20 @@ public class AuthServiceTest {
     @DisplayName("정상 테스트 : 정상적인 토큰 재발급 시 새로운 accessToken이 생성된다.")
     public void successfulReissueTokens() {
         // given
-        Long userId = 1L;
         String refreshToken = "valid_refresh_token";
         String newAccessToken = "new_access_token";
+        User user = UserFixture.createUserWithAuthority("ROLE_USER");
 
-        Authentication authentication = new UsernamePasswordAuthenticationToken(userId, null, Collections.emptyList());
+        List<GrantedAuthority> authorities = user.getAuthorities().stream()
+            .map(authority -> new SimpleGrantedAuthority(authority.getAuthorityName()))
+            .collect(Collectors.toList());
 
-        when(tokenProvider.getTokenInfo(refreshToken)).thenReturn(userId);
-        when(redisService.getValues(userId)).thenReturn(refreshToken);
+        Authentication authentication = new UsernamePasswordAuthenticationToken(user.getUserId(), null, authorities);
+
+        when(tokenProvider.getTokenInfo(refreshToken)).thenReturn(user.getUserId());
+        when(redisService.getValues(user.getUserId())).thenReturn(refreshToken);
         when(tokenProvider.createAccessToken(authentication)).thenReturn(newAccessToken);
+        when(userService.getUser(user.getUserId())).thenReturn(user);
 
         // when
         TokenResponse response = authService.reissue(refreshToken);
