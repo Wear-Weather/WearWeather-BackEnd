@@ -3,6 +3,7 @@ package com.WearWeather.wear.domain.post.controller;
 import com.WearWeather.wear.domain.post.dto.request.PostCreateRequest;
 import com.WearWeather.wear.domain.post.dto.request.PostUpdateRequest;
 import com.WearWeather.wear.domain.post.dto.request.PostsByFiltersRequest;
+import com.WearWeather.wear.domain.post.dto.response.PostCreateResponse;
 import com.WearWeather.wear.domain.post.dto.response.PostDetailResponse;
 import com.WearWeather.wear.domain.post.dto.response.PostsByFiltersResponse;
 import com.WearWeather.wear.domain.post.dto.response.PostsByLocationResponse;
@@ -36,9 +37,9 @@ public class PostController {
     private final PostService postService;
 
     @PostMapping
-    public ResponseEntity<ResponseCommonDTO> createPost(@LoggedInUser Long userId, @RequestBody @Valid PostCreateRequest request) {
+    public ResponseEntity<PostCreateResponse> createPost(@LoggedInUser Long userId, @RequestBody @Valid PostCreateRequest request) {
         Long postId = postService.createPost(userId, request);
-        return ResponseEntity.ok(new ResponseCommonDTO(true, ResponseMessage.SUCCESS_POST));
+        return ResponseEntity.ok(new PostCreateResponse(postId));
     }
 
     @GetMapping("/top-liked")
