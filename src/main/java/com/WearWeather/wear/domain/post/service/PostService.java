@@ -37,9 +37,12 @@ import com.WearWeather.wear.domain.tag.repository.TagRepository;
 import com.WearWeather.wear.domain.user.service.UserService;
 import com.WearWeather.wear.global.exception.CustomException;
 import com.WearWeather.wear.global.exception.ErrorCode;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -155,6 +158,15 @@ public class PostService {
         return postHiddenService.findHiddenPostsByUserId(userId);
     }
 
+    public List<Long> findReportedPostsByUserId(Long userId){
+        return postReportService.findReportedPostsByUserId(userId);
+    }
+
+    public List<Long> distinctMergedPostIdsList(List<Long> hiddenPostIds, List<Long> reportedPostIds){
+        Set<Long> set = new LinkedHashSet<>(hiddenPostIds);
+        set.addAll(reportedPostIds);
+        return new ArrayList<>(set);
+    }
     public List<Post> getPostsOrderByPostIds(List<Long> postIds) {
         List<Post> posts = postRepository.findAllByIdIn(postIds);
 
@@ -263,9 +275,13 @@ public class PostService {
         String sortType = getSortColumnName(sort);
 
         List<Long> hiddenPostIds = findHiddenPostsByUserId(userId);
+        List<Long> reportedPostIds = findReportedPostsByUserId(userId);
+
+        List<Long> notInPostIds = distinctMergedPostIdsList(hiddenPostIds, reportedPostIds);
+
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortType).descending());
 
-        return postRepository.getPostsNotInHiddenPosts(pageable, location, hiddenPostIds);
+        return postRepository.getPostsNotInHiddenPosts(pageable, location, notInPostIds);
     }
 
     public String getSortColumnName(SortType sortType) {

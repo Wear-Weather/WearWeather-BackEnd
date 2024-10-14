@@ -22,20 +22,20 @@ public class PostByLocationRepositoryCustomImpl implements PostByLocationReposit
     QPost qPost = QPost.post;
 
     @Override
-    public Page<Post> getPostsNotInHiddenPosts(Pageable pageable, Location location, List<Long> hiddenPosts) {
+    public Page<Post> getPostsNotInHiddenPosts(Pageable pageable, Location location, List<Long> notInPostIds) {
 
-        List<Post> posts = fetchPosts(pageable, location, hiddenPosts);
-        JPAQuery<Long> postsQueryCount = getPostsQueryCount(location, hiddenPosts);
+        List<Post> posts = fetchPosts(pageable, location, notInPostIds);
+        JPAQuery<Long> postsQueryCount = getPostsQueryCount(location, notInPostIds);
 
         return PageableExecutionUtils.getPage(posts, pageable, postsQueryCount::fetchOne);
     }
 
-    private List<Post> fetchPosts(Pageable pageable, Location location, List<Long> hiddenPosts){
+    private List<Post> fetchPosts(Pageable pageable, Location location, List<Long> notInPostIds){
         return jpaQueryFactory
                 .selectFrom(qPost)
                 .where(
                         qPost.location.eq(location),
-                        qPost.id.notIn(hiddenPosts)
+                        qPost.id.notIn(notInPostIds)
                 )
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -59,14 +59,14 @@ public class PostByLocationRepositoryCustomImpl implements PostByLocationReposit
         };
     }
 
-    private JPAQuery<Long> getPostsQueryCount(Location location, List<Long> hiddenPosts){
+    private JPAQuery<Long> getPostsQueryCount(Location location, List<Long> notInPostIds){
 
         return jpaQueryFactory
                 .select(qPost.count())
                 .from(qPost)
                 .where(
                         qPost.location.eq(location),
-                        qPost.id.notIn(hiddenPosts)
+                        qPost.id.notIn(notInPostIds)
                 );
     }
 }
