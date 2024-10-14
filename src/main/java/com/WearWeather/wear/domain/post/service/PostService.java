@@ -194,6 +194,7 @@ public class PostService {
         Map<String, List<String>> tags = getTagsByPostId(post.getId());
 
         boolean like = checkLikeByPostAndUser(post.getId(), userId);
+        boolean report = postReportService.hasReports(post.getId());
 
         return PostDetailResponse.of(
             postUserNickname,
@@ -201,7 +202,8 @@ public class PostService {
             imageUrlList,
             location,
             tags,
-            like);
+            like,
+            report);
     }
 
     public ImagesResponse getImagesResponse(Long postId) {
