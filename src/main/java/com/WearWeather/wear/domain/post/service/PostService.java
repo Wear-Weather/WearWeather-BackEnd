@@ -300,7 +300,7 @@ public class PostService {
     public PostsByFiltersResponse searchPostsWithFilters(Long userId, PostsByFiltersRequest request) {
 
         Page<PostWithLocationName> posts = getPostByFilters(request, userId);
-        
+
         log.info(posts.getContent().toString());
 
         List<SearchPostResponse> responses = posts.stream()
@@ -403,6 +403,11 @@ public class PostService {
         List<Long> hiddenPostIds = findHiddenPostsByUserId(userId);
         List<Long> reportedByMePostIds = findReportedPostsByUserId(userId);
         List<Long> reportedPostIds = findMoreFiveReportedPosts();
+
+        log.info("hiddenPostId is = {}" ,hiddenPostIds.toString());
+        log.info("reportedByMePostIds is = {}" ,reportedByMePostIds.toString());
+        log.info("reportedPostIds is = {}" ,reportedPostIds.toString());
+
         return distinctMergedPostIdsList(hiddenPostIds, reportedByMePostIds, reportedPostIds);
     }
 

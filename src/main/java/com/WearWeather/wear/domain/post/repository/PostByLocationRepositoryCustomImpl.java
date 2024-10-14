@@ -8,6 +8,7 @@ import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -15,6 +16,7 @@ import org.springframework.data.support.PageableExecutionUtils;
 
 import java.util.List;
 
+@Slf4j
 @RequiredArgsConstructor
 public class PostByLocationRepositoryCustomImpl implements PostByLocationRepositoryCustom {
     private final JPAQueryFactory jpaQueryFactory;
@@ -23,6 +25,9 @@ public class PostByLocationRepositoryCustomImpl implements PostByLocationReposit
 
     @Override
     public Page<Post> getPostsExcludingInvisiblePosts(Pageable pageable, Location location, List<Long> invisiblePostIdsList) {
+
+        log.info("city = {} , district = {}", location.getCity(), location.getDistrict());
+        log.info(invisiblePostIdsList.toString());
 
         List<Post> posts = fetchPosts(pageable, location, invisiblePostIdsList);
         JPAQuery<Long> postsQueryCount = getPostsQueryCount(location, invisiblePostIdsList);
