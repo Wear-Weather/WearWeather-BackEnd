@@ -395,9 +395,9 @@ public class PostService {
 
     public List<Long> getInvisiblePostIdsList(Long userId){
         List<Long> hiddenPostIds = findHiddenPostsByUserId(userId);
-        List<Long> reportedPostIds = findReportedPostsByUserId(userId);
-//        List<Long> reportedByMePostIds =
-        return distinctMergedPostIdsList(hiddenPostIds, reportedPostIds);
+        List<Long> reportedByMePostIds = findReportedPostsByUserId(userId);
+        List<Long> reportedPostIds = findMoreFiveReportedPosts();
+        return distinctMergedPostIdsList(hiddenPostIds, reportedByMePostIds, reportedPostIds);
     }
 
     public List<Long> findHiddenPostsByUserId(Long userId){
@@ -408,9 +408,14 @@ public class PostService {
         return postReportService.findReportedPostsByUserId(userId);
     }
 
-    public List<Long> distinctMergedPostIdsList(List<Long> hiddenPostIds, List<Long> reportedPostIds){
-        Set<Long> set = new LinkedHashSet<>(hiddenPostIds);
-        set.addAll(reportedPostIds);
-        return new ArrayList<>(set);
+    public List<Long> findMoreFiveReportedPosts(){
+        return postReportService.findPostsExceedingReportCount();
+    }
+
+    public List<Long> distinctMergedPostIdsList(List<Long> hiddenPostIds, List<Long> reportedByMePostIds, List<Long> reportedPostIds){
+        Set<Long> postIdsSet = new LinkedHashSet<>(hiddenPostIds);
+        postIdsSet.addAll(reportedByMePostIds);
+        postIdsSet.addAll(reportedPostIds);
+        return new ArrayList<>(postIdsSet);
     }
 }

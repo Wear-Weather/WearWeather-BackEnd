@@ -18,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class PostReportService {
 
     private final PostValidationService postValidationService;
-    private final UserService userService;
     private final PostReportRepository postReportRepository;
 
     @Transactional
@@ -51,6 +50,10 @@ public class PostReportService {
 
     public boolean hasReports(Long postId){
         return checkPostReported(postId) && hasExceededReportCount(postId);
+    }
+
+    public List<Long> findPostsExceedingReportCount(){
+        return postReportRepository.findPostsExceedingReportCount();
     }
 
     @Transactional
