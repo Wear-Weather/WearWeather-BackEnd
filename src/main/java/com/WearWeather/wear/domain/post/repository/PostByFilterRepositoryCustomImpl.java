@@ -18,6 +18,7 @@ import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -25,6 +26,7 @@ import org.springframework.data.support.PageableExecutionUtils;
 
 import java.util.List;
 
+@Slf4j
 @RequiredArgsConstructor
 public class PostByFilterRepositoryCustomImpl implements PostByFilterRepositoryCustom {
     private final JPAQueryFactory jpaQueryFactory;
@@ -43,6 +45,9 @@ public class PostByFilterRepositoryCustomImpl implements PostByFilterRepositoryC
         List<Long> postIdsByLocation = findPostIdByLocationFilter(request);
         List<Long> postIdsByTag = findPostIdByTagFilter(request);
 
+        log.info( " postIdByLocation = {}", postIdsByLocation.toString() );
+        log.info( " postIdsByTag = {}", postIdsByTag.toString() );
+
         List<PostWithLocationName> posts = getQueryByFilters(postIdsByLocation, postIdsByTag, pageable, invisiblePostIdsList);
         JPAQuery<Long> postsQueryCount = getPostsQueryCount(postIdsByLocation, postIdsByTag, invisiblePostIdsList);
 
@@ -55,6 +60,10 @@ public class PostByFilterRepositoryCustomImpl implements PostByFilterRepositoryC
         List<Long> seasonTagIds = request.getSeasonTagIds();
         List<Long> weatherTagIds = request.getWeatherTagIds();
         List<Long> temperatureTagIds = request.getTemperatureTagIds();
+
+        log.info( " seasonTagIds = {}", seasonTagIds.toString() );
+        log.info( " weatherTagIds = {}", weatherTagIds.toString() );
+        log.info( " temperatureTagIds = {}", temperatureTagIds.toString() );
 
         JPAQuery<Long> postIdByTagFilter = jpaQueryFactory.select(qPostTag.postId)
                 .from(qPostTag)
@@ -71,10 +80,15 @@ public class PostByFilterRepositoryCustomImpl implements PostByFilterRepositoryC
 
         if(tagConditions.hasValue()){
             postIdByTagFilter.where(tagConditions);
+
+            log.info("tagConditions has value");
         }
 
         if(havingConditions.hasValue()){
             postIdByTagFilter.having(havingConditions);
+
+            log.info("havingConditions has value");
+
         }
 
         return postIdByTagFilter.fetch();
@@ -120,6 +134,8 @@ public class PostByFilterRepositoryCustomImpl implements PostByFilterRepositoryC
     public BooleanExpression createTagCondition(QPostTag postTag, List<Long> tagIds){
 
         if(tagIds == null || tagIds.isEmpty()){
+
+            log.info("tagIds is null or Empty");
             return null;
         }
 
@@ -169,6 +185,9 @@ public class PostByFilterRepositoryCustomImpl implements PostByFilterRepositoryC
 
     public void createWhereAndHavingCondition(BooleanExpression tagCondition, List<Long> tagIds){
         if(tagCondition != null){
+
+            log.info("tagCondition is not null");
+
             tagConditions.or(tagCondition);
             havingConditions.and(havingCondition(qPostTag.tagId, tagIds));
         }
