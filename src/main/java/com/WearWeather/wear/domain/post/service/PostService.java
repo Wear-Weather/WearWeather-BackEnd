@@ -145,8 +145,9 @@ public class PostService {
     }
 
     public List<TopLikedPostResponse> getTopLikedPosts(Long userId) {
-        List<Long> hiddenPostIds = findHiddenPostsByUserId(userId);
-        List<Long> getPostIdsNotInHiddenPostIds = findMostLikedPostIdForDay(hiddenPostIds);
+        List<Long> invisiblePostIdsList = getInvisiblePostIdsList(userId);
+
+        List<Long> getPostIdsNotInHiddenPostIds = findMostLikedPostIdForDay(invisiblePostIdsList);
         List<Post> posts = getPostsOrderByPostIds(getPostIdsNotInHiddenPostIds);
 
         return posts.stream()
@@ -154,19 +155,6 @@ public class PostService {
             .collect(Collectors.toList());
     }
 
-    public List<Long> findHiddenPostsByUserId(Long userId){
-        return postHiddenService.findHiddenPostsByUserId(userId);
-    }
-
-    public List<Long> findReportedPostsByUserId(Long userId){
-        return postReportService.findReportedPostsByUserId(userId);
-    }
-
-    public List<Long> distinctMergedPostIdsList(List<Long> hiddenPostIds, List<Long> reportedPostIds){
-        Set<Long> set = new LinkedHashSet<>(hiddenPostIds);
-        set.addAll(reportedPostIds);
-        return new ArrayList<>(set);
-    }
     public List<Post> getPostsOrderByPostIds(List<Long> postIds) {
         List<Post> posts = postRepository.findAllByIdIn(postIds);
 
@@ -178,8 +166,8 @@ public class PostService {
                 .toList();
     }
 
-    public List<Long> findMostLikedPostIdForDay(List<Long> hiddenPostIds) {
-        return likeRepository.findMostLikedPostIdForDay(hiddenPostIds); //TODO : 서비스 레이어 분리 후 likeService로의 의존으로 수정
+    public List<Long> findMostLikedPostIdForDay(List<Long> invisiblePostIdsList) {
+        return likeRepository.findMostLikedPostIdForDay(invisiblePostIdsList); //TODO : 서비스 레이어 분리 후 likeService로의 의존으로 수정
     }
 
     public TopLikedPostResponse getTopLikedPost(Post post, Long userId) {
@@ -274,14 +262,11 @@ public class PostService {
     public Page<Post> getPostByLocation(int page, int size, Location location, SortType sort, Long userId) {
         String sortType = getSortColumnName(sort);
 
-        List<Long> hiddenPostIds = findHiddenPostsByUserId(userId);
-        List<Long> reportedPostIds = findReportedPostsByUserId(userId);
-
-        List<Long> notInPostIds = distinctMergedPostIdsList(hiddenPostIds, reportedPostIds);
+        List<Long> invisiblePostIds = getInvisiblePostIdsList(userId);
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortType).descending());
 
-        return postRepository.getPostsNotInHiddenPosts(pageable, location, notInPostIds);
+        return postRepository.getPostsExcludingInvisiblePosts(pageable, location, invisiblePostIds);
     }
 
     public String getSortColumnName(SortType sortType) {
@@ -329,10 +314,11 @@ public class PostService {
 
         String sortType = getSortColumnName(request.getSort());
 
-        List<Long> hiddenPostIds = findHiddenPostsByUserId(userId);
+        List<Long> invisiblePostIds = getInvisiblePostIdsList(userId);
+
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), Sort.by(sortType).descending());
 
-        return postRepository.findPostsByFilters(request, pageable, hiddenPostIds);
+        return postRepository.findPostsByFilters(request, pageable, invisiblePostIds);
     }
 
     public SearchPostResponse getPostByFilters(PostWithLocationName post, Long userId) {
@@ -415,5 +401,26 @@ public class PostService {
             like,
             report
         );
+    }
+
+    public List<Long> getInvisiblePostIdsList(Long userId){
+        List<Long> hiddenPostIds = findHiddenPostsByUserId(userId);
+        List<Long> reportedPostIds = findReportedPostsByUserId(userId);
+
+        return distinctMergedPostIdsList(hiddenPostIds, reportedPostIds);
+    }
+
+    public List<Long> findHiddenPostsByUserId(Long userId){
+        return postHiddenService.findHiddenPostsByUserId(userId);
+    }
+
+    public List<Long> findReportedPostsByUserId(Long userId){
+        return postReportService.findReportedPostsByUserId(userId);
+    }
+
+    public List<Long> distinctMergedPostIdsList(List<Long> hiddenPostIds, List<Long> reportedPostIds){
+        Set<Long> set = new LinkedHashSet<>(hiddenPostIds);
+        set.addAll(reportedPostIds);
+        return new ArrayList<>(set);
     }
 }

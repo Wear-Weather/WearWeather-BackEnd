@@ -22,20 +22,20 @@ public class PostByLocationRepositoryCustomImpl implements PostByLocationReposit
     QPost qPost = QPost.post;
 
     @Override
-    public Page<Post> getPostsNotInHiddenPosts(Pageable pageable, Location location, List<Long> notInPostIds) {
+    public Page<Post> getPostsExcludingInvisiblePosts(Pageable pageable, Location location, List<Long> invisiblePostIdsList) {
 
-        List<Post> posts = fetchPosts(pageable, location, notInPostIds);
-        JPAQuery<Long> postsQueryCount = getPostsQueryCount(location, notInPostIds);
+        List<Post> posts = fetchPosts(pageable, location, invisiblePostIdsList);
+        JPAQuery<Long> postsQueryCount = getPostsQueryCount(location, invisiblePostIdsList);
 
         return PageableExecutionUtils.getPage(posts, pageable, postsQueryCount::fetchOne);
     }
 
-    private List<Post> fetchPosts(Pageable pageable, Location location, List<Long> notInPostIds){
+    private List<Post> fetchPosts(Pageable pageable, Location location, List<Long> invisiblePostIdsList){
         return jpaQueryFactory
                 .selectFrom(qPost)
                 .where(
                         qPost.location.eq(location),
-                        qPost.id.notIn(notInPostIds)
+                        qPost.id.notIn(invisiblePostIdsList)
                 )
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -59,14 +59,14 @@ public class PostByLocationRepositoryCustomImpl implements PostByLocationReposit
         };
     }
 
-    private JPAQuery<Long> getPostsQueryCount(Location location, List<Long> notInPostIds){
+    private JPAQuery<Long> getPostsQueryCount(Location location, List<Long> invisiblePostIdsList){
 
         return jpaQueryFactory
                 .select(qPost.count())
                 .from(qPost)
                 .where(
                         qPost.location.eq(location),
-                        qPost.id.notIn(notInPostIds)
+                        qPost.id.notIn(invisiblePostIdsList)
                 );
     }
 }
