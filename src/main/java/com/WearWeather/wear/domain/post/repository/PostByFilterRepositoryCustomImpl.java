@@ -38,13 +38,13 @@ public class PostByFilterRepositoryCustomImpl implements PostByFilterRepositoryC
     BooleanBuilder havingConditions = new BooleanBuilder();
 
     @Override
-    public Page<PostWithLocationName> findPostsByFilters(PostsByFiltersRequest request, Pageable pageable, List<Long> hiddenPostIds) {
+    public Page<PostWithLocationName> findPostsByFilters(PostsByFiltersRequest request, Pageable pageable, List<Long> invisiblePostIdsList) {
 
         List<Long> postIdsByLocation = findPostIdByLocationFilter(request);
         List<Long> postIdsByTag = findPostIdByTagFilter(request);
 
-        List<PostWithLocationName> posts = getQueryByFilters(postIdsByLocation, postIdsByTag, pageable, hiddenPostIds);
-        JPAQuery<Long> postsQueryCount = getPostsQueryCount(postIdsByLocation, postIdsByTag, hiddenPostIds);
+        List<PostWithLocationName> posts = getQueryByFilters(postIdsByLocation, postIdsByTag, pageable, invisiblePostIdsList);
+        JPAQuery<Long> postsQueryCount = getPostsQueryCount(postIdsByLocation, postIdsByTag, invisiblePostIdsList);
 
         return PageableExecutionUtils.getPage(posts, pageable, postsQueryCount::fetchOne);
 
@@ -191,7 +191,7 @@ public class PostByFilterRepositoryCustomImpl implements PostByFilterRepositoryC
         };
     }
 
-    private List<PostWithLocationName> getQueryByFilters(List<Long> postIdsByLocation, List<Long> postIdsByTag, Pageable pageable, List<Long> hiddenPostIds){
+    private List<PostWithLocationName> getQueryByFilters(List<Long> postIdsByLocation, List<Long> postIdsByTag, Pageable pageable, List<Long> invisiblePostIdsList){
 
         OrderSpecifier<?> sortType = getSortColumn(pageable.getSort());
 
@@ -208,7 +208,7 @@ public class PostByFilterRepositoryCustomImpl implements PostByFilterRepositoryC
                 .where(
                         qPost.id.in(postIdsByLocation),
                         qPost.id.in(postIdsByTag),
-                        qPost.id.notIn(hiddenPostIds)
+                        qPost.id.notIn(invisiblePostIdsList)
                 )
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -216,7 +216,7 @@ public class PostByFilterRepositoryCustomImpl implements PostByFilterRepositoryC
                 .fetch();
     }
 
-    private JPAQuery<Long> getPostsQueryCount(List<Long> postIdsByLocation, List<Long> postIdsByTag, List<Long> hiddenPostIds){
+    private JPAQuery<Long> getPostsQueryCount(List<Long> postIdsByLocation, List<Long> postIdsByTag, List<Long> invisiblePostIdsList){
 
         return jpaQueryFactory
                 .select(qPost.count())
@@ -224,7 +224,7 @@ public class PostByFilterRepositoryCustomImpl implements PostByFilterRepositoryC
                 .where(
                         qPost.id.in(postIdsByLocation),
                         qPost.id.in(postIdsByTag),
-                        qPost.id.notIn(hiddenPostIds)
+                        qPost.id.notIn(invisiblePostIdsList)
                 );
     }
 }

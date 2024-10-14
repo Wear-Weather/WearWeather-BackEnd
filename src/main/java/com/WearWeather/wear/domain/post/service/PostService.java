@@ -37,9 +37,12 @@ import com.WearWeather.wear.domain.tag.repository.TagRepository;
 import com.WearWeather.wear.domain.user.service.UserService;
 import com.WearWeather.wear.global.exception.CustomException;
 import com.WearWeather.wear.global.exception.ErrorCode;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -142,17 +145,14 @@ public class PostService {
     }
 
     public List<TopLikedPostResponse> getTopLikedPosts(Long userId) {
-        List<Long> hiddenPostIds = findHiddenPostsByUserId(userId);
-        List<Long> getPostIdsNotInHiddenPostIds = findMostLikedPostIdForDay(hiddenPostIds);
+        List<Long> invisiblePostIdsList = getInvisiblePostIdsList(userId);
+
+        List<Long> getPostIdsNotInHiddenPostIds = findMostLikedPostIdForDay(invisiblePostIdsList);
         List<Post> posts = getPostsOrderByPostIds(getPostIdsNotInHiddenPostIds);
 
         return posts.stream()
             .map(post -> getTopLikedPost(post, userId))
             .collect(Collectors.toList());
-    }
-
-    public List<Long> findHiddenPostsByUserId(Long userId){
-        return postHiddenService.findHiddenPostsByUserId(userId);
     }
 
     public List<Post> getPostsOrderByPostIds(List<Long> postIds) {
@@ -166,8 +166,8 @@ public class PostService {
                 .toList();
     }
 
-    public List<Long> findMostLikedPostIdForDay(List<Long> hiddenPostIds) {
-        return likeRepository.findMostLikedPostIdForDay(hiddenPostIds); //TODO : 서비스 레이어 분리 후 likeService로의 의존으로 수정
+    public List<Long> findMostLikedPostIdForDay(List<Long> invisiblePostIdsList) {
+        return likeRepository.findMostLikedPostIdForDay(invisiblePostIdsList); //TODO : 서비스 레이어 분리 후 likeService로의 의존으로 수정
     }
 
     public TopLikedPostResponse getTopLikedPost(Post post, Long userId) {
@@ -262,10 +262,11 @@ public class PostService {
     public Page<Post> getPostByLocation(int page, int size, Location location, SortType sort, Long userId) {
         String sortType = getSortColumnName(sort);
 
-        List<Long> hiddenPostIds = findHiddenPostsByUserId(userId);
+        List<Long> invisiblePostIds = getInvisiblePostIdsList(userId);
+
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortType).descending());
 
-        return postRepository.getPostsNotInHiddenPosts(pageable, location, hiddenPostIds);
+        return postRepository.getPostsExcludingInvisiblePosts(pageable, location, invisiblePostIds);
     }
 
     public String getSortColumnName(SortType sortType) {
@@ -285,14 +286,12 @@ public class PostService {
         Map<String, List<String>> tags = getTagsByPostId(post.getId());
 
         boolean like = checkLikeByPostAndUser(post.getId(), userId);
-        boolean report = postReportService.hasReports(post.getId());
 
         return PostByLocationResponse.of(
             post.getId(),
             url,
             tags,
-            like,
-            report
+            like
         );
     }
 
@@ -313,10 +312,11 @@ public class PostService {
 
         String sortType = getSortColumnName(request.getSort());
 
-        List<Long> hiddenPostIds = findHiddenPostsByUserId(userId);
+        List<Long> invisiblePostIds = getInvisiblePostIdsList(userId);
+
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), Sort.by(sortType).descending());
 
-        return postRepository.findPostsByFilters(request, pageable, hiddenPostIds);
+        return postRepository.findPostsByFilters(request, pageable, invisiblePostIds);
     }
 
     public SearchPostResponse getPostByFilters(PostWithLocationName post, Long userId) {
@@ -327,14 +327,11 @@ public class PostService {
 
         boolean like = checkLikeByPostAndUser(post.postId(), userId);
 
-        boolean report = postReportService.hasReports(post.postId());
-
         return SearchPostResponse.of(
             post,
             url,
             tags,
-            like,
-            report
+            like
         );
     }
 
@@ -389,15 +386,38 @@ public class PostService {
 
         boolean like = checkLikeByPostAndUser(post.getId(), userId);
 
-        boolean report = postReportService.hasReports(post.getId());
-
         return LikedPostByMeResponse.of(
             post.getId(),
             url,
             location,
             tags,
-            like,
-            report
+            like
         );
+    }
+
+    public List<Long> getInvisiblePostIdsList(Long userId){
+        List<Long> hiddenPostIds = findHiddenPostsByUserId(userId);
+        List<Long> reportedByMePostIds = findReportedPostsByUserId(userId);
+        List<Long> reportedPostIds = findMoreFiveReportedPosts();
+        return distinctMergedPostIdsList(hiddenPostIds, reportedByMePostIds, reportedPostIds);
+    }
+
+    public List<Long> findHiddenPostsByUserId(Long userId){
+        return postHiddenService.findHiddenPostsByUserId(userId);
+    }
+
+    public List<Long> findReportedPostsByUserId(Long userId){
+        return postReportService.findReportedPostsByUserId(userId);
+    }
+
+    public List<Long> findMoreFiveReportedPosts(){
+        return postReportService.findPostsExceedingReportCount();
+    }
+
+    public List<Long> distinctMergedPostIdsList(List<Long> hiddenPostIds, List<Long> reportedByMePostIds, List<Long> reportedPostIds){
+        Set<Long> postIdsSet = new LinkedHashSet<>(hiddenPostIds);
+        postIdsSet.addAll(reportedByMePostIds);
+        postIdsSet.addAll(reportedPostIds);
+        return new ArrayList<>(postIdsSet);
     }
 }

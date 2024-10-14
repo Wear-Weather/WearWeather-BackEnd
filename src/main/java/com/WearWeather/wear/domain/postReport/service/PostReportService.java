@@ -1,11 +1,13 @@
 package com.WearWeather.wear.domain.postReport.service;
 
 import com.WearWeather.wear.domain.post.service.PostValidationService;
+import com.WearWeather.wear.domain.postReport.repository.PostIdMapping;
 import com.WearWeather.wear.domain.postReport.entity.PostReport;
 import com.WearWeather.wear.domain.postReport.repository.PostReportRepository;
 import com.WearWeather.wear.domain.user.service.UserService;
 import com.WearWeather.wear.global.exception.CustomException;
 import com.WearWeather.wear.global.exception.ErrorCode;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class PostReportService {
 
     private final PostValidationService postValidationService;
-    private final UserService userService;
     private final PostReportRepository postReportRepository;
 
     @Transactional
@@ -51,8 +52,20 @@ public class PostReportService {
         return checkPostReported(postId) && hasExceededReportCount(postId);
     }
 
+    public List<Long> findPostsExceedingReportCount(){
+        return postReportRepository.findPostsExceedingReportCount();
+    }
+
     @Transactional
     public void deleteReportByPostId(Long postId) {
         postReportRepository.deleteByPostId(postId);
+    }
+
+    public List<Long> findReportedPostsByUserId(Long userId){
+        List<PostIdMapping> postIdMappings = postReportRepository.findAllByUserId(userId);
+
+        return postIdMappings.stream()
+            .map(PostIdMapping::getPostId)
+            .toList();
     }
 }
