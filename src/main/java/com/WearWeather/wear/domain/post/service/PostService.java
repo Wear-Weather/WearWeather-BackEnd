@@ -45,6 +45,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -52,6 +53,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Transactional(readOnly = true)
 @Service
 @RequiredArgsConstructor
@@ -298,6 +300,8 @@ public class PostService {
     public PostsByFiltersResponse searchPostsWithFilters(Long userId, PostsByFiltersRequest request) {
 
         Page<PostWithLocationName> posts = getPostByFilters(request, userId);
+        
+        log.info(posts.getContent().toString());
 
         List<SearchPostResponse> responses = posts.stream()
                 .map(post -> getPostByFilters(post, userId))
