@@ -194,7 +194,6 @@ public class PostService {
         Map<String, List<String>> tags = getTagsByPostId(post.getId());
 
         boolean like = checkLikeByPostAndUser(post.getId(), userId);
-        boolean report = postReportService.hasReports(post.getId());
 
         return PostDetailResponse.of(
             postUserNickname,
@@ -202,8 +201,7 @@ public class PostService {
             imageUrlList,
             location,
             tags,
-            like,
-            report);
+            like);
     }
 
     public ImagesResponse getImagesResponse(Long postId) {
@@ -286,14 +284,12 @@ public class PostService {
         Map<String, List<String>> tags = getTagsByPostId(post.getId());
 
         boolean like = checkLikeByPostAndUser(post.getId(), userId);
-        boolean report = postReportService.hasReports(post.getId());
 
         return PostByLocationResponse.of(
             post.getId(),
             url,
             tags,
-            like,
-            report
+            like
         );
     }
 
@@ -329,14 +325,11 @@ public class PostService {
 
         boolean like = checkLikeByPostAndUser(post.postId(), userId);
 
-        boolean report = postReportService.hasReports(post.postId());
-
         return SearchPostResponse.of(
             post,
             url,
             tags,
-            like,
-            report
+            like
         );
     }
 
@@ -391,22 +384,19 @@ public class PostService {
 
         boolean like = checkLikeByPostAndUser(post.getId(), userId);
 
-        boolean report = postReportService.hasReports(post.getId());
-
         return LikedPostByMeResponse.of(
             post.getId(),
             url,
             location,
             tags,
-            like,
-            report
+            like
         );
     }
 
     public List<Long> getInvisiblePostIdsList(Long userId){
         List<Long> hiddenPostIds = findHiddenPostsByUserId(userId);
         List<Long> reportedPostIds = findReportedPostsByUserId(userId);
-
+//        List<Long> reportedByMePostIds =
         return distinctMergedPostIdsList(hiddenPostIds, reportedPostIds);
     }
 
