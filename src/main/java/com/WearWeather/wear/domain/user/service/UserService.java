@@ -11,6 +11,7 @@ import com.WearWeather.wear.domain.user.dto.response.UserIdForPasswordUpdateResp
 import com.WearWeather.wear.domain.user.dto.response.UserInfoResponse;
 import com.WearWeather.wear.domain.user.enums.DeleteReason;
 import com.WearWeather.wear.domain.user.entity.User;
+import com.WearWeather.wear.domain.user.repository.UserNicknameMapping;
 import com.WearWeather.wear.domain.user.repository.UserRepository;
 import com.WearWeather.wear.global.exception.CustomException;
 import com.WearWeather.wear.global.exception.ErrorCode;
@@ -135,8 +136,8 @@ public class UserService {
 
     public String getNicknameById(Long userId) {
         return userRepository.findNicknameByUserIdAndIsDeleteFalse(userId)
-            .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_USER))
-            .getNickname();
+            .map(UserNicknameMapping::getNickname)
+            .orElse("탈퇴한 사용자");
     }
 
     @Transactional
