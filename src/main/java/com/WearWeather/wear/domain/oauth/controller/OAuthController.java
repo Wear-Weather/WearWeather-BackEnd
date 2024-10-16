@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,15 +31,16 @@ public class OAuthController {
         LoginResponse loginResponse = oAuthLoginService.login(param);
 
         String refreshToken = tokenProvider.renewRefreshToken(loginResponse.getAccessToken());
-        Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(true);
-        refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60);
+        ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", refreshToken)
+            .path("/")
+            .sameSite("None")
+            .httpOnly(true)
+            .secure(true)
+            .domain("lookattheweather.store")
+            .maxAge(7 * 24 * 60 * 60)
+            .build();
 
-        response.addCookie(refreshTokenCookie);
-        response.setHeader("Set-Cookie", String.format("refreshToken=%s; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=%d", refreshToken, 7 * 24 * 60 * 60));
-
+        response.addHeader("Set-Cookie", refreshTokenCookie.toString());
 
         return new ResponseEntity<>(loginResponse, HttpStatus.OK);
     }
