@@ -39,7 +39,6 @@ public class PostByFilterRepositoryCustomImpl implements PostByFilterRepositoryC
   @Override
   public Page<PostWithLocationName> findPostsByFilters(PostsByFiltersRequest request, Pageable pageable, List<Long> invisiblePostIdsList) {
 
-
     BooleanBuilder conditions = createConditions(request, invisiblePostIdsList);
 
     List<PostWithLocationName> posts = getQueryByFilters(pageable, conditions);
@@ -66,33 +65,19 @@ public class PostByFilterRepositoryCustomImpl implements PostByFilterRepositoryC
 
     return conditions;
   }
+
   public List<Long> findPostIdByTagFilter(PostsByFiltersRequest request){
 
     BooleanBuilder tagConditions = new BooleanBuilder();
     BooleanBuilder havingConditions = new BooleanBuilder();
 
-    List<Long> seasonTagIds = request.getSeasonTagIds();
-    List<Long> weatherTagIds = request.getWeatherTagIds();
-    List<Long> temperatureTagIds = request.getTemperatureTagIds();
+    createTagConditions(request.getSeasonTagIds(), tagConditions, havingConditions);
+    createTagConditions(request.getWeatherTagIds(), tagConditions, havingConditions);
+    createTagConditions(request.getTemperatureTagIds(), tagConditions, havingConditions);
 
     JPAQuery<Long> postIdByTagFilter = jpaQueryFactory.select(qPostTag.postId)
         .from(qPostTag)
         .groupBy(qPostTag.postId);
-
-    if(!seasonTagIds.isEmpty()){
-      tagConditions.or(qPostTag.tagId.in(seasonTagIds));
-      havingConditions.and(havingCondition(qPostTag.tagId, seasonTagIds));
-    }
-
-    if(!weatherTagIds.isEmpty()){
-      tagConditions.or(qPostTag.tagId.in(weatherTagIds));
-      havingConditions.and(havingCondition(qPostTag.tagId, weatherTagIds));
-    }
-
-    if(!temperatureTagIds.isEmpty()){
-      tagConditions.or(qPostTag.tagId.in(temperatureTagIds));
-      havingConditions.and(havingCondition(qPostTag.tagId, temperatureTagIds));
-    }
 
     if(tagConditions.hasValue()){
       postIdByTagFilter.where(tagConditions);
@@ -103,6 +88,13 @@ public class PostByFilterRepositoryCustomImpl implements PostByFilterRepositoryC
     }
 
     return postIdByTagFilter.fetch();
+  }
+
+  private void createTagConditions(List<Long> tagIds, BooleanBuilder tagConditions, BooleanBuilder havingConditions) {
+    if (!tagIds.isEmpty()) {
+      tagConditions.or(qPostTag.tagId.in(tagIds));
+      havingConditions.and(havingCondition(qPostTag.tagId, tagIds));
+    }
   }
 
   public BooleanBuilder findPostIdByLocationFilter(PostsByFiltersRequest request) {
