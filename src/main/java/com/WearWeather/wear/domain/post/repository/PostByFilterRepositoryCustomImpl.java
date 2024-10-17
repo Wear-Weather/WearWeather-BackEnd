@@ -29,221 +29,183 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 public class PostByFilterRepositoryCustomImpl implements PostByFilterRepositoryCustom {
-    private final JPAQueryFactory jpaQueryFactory;
+  private final JPAQueryFactory jpaQueryFactory;
 
-    QPost qPost = QPost.post;
-    QPostTag qPostTag = QPostTag.postTag;
-    QCity qCity = QCity.city1;
-    QDistrict qDistrict = QDistrict.district1;
+  QPost qPost = QPost.post;
+  QPostTag qPostTag = QPostTag.postTag;
+  QCity qCity = QCity.city1;
+  QDistrict qDistrict = QDistrict.district1;
+
+  @Override
+  public Page<PostWithLocationName> findPostsByFilters(PostsByFiltersRequest request, Pageable pageable, List<Long> invisiblePostIdsList) {
+
+    BooleanBuilder conditions = createConditions(request, invisiblePostIdsList);
+
+    List<PostWithLocationName> posts = getQueryByFilters(pageable, conditions);
+    JPAQuery<Long> postsQueryCount = getPostsQueryCount(conditions);
+
+    return PageableExecutionUtils.getPage(posts, pageable, postsQueryCount::fetchOne);
+
+  }
+
+  private BooleanBuilder createConditions(PostsByFiltersRequest request, List<Long> invisiblePostIdsList){
+
+    BooleanBuilder conditions = new BooleanBuilder();
+
+    conditions.and(findPostIdByLocationFilter(request));
+
+    List<Long> postIdsByTag = findPostIdByTagFilter(request);
+    if (!postIdsByTag.isEmpty()) {
+      conditions.and(qPost.id.in(postIdsByTag));
+    }
+
+    if (!invisiblePostIdsList.isEmpty()) {
+      conditions.and(qPost.id.notIn(invisiblePostIdsList));
+    }
+
+    return conditions;
+  }
+
+  public List<Long> findPostIdByTagFilter(PostsByFiltersRequest request){
 
     BooleanBuilder tagConditions = new BooleanBuilder();
     BooleanBuilder havingConditions = new BooleanBuilder();
 
-    @Override
-    public Page<PostWithLocationName> findPostsByFilters(PostsByFiltersRequest request, Pageable pageable, List<Long> invisiblePostIdsList) {
+    createTagConditions(request.getSeasonTagIds(), tagConditions, havingConditions);
+    createTagConditions(request.getWeatherTagIds(), tagConditions, havingConditions);
+    createTagConditions(request.getTemperatureTagIds(), tagConditions, havingConditions);
 
-        List<Long> postIdsByLocation = findPostIdByLocationFilter(request);
-        List<Long> postIdsByTag = findPostIdByTagFilter(request);
+    JPAQuery<Long> postIdByTagFilter = jpaQueryFactory.select(qPostTag.postId)
+        .from(qPostTag)
+        .groupBy(qPostTag.postId);
 
-        log.info( " postIdByLocation = {}", postIdsByLocation.toString() );
-        log.info( " postIdsByTag = {}", postIdsByTag.toString() );
-
-        List<PostWithLocationName> posts = getQueryByFilters(postIdsByLocation, postIdsByTag, pageable, invisiblePostIdsList);
-        JPAQuery<Long> postsQueryCount = getPostsQueryCount(postIdsByLocation, postIdsByTag, invisiblePostIdsList);
-
-        return PageableExecutionUtils.getPage(posts, pageable, postsQueryCount::fetchOne);
-
+    if(tagConditions.hasValue()){
+      postIdByTagFilter.where(tagConditions);
     }
 
-    public List<Long> findPostIdByTagFilter(PostsByFiltersRequest request){
-
-        List<Long> seasonTagIds = request.getSeasonTagIds();
-        List<Long> weatherTagIds = request.getWeatherTagIds();
-        List<Long> temperatureTagIds = request.getTemperatureTagIds();
-
-        log.info( " seasonTagIds = {}", seasonTagIds.toString() );
-        log.info( " weatherTagIds = {}", weatherTagIds.toString() );
-        log.info( " temperatureTagIds = {}", temperatureTagIds.toString() );
-
-        JPAQuery<Long> postIdByTagFilter = jpaQueryFactory.select(qPostTag.postId)
-                .from(qPostTag)
-                .groupBy(qPostTag.postId);
-
-        BooleanExpression seasonTagCondition = createTagCondition(qPostTag, seasonTagIds);
-        createWhereAndHavingCondition(seasonTagCondition, seasonTagIds);
-
-        BooleanExpression weatherTagCondition = createTagCondition(qPostTag, weatherTagIds);
-        createWhereAndHavingCondition(weatherTagCondition, weatherTagIds);
-
-        BooleanExpression temperatureTagCondition = createTagCondition(qPostTag, temperatureTagIds);
-        createWhereAndHavingCondition(temperatureTagCondition, temperatureTagIds);
-
-        if(tagConditions.hasValue()){
-            postIdByTagFilter.where(tagConditions);
-
-            log.info("tagConditions has value");
-        }
-
-        if(havingConditions.hasValue()){
-            postIdByTagFilter.having(havingConditions);
-
-            log.info("havingConditions has value");
-
-        }
-
-        return postIdByTagFilter.fetch();
+    if(havingConditions.hasValue()){
+      postIdByTagFilter.having(havingConditions);
     }
 
-    public List<Long> findPostIdByLocationFilter(PostsByFiltersRequest request) {
+    return postIdByTagFilter.fetch();
+  }
 
-        List<Location> locationList = request.getLocationList().stream()
-                .map(LocationRequest::toEntity)
-                .toList();
+  private void createTagConditions(List<Long> tagIds, BooleanBuilder tagConditions, BooleanBuilder havingConditions) {
+    if (!tagIds.isEmpty()) {
+      tagConditions.or(qPostTag.tagId.in(tagIds));
+      havingConditions.and(havingCondition(qPostTag.tagId, tagIds));
+    }
+  }
 
-        JPAQuery<Long> postIdByLocationFilter = jpaQueryFactory
-                .select(qPost.id)
-                .from(qPost);
+  public BooleanBuilder findPostIdByLocationFilter(PostsByFiltersRequest request) {
 
-        if (!locationList.isEmpty()) {
+    BooleanBuilder locationConditions = new BooleanBuilder();
+    List<Location> locationList = request.getLocationList().stream()
+        .map(LocationRequest::toEntity)
+        .toList();
 
-            boolean hasCityEntireValue = checkSearchAllCity(locationList);
+    if (!locationList.isEmpty()) {
+      boolean hasCityEntireValue = checkSearchAllCity(locationList);
 
-            if (!hasCityEntireValue) {
-                BooleanExpression locationTagCondition = checkSearchAllDistrictInCity(locationList);
-
-                postIdByLocationFilter.where(locationTagCondition);
-            }
-        }
-        return postIdByLocationFilter.fetch();
+      if (!hasCityEntireValue) {
+        locationConditions.and(checkSearchAllDistrictInCity(locationList));
+      }
     }
 
-    private boolean checkSearchAllCity(List<Location> locationList){
-        List<Location> allCity = List.of(new Location(findAllCityId(),0L));
-        return locationList.equals(allCity);
+    return locationConditions;
+  }
+
+  //전국 검색
+  private boolean checkSearchAllCity(List<Location> locationList){
+    List<Location> allCity = List.of(new Location(findAllCityId(),0L));
+    return locationList.equals(allCity);
+  }
+
+  private Long findAllCityId(){
+
+    return jpaQueryFactory
+        .select(qCity.id)
+        .from(qCity)
+        .where(qCity.city.eq("전국"))
+        .fetchOne();
+  }
+
+  private BooleanExpression checkSearchAllDistrictInCity(List<Location> locationList){
+    Long districtEntireValue = 0L;
+
+    //city 내 전체 검색
+    boolean hasDistrictEntireValue = locationList.stream()
+        .anyMatch(location -> location.getDistrict().equals(districtEntireValue));
+
+    if (hasDistrictEntireValue) {
+      List<Long> city = extractCityListForEntireDistrict(locationList, districtEntireValue);
+      return qPost.location.city.in(city);
     }
 
-    private Long findAllCityId(){
+    return qPost.location.in(locationList);
+  }
 
-        return jpaQueryFactory
-                .select(qCity.id)
-                .from(qCity)
-                .where(qCity.city.eq("전국"))
-                .fetchOne();
+  private List<Long> extractCityListForEntireDistrict(List<Location> locationList, Long districtEntireValue){
+
+    return locationList.stream()
+        .filter(location -> location.getDistrict().equals(districtEntireValue))
+        .map(Location::getCity)
+        .distinct()
+        .toList();
+  }
+
+  public BooleanExpression havingCondition(NumberPath<Long> tagId, List<Long> tagIds){
+    return Expressions.numberTemplate(Long.class,
+        "SUM(CASE WHEN {0} IN {1} THEN 1 ELSE 0 END)", tagId, tagIds).gt(0);
+  }
+
+  private OrderSpecifier<?> getSortColumn(Sort sort){
+
+    if (sort == null || sort.isEmpty()) {
+      return new OrderSpecifier<>(Order.DESC, qPost.createdAt); //기본 정렬
     }
 
-    public BooleanExpression createTagCondition(QPostTag postTag, List<Long> tagIds){
+    Sort.Order order = sort.iterator().next();
+    String sortColumn = order.getProperty();
+    Order direction = order.getDirection() == Sort.Direction.ASC ? Order.ASC : Order.DESC;
 
-        if(tagIds == null || tagIds.isEmpty()){
+    return switch (sortColumn) {
+      case "createdAt" -> new OrderSpecifier<>(direction, qPost.createdAt);
+      case "likeCount" -> new OrderSpecifier<>(direction, qPost.likeCount);
+      default -> new OrderSpecifier<>(Order.DESC, qPost.createdAt);
+    };
+  }
 
-            log.info("tagIds is null or Empty");
-            return null;
-        }
+  private List<PostWithLocationName> getQueryByFilters(Pageable pageable, BooleanBuilder conditions){
 
-        return postTag.tagId.in(tagIds);
-    }
+    OrderSpecifier<?> sortType = getSortColumn(pageable.getSort());
 
-    private BooleanExpression checkSearchAllDistrictInCity(List<Location> locationList){
-        Long districtEntireValue = 0L;
+    return jpaQueryFactory
+        .select(Projections.constructor(PostWithLocationName.class,
+            qPost.id.as("postId"),
+            qPost.thumbnailImageId.as("thumbnailImageId"),
+            qCity.city.as("cityName"),
+            qDistrict.district.as("districtName")
+        ))
+        .from(qPost)
+        .leftJoin(qCity).on(qPost.location.city.eq(qCity.id))
+        .leftJoin(qDistrict).on(qPost.location.district.eq(qDistrict.id))
+        .where(
+          conditions
+        )
+        .offset(pageable.getOffset())
+        .limit(pageable.getPageSize())
+        .orderBy(sortType)
+        .fetch();
+  }
 
-        boolean hasDistrictEntireValue = locationList.stream()
-                .anyMatch(location -> location.getDistrict().equals(districtEntireValue));
+  private JPAQuery<Long> getPostsQueryCount(BooleanBuilder conditions){
 
-        if (hasDistrictEntireValue) {
-            List<Long> city = extractCityListForEntireDistrict(locationList, districtEntireValue);
-            List<Location> otherCityList = extractCityListForOtherDistrict(locationList, districtEntireValue);
-
-            if(!otherCityList.isEmpty()){
-                return qPost.location.city.in(city)
-                        .or(qPost.location.in(otherCityList));
-            }
-
-            return qPost.location.city.in(city);
-
-        }
-        return qPost.location.in(locationList);
-    }
-
-    private List<Long> extractCityListForEntireDistrict(List<Location> locationList, Long districtEntireValue){
-
-        return locationList.stream()
-                .filter(location -> location.getDistrict().equals(districtEntireValue))
-                .map(Location::getCity)
-                .distinct()
-                .toList();
-    }
-
-    private List<Location> extractCityListForOtherDistrict(List<Location> locationList, Long districtEntireValue){
-        return locationList.stream()
-                .filter(location -> !location.getDistrict().equals(districtEntireValue))
-                .toList();
-    }
-
-    public BooleanExpression havingCondition(NumberPath<Long> tagId, List<Long> tagIds){
-        return Expressions.numberTemplate(Long.class,
-                "SUM(CASE WHEN {0} IN {1} THEN 1 ELSE 0 END)", tagId, tagIds).gt(0);
-    }
-
-    public void createWhereAndHavingCondition(BooleanExpression tagCondition, List<Long> tagIds){
-        if(tagCondition != null){
-
-            log.info("tagCondition is not null");
-
-            tagConditions.or(tagCondition);
-            havingConditions.and(havingCondition(qPostTag.tagId, tagIds));
-        }
-    }
-
-    private OrderSpecifier<?> getSortColumn(Sort sort){
-
-        if (sort == null || sort.isEmpty()) {
-            return new OrderSpecifier<>(Order.DESC, qPost.createdAt); //기본 정렬
-        }
-
-        Sort.Order order = sort.iterator().next();
-        String sortColumn = order.getProperty();
-        Order direction = order.getDirection() == Sort.Direction.ASC ? Order.ASC : Order.DESC;
-
-        return switch (sortColumn) {
-            case "createdAt" -> new OrderSpecifier<>(direction, qPost.createdAt);
-            case "likeCount" -> new OrderSpecifier<>(direction, qPost.likeCount);
-            default -> new OrderSpecifier<>(Order.DESC, qPost.createdAt);
-        };
-    }
-
-    private List<PostWithLocationName> getQueryByFilters(List<Long> postIdsByLocation, List<Long> postIdsByTag, Pageable pageable, List<Long> invisiblePostIdsList){
-
-        OrderSpecifier<?> sortType = getSortColumn(pageable.getSort());
-
-        return jpaQueryFactory
-                .select(Projections.constructor(PostWithLocationName.class,
-                        qPost.id.as("postId"),
-                        qPost.thumbnailImageId.as("thumbnailImageId"),
-                        qCity.city.as("cityName"),
-                        qDistrict.district.as("districtName")
-                ))
-                .from(qPost)
-                .leftJoin(qCity).on(qPost.location.city.eq(qCity.id))
-                .leftJoin(qDistrict).on(qPost.location.district.eq(qDistrict.id))
-                .where(
-                        qPost.id.in(postIdsByLocation),
-                        qPost.id.in(postIdsByTag),
-                        qPost.id.notIn(invisiblePostIdsList)
-                )
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .orderBy(sortType)
-                .fetch();
-    }
-
-    private JPAQuery<Long> getPostsQueryCount(List<Long> postIdsByLocation, List<Long> postIdsByTag, List<Long> invisiblePostIdsList){
-
-        return jpaQueryFactory
-                .select(qPost.count())
-                .from(qPost)
-                .where(
-                        qPost.id.in(postIdsByLocation),
-                        qPost.id.in(postIdsByTag),
-                        qPost.id.notIn(invisiblePostIdsList)
-                );
-    }
+    return jpaQueryFactory
+        .select(qPost.count())
+        .from(qPost)
+        .where(
+            conditions
+        );
+  }
 }
