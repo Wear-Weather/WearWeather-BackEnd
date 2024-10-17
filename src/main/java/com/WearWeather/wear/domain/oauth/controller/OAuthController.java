@@ -33,7 +33,7 @@ public class OAuthController {
         String refreshToken = tokenProvider.renewRefreshToken(loginResponse.getAccessToken());
         ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", refreshToken)
             .path("/")
-            .sameSite("None")
+            .sameSite("Strict")
             .httpOnly(true)
             .secure(true)
             .domain("lookattheweather.store")
