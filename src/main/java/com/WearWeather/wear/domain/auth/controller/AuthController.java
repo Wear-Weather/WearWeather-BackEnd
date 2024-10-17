@@ -56,7 +56,6 @@ public class AuthController {
         return ResponseEntity.ok(loginResponse);
     }
 
-
     @PostMapping("/logout")
     public ResponseEntity<ResponseCommonDTO> logout(@LoggedInUser Long userId, @RequestHeader(AUTHORIZATION_HEADER) String tokenHeader) {
         String token = tokenHeader.replace("Bearer ", "");
