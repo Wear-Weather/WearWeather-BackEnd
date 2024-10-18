@@ -71,7 +71,11 @@ public enum ErrorCode {
 
     NOT_FOUND_COOKIE(NOT_FOUND,"인증 쿠키가 존재하지 않습니다. 다시 로그인 해주세요."),
     NOT_FOUND_REFRESH_TOKEN_IN_COOKIE(NOT_FOUND,"쿠키에 리프레시 토큰이 존재하지 않습니다."),
-    REFRESH_TOKEN_EXPIRED(NOT_FOUND,"리프레시토큰이 만료되었습니다. 다시 로그인해주세요."),
+
+    REFRESH_TOKEN_EXPIRED(UNAUTHORIZED,"만료된 RefreshToken 입니다."),
+    ACCESS_TOKEN_EXPIRED(UNAUTHORIZED,"만료된 AccessToken 입니다."),
+    ACCESS_TOKEN_INVALID(UNAUTHORIZED,"잘못된 서명의 AccessToken 입니다."),
+
     ;
 
     private final HttpStatus httpStatus;

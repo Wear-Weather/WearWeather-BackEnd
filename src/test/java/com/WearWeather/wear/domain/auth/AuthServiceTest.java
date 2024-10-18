@@ -159,7 +159,7 @@ public class AuthServiceTest {
         Long userId = 1L;
         String refreshToken = "invalid_refresh_token";
 
-        when(tokenProvider.getTokenInfo(refreshToken)).thenReturn(userId);
+        when(tokenProvider.getRefreshTokenInfo(refreshToken)).thenReturn(userId);
         when(redisService.getValues(userId)).thenThrow(new CustomException(ErrorCode.REDIS_VALUE_NOT_FOUND));
 
         // when & then
@@ -182,7 +182,7 @@ public class AuthServiceTest {
 
         Authentication authentication = new UsernamePasswordAuthenticationToken(user.getUserId(), null, authorities);
 
-        when(tokenProvider.getTokenInfo(refreshToken)).thenReturn(user.getUserId());
+        when(tokenProvider.getRefreshTokenInfo(refreshToken)).thenReturn(user.getUserId());
         when(redisService.getValues(user.getUserId())).thenReturn(refreshToken);
         when(tokenProvider.createAccessToken(authentication)).thenReturn(newAccessToken);
         when(userService.getUser(user.getUserId())).thenReturn(user);
