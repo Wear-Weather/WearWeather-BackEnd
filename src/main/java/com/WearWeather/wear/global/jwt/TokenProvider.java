@@ -1,5 +1,7 @@
 package com.WearWeather.wear.global.jwt;
 
+import com.WearWeather.wear.global.exception.CustomException;
+import com.WearWeather.wear.global.exception.ErrorCode;
 import com.WearWeather.wear.global.redis.RedisService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -64,8 +66,10 @@ public class TokenProvider implements InitializingBean {
             return true;
         } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
             log.info("잘못된 JWT 서명입니다.");
+            throw new CustomException(ErrorCode.ACCESS_TOKEN_INVALID);
         } catch (ExpiredJwtException e) {
             log.info("만료된 JWT 토큰입니다.");
+            throw new CustomException(ErrorCode.ACCESS_TOKEN_EXPIRED);
         } catch (UnsupportedJwtException e) {
             log.info("지원되지 않는 JWT 토큰입니다.");
         } catch (IllegalArgumentException e) {
@@ -91,7 +95,7 @@ public class TokenProvider implements InitializingBean {
     }
 
     public String renewRefreshToken(String token) {
-        Long userId = getTokenInfo(token);
+        Long userId = getRefreshTokenInfo(token);
         return createRefreshToken(userId);
     }
 
@@ -111,15 +115,20 @@ public class TokenProvider implements InitializingBean {
         return refreshToken;
     }
 
-    public Long getTokenInfo(String token) {
-        Claims claims = Jwts
-            .parserBuilder()
-            .setSigningKey(key)
-            .build()
-            .parseClaimsJws(token)
-            .getBody();
+    public Long getRefreshTokenInfo(String token) {
+        try {
+            Claims claims = Jwts
+                .parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
 
-        return Long.valueOf(claims.getSubject());
+            return Long.valueOf(claims.getSubject());
+        } catch (ExpiredJwtException e) {
+            log.info("만료된 RefreshToken 입니다.");
+            throw new CustomException(ErrorCode.REFRESH_TOKEN_EXPIRED);
+        }
     }
 
     public Long getExpiration(String accessToken) {

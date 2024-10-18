@@ -47,7 +47,7 @@ public class AuthService {
     }
 
     public TokenResponse reissue(String refreshToken) {
-        Long userId = tokenProvider.getTokenInfo(refreshToken);
+        Long userId = tokenProvider.getRefreshTokenInfo(refreshToken);
 
         validateRefreshToken(userId, refreshToken);
 
