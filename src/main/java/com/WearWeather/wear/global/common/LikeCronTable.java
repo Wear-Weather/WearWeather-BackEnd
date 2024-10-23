@@ -1,6 +1,7 @@
 package com.WearWeather.wear.global.common;
 
 import com.WearWeather.wear.domain.post.repository.PostRepository;
+import com.WearWeather.wear.domain.post.service.PostService;
 import com.WearWeather.wear.domain.postLike.entity.Like;
 import com.WearWeather.wear.domain.postLike.repository.LikeRepository;
 import java.util.Arrays;
@@ -21,15 +22,15 @@ public class LikeCronTable {
 
   private final LikeRepository likeRepository;
   private final PostRepository postRepository;
+  private final PostService postService;
 
   @Value("${schedule.like.use}")
   private boolean likeSchedule;
 
   @Scheduled(cron = "${schedule.like.cron}")
-  public void schedule() {
+  public void setLikeSchedule() {
 
     if (likeSchedule) {
-      System.out.println("HERE");
       int totalLikeCount = 15;
       List<Long> postIdsList = postRepository.find20IdsByOrderByIdDesc();
 
@@ -42,7 +43,12 @@ public class LikeCronTable {
                 int randomCount = random.nextInt(3);
 
                 return randomCount == 0 ? Stream.empty() : Stream.generate(() -> {
+
                       int randomIndex = random.nextInt(userIdList.size());
+
+                      //임시 추가
+                      postService.incrementLikeCount(postId);
+
                       return Like.builder()
                           .userId(userIdList.get(randomIndex))
                           .postId(postId)
@@ -54,7 +60,7 @@ public class LikeCronTable {
           .limit(totalLikeCount)
           .toList();
 
-//      likeRepository.saveAll(likeList);
+      likeRepository.saveAll(likeList);
     }
   }
 }
