@@ -43,7 +43,7 @@ main 브랜치는 배포 단계에서만 사용하는 브랜치입니다.
 
 ## 4. ERD
 ___
-![erd](https://github.com/user-attachments/assets/eff399ec-5a32-4f2b-a66e-93d29e4cf01c)
+![erd](https://github.com/user-attachments/assets/70286034-0637-472d-8a30-5758214bc573)
 
 ## 4. API 명세서
 ___
