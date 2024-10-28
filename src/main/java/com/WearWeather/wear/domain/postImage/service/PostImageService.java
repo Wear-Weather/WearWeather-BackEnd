@@ -42,18 +42,34 @@ public class PostImageService {
 
     @Transactional
     public void savePostIdInImages(Post post,PostImageRequest request) {
+        validateImageIds(request.getImageIds());
+
         List<PostImage> postImages = postImageRepository.findByIdIn(request.getImageIds());
+        if (postImages.isEmpty()) {
+            throw new CustomException(ErrorCode.IMAGE_NOT_FOUND);
+        }
 
         for (int i = 0; i < postImages.size(); i++) {
             PostImage postImage = postImages.get(i);
             if (postImage.getPostId() != null) {
-                throw new CustomException(ErrorCode.INVALID_IMAGE_IMAGE);
+                throw new CustomException(ErrorCode.IMAGE_ID_ALREADY_ASSOCIATED_WITH_POST);
             }
             postImage.updatePostId(post.getId());
 
             if (i == 0) {
                 post.addThumbnailImageId(postImage.getId());
             }
+        }
+    }
+
+    private void validateImageIds(List<Long> imageIds) {
+        if (imageIds == null || imageIds.isEmpty()) {
+            throw new CustomException(ErrorCode.IMAGE_INVALID_ID_IN_LIST);
+        }
+
+        boolean hasInvalidId = imageIds.stream().anyMatch(id -> id == null || id <= 0);
+        if (hasInvalidId) {
+            throw new CustomException(ErrorCode.IMAGE_INVALID_ID);
         }
     }
 
