@@ -1,6 +1,7 @@
 package com.WearWeather.wear.global.exception;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
@@ -36,15 +37,18 @@ public enum ErrorCode {
     SOCIAL_ACCOUNT_CANNOT_BE_MODIFIED(BAD_REQUEST, "카카오 로그인 사용자는 비밀번호 수정이 불가합니다."),
 
     SERVER_ERROR(BAD_REQUEST, "이미지 업로드 실패"),
-    INVALID_IMAGE_IMAGE(BAD_REQUEST, "이미지 파일이 유효하지 않습니다"),
-    IMAGE_NOT_FOUND(NOT_FOUND, "이미지를 찾을 수 없습니다."),
-    USED_IMAGE_IN_DIFFERENT_POST(BAD_REQUEST,"다른 게시글에서 사용되고 있는 이미지 ID가 있습니다. 이미지를 다시 업로드 해주세요"),
+
+    // IMAGE
+    IMAGE_INVALID_FILE_FORMAT(BAD_REQUEST, "유효한 이미지 파일 형식이 아닙니다."),
+    IMAGE_NOT_FOUND(NOT_FOUND, "DB에 존재하지 않는 이미지 ID 입니다."),
+    IMAGE_INVALID_ID_IN_LIST(BAD_REQUEST, "null이거나 비어있는 값을 가진 이미지 ID 입니다."),
+    IMAGE_INVALID_ID(BAD_REQUEST, "null이거나 음수를 가진 이미지 ID 입니다"),
+    IMAGE_ID_ALREADY_ASSOCIATED_WITH_POST(CONFLICT, "이미 다른 게시글에 연결된 이미지 ID가 있습니다."),
 
     NOT_EXIST_POST(BAD_REQUEST, "존재하지 않는 게시글입니다."),
     ALREADY_LIKED_POST(BAD_REQUEST, "이미 좋아요된 게시글입니다."),
     NOT_LIKED_POST(BAD_REQUEST, "좋아요한 게시글이 아닙니다."),
     TAG_NOT_FOUND(NOT_FOUND, "태그 아이디가 존재하지 않습니다."),
-    NOT_EXIST_POST_IMAGE(BAD_REQUEST, "존재하지 않는 게시글 이미지입니다."),
     NOT_EXIST_CITY_ID(BAD_REQUEST, "일치하는 광역시도가 없습니다."),
     NOT_EXIST_DISTRICT_ID(BAD_REQUEST, "일치하는 시군구가 없습니다."),
     NOT_EXIST_CITY(BAD_REQUEST, "일치하는 광역시도가 없습니다."),
@@ -63,7 +67,6 @@ public enum ErrorCode {
     INVALID_DELETE_REASON(BAD_REQUEST,"올바르지 않은 탈퇴 이유 값 입니다"),
 
     UNAUTHORIZED_USER(UNAUTHORIZED,"게시글 수정 권한이 없습니다."),
-    IMAGE_ALREADY_USED(BAD_REQUEST, "이미 다른 게시글에 사용된 이미지ID가 있습니다."),
 
     FAIL_SAVE_LOCATION_CITY(BAD_REQUEST, "광역시도 저장 오류입니다."),
     FAIL_SAVE_LOCATION_DISTRICT(BAD_REQUEST, "시군구 저장 오류입니다."),

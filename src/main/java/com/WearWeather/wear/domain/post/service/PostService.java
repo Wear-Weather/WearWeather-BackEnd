@@ -222,7 +222,7 @@ public class PostService {
 
     public String getImageUrl(Long thumbnailId) {
         PostImage postImage = postImageRepository.findById(thumbnailId)
-            .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_POST_IMAGE));
+            .orElseThrow(() -> new CustomException(ErrorCode.IMAGE_NOT_FOUND));
 
         return awsS3Service.getUrl(postImage.getName());
     }

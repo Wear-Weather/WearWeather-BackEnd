@@ -75,10 +75,10 @@ public class PostImageService {
 
     private PostImage getValidatedImage(Long imageId) {
         PostImage postImage = postImageRepository.findById(imageId)
-            .orElseThrow(() -> new CustomException(ErrorCode.INVALID_IMAGE_IMAGE));
+            .orElseThrow(() -> new CustomException(ErrorCode.IMAGE_NOT_FOUND));
 
         if (postImage.getPostId() != null) {
-            throw new CustomException(ErrorCode.IMAGE_ALREADY_USED);
+            throw new CustomException(ErrorCode.IMAGE_ID_ALREADY_ASSOCIATED_WITH_POST);
         }
 
         return postImage;
