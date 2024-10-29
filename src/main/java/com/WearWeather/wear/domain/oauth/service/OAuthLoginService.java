@@ -43,7 +43,7 @@ public class OAuthLoginService {
     }
 
     private User findOrRegisterUser(OAuthUserInfo oAuthUserInfo) {
-        return userRepository.findByEmailAndIsDeleteFalse(oAuthUserInfo.getEmail())
+        return userRepository.findByEmailAndIsDeleteFalseAndIsSocialTrue(oAuthUserInfo.getEmail())
             .map(user -> validateSocialUser(user, oAuthUserInfo))
             .orElseGet(() -> registerNewUser(oAuthUserInfo));
     }
