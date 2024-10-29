@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface UserRepository extends JpaRepository<User, Long> {
 
     @EntityGraph(attributePaths = "authorities")
-    Optional<User> findOneWithAuthoritiesByEmailAndIsDeleteFalse(String email);
+    Optional<User> findOneWithAuthoritiesByEmailAndIsDeleteFalseAndIsSocialFalse(String email);
 
     boolean existsByNicknameAndIsDeleteFalse(String nickname);
 

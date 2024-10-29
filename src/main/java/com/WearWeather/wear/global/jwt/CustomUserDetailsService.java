@@ -24,7 +24,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     @Transactional
     public UserDetails loadUserByUsername(final String userEmail) {
-        return userRepository.findOneWithAuthoritiesByEmailAndIsDeleteFalse(userEmail) //DB에서 유저 정보를 권한 정보와 함께 가져옴
+        return userRepository.findOneWithAuthoritiesByEmailAndIsDeleteFalseAndIsSocialFalse(userEmail) //DB에서 유저 정보를 권한 정보와 함께 가져옴
             .map(user -> createUser(userEmail, user))
             .orElseThrow(() -> new UsernameNotFoundException(userEmail + " -> 데이터베이스에서 찾을 수 없습니다."));
     }
