@@ -50,36 +50,41 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(AbstractHttpConfigurer::disable)
+          .csrf(AbstractHttpConfigurer::disable)
 
-            .addFilterBefore(corsFilter, UsernamePasswordAuthenticationFilter.class)
-            .exceptionHandling(exceptionHandling -> exceptionHandling
-                .accessDeniedHandler(jwtAccessDeniedHandler)
-                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
-            )
+          .addFilterBefore(corsFilter, UsernamePasswordAuthenticationFilter.class)
+          .exceptionHandling(exceptionHandling -> exceptionHandling
+            .accessDeniedHandler(jwtAccessDeniedHandler)
+            .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+          )
 
-            .authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers("/auth/login", "/auth/reissue", "/", "/oauth/kakao",
-                    "/login/page",
-                    "/users/nickname-check/**", "/email/send-verification", "/email/verify-code",
-                    "/users/register", "/users/email", "/users/password",
-                    "/basic-location", "/location", "/regions","/users/delete-reasons"
-                ).permitAll()
-                .requestMatchers("/h2-console/**").permitAll()
-                .anyRequest().authenticated()
-            )
+          .authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
+            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+            .requestMatchers("/auth/login", "/auth/reissue", "/", "/oauth/kakao",
+              "/login/page",
+              "/users/nickname-check/**", "/email/send-verification", "/email/verify-code",
+              "/users/register", "/users/email", "/users/password",
+              "/basic-location", "/location", "/regions","/users/delete-reasons"
+            ).permitAll()
+            .requestMatchers(HttpMethod.GET, "/posts/top-liked").permitAll()
+            .requestMatchers(HttpMethod.GET, "/posts").permitAll()
+            .requestMatchers(HttpMethod.POST, "/posts/search").permitAll()
+            .requestMatchers(HttpMethod.GET, "/posts/{postId}").permitAll()
 
-            .sessionManagement(sessionManagement ->
-                sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
+            .requestMatchers("/h2-console/**").permitAll()
+            .anyRequest().authenticated()
+          )
 
-            .headers(headers ->
-                headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
-            )
+          .sessionManagement(sessionManagement ->
+            sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+          )
 
-            .with(new JwtSecurityConfig(tokenProvider), customizer -> {
-            });
+          .headers(headers ->
+            headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
+          )
+
+          .with(new JwtSecurityConfig(tokenProvider), customizer -> {
+          });
         return http.build();
     }
 }

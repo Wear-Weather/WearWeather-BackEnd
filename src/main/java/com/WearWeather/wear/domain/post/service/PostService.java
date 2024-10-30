@@ -38,10 +38,12 @@ import com.WearWeather.wear.domain.user.service.UserService;
 import com.WearWeather.wear.global.exception.CustomException;
 import com.WearWeather.wear.global.exception.ErrorCode;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -143,29 +145,29 @@ public class PostService {
 
     public Post findById(Long postId) {
         return postRepository.findById(postId)
-            .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_POST));
+          .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_POST));
     }
 
-    public List<TopLikedPostResponse> getTopLikedPosts(Long userId) {
-        List<Long> invisiblePostIdsList = getInvisiblePostIdsList(userId);
+    public List<TopLikedPostResponse> getTopLikedPosts(Optional<Long> userId) {
+        List<Long> invisiblePostIdsList = userId.isPresent() ? getInvisiblePostIdsList(userId.get()) : Collections.emptyList();
 
         List<Long> getPostIdsNotInHiddenPostIds = findMostLikedPostIdForDay(invisiblePostIdsList);
         List<Post> posts = getPostsOrderByPostIds(getPostIdsNotInHiddenPostIds);
 
         return posts.stream()
-            .map(post -> getTopLikedPost(post, userId))
-            .collect(Collectors.toList());
+          .map(post -> getTopLikedPost(post, userId.orElse(null))) // userId가 없으면 null로 처리
+          .collect(Collectors.toList());
     }
 
     public List<Post> getPostsOrderByPostIds(List<Long> postIds) {
         List<Post> posts = postRepository.findAllByIdIn(postIds);
 
         return postIds.stream()
-                .map(postId -> posts.stream()
-                        .filter(post -> post.getId().equals(postId))
-                        .findFirst()
-                        .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_POST)))
-                .toList();
+          .map(postId -> posts.stream()
+            .filter(post -> post.getId().equals(postId))
+            .findFirst()
+            .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_POST)))
+          .toList();
     }
 
     public List<Long> findMostLikedPostIdForDay(List<Long> invisiblePostIdsList) {
@@ -180,14 +182,14 @@ public class PostService {
         boolean like = checkLikeByPostAndUser(post.getId(), userId);
 
         return TopLikedPostResponse.of(
-            post,
-            url,
-            location,
-            tags,
-            like);
+          post,
+          url,
+          location,
+          tags,
+          like);
     }
 
-    public PostDetailResponse getPostDetail(Long userId, Long postId) {
+    public PostDetailResponse getPostDetail(Optional<Long> userId, Long postId) {
         Post post = findById(postId);
 
         String postUserNickname = userService.getNicknameById(post.getUserId());
@@ -195,17 +197,17 @@ public class PostService {
         LocationResponse location = locationService.findCityIdAndDistrictId(post.getLocation().getCity(), post.getLocation().getDistrict());
         Map<String, List<String>> tags = getTagsByPostId(post.getId());
 
-        boolean like = checkLikeByPostAndUser(post.getId(), userId);
+        boolean like = checkLikeByPostAndUser(post.getId(), userId.orElse(null));
         boolean report = postReportService.hasReports(post.getId());
 
         return PostDetailResponse.of(
-            postUserNickname,
-            post,
-            imageUrlList,
-            location,
-            tags,
-            like,
-            report);
+          postUserNickname,
+          post,
+          imageUrlList,
+          location,
+          tags,
+          like,
+          report);
     }
 
     public ImagesResponse getImagesResponse(Long postId) {
@@ -216,13 +218,13 @@ public class PostService {
         List<PostImage> postImages = postImageRepository.findByPostId(postId);
 
         return postImages.stream()
-            .map(image -> ImageDetailResponse.of(image.getId(), getImageUrl(image.getId())))
-            .toList();
+          .map(image -> ImageDetailResponse.of(image.getId(), getImageUrl(image.getId())))
+          .toList();
     }
 
     public String getImageUrl(Long thumbnailId) {
         PostImage postImage = postImageRepository.findById(thumbnailId)
-            .orElseThrow(() -> new CustomException(ErrorCode.IMAGE_NOT_FOUND));
+          .orElseThrow(() -> new CustomException(ErrorCode.IMAGE_NOT_FOUND));
 
         return awsS3Service.getUrl(postImage.getName());
     }
@@ -231,45 +233,49 @@ public class PostService {
         List<PostTag> postTags = postTagRepository.findByPostId(postId);
 
         List<Long> tagIds = postTags.stream()
-            .map(PostTag::getTagId)
-            .collect(Collectors.toList());
+          .map(PostTag::getTagId)
+          .collect(Collectors.toList());
 
         List<Tag> tags = tagRepository.findAllById(tagIds);
 
         return tags.stream()
-            .collect(Collectors.groupingBy(
-                Tag::getCategory,
-                Collectors.mapping(Tag::getContent, Collectors.toList())
-            ));
+          .collect(Collectors.groupingBy(
+            Tag::getCategory,
+            Collectors.mapping(Tag::getContent, Collectors.toList())
+          ));
     }
 
     public boolean checkLikeByPostAndUser(Long postId, Long userId) {
+        if (userId == null) {
+            return false;
+        }
         return likeRepository.existsByPostIdAndUserId(postId, userId);
     }
 
-    public PostsByLocationResponse getPostsByLocation(Long userId, int page, int size, String city, String district, SortType sort) {
-
+    public PostsByLocationResponse getPostsByLocation(Optional<Long> userId, int page, int size, String city, String district, SortType sort) {
         Location location = locationService.findCityIdAndDistrictId(city, district);
-        Page<Post> posts = getPostByLocation(page, size, location, sort, userId);
+        Page<Post> posts = getPostByLocation(page, size, location, sort, userId.orElse(null));
 
         List<PostByLocationResponse> responses = posts.stream()
-                .map(post -> getPostByLocation(post, userId))
-                .toList();
+          .map(post -> getPostByLocation(post, userId.orElse(null)))
+          .toList();
 
-        int totalPages = posts.getTotalPages() -1 ;
+        int totalPages = posts.getTotalPages() - 1;
 
         return PostsByLocationResponse.of(LocationResponse.of(city, district), responses, totalPages);
     }
 
+
     public Page<Post> getPostByLocation(int page, int size, Location location, SortType sort, Long userId) {
         String sortType = getSortColumnName(sort);
 
-        List<Long> invisiblePostIds = getInvisiblePostIdsList(userId);
+        List<Long> invisiblePostIds = (userId != null) ? getInvisiblePostIdsList(userId) : Collections.emptyList();
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortType).descending());
 
         return postRepository.getPostsExcludingInvisiblePosts(pageable, location, invisiblePostIds);
     }
+
 
     public String getSortColumnName(SortType sortType) {
         if (Objects.equals(sortType, SortType.LATEST)) {
@@ -290,33 +296,32 @@ public class PostService {
         boolean like = checkLikeByPostAndUser(post.getId(), userId);
 
         return PostByLocationResponse.of(
-            post.getId(),
-            url,
-            tags,
-            like
+          post.getId(),
+          url,
+          tags,
+          like
         );
     }
 
-    public PostsByFiltersResponse searchPostsWithFilters(Long userId, PostsByFiltersRequest request) {
-
-        Page<PostWithLocationName> posts = getPostByFilters(request, userId);
+    public PostsByFiltersResponse searchPostsWithFilters(Optional<Long> userId, PostsByFiltersRequest request) {
+        // 검색 결과 페이징
+        Page<PostWithLocationName> posts = getPostByFilters(request, userId.orElse(null));
 
         log.info(posts.getContent().toString());
 
         List<SearchPostResponse> responses = posts.stream()
-                .map(post -> getPostByFilters(post, userId))
-                .toList();
-        int totalPage = posts.getTotalPages() -1 ;
+          .map(post -> getPostByFilters(post, userId.orElse(null)))
+          .toList();
+        int totalPage = posts.getTotalPages() - 1;
 
         return PostsByFiltersResponse.of(responses, totalPage);
     }
 
     public Page<PostWithLocationName> getPostByFilters(PostsByFiltersRequest request, Long userId) {
-        //TODO : getPostDetailByLocation()메서드랑 중복 제거하기
-
         String sortType = getSortColumnName(request.getSort());
 
-        List<Long> invisiblePostIds = getInvisiblePostIdsList(userId);
+        // 로그인한 사용자만 숨김 및 신고 게시글 필터링
+        List<Long> invisiblePostIds = (userId != null) ? getInvisiblePostIdsList(userId) : Collections.emptyList();
 
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), Sort.by(sortType).descending());
 
@@ -346,8 +351,8 @@ public class PostService {
         Page<Post> posts = postRepository.findByUserId(userId, pageable);
 
         List<PostByMeResponse> postByMe = posts.stream()
-            .map(post -> getPostByMe(userId, post))
-            .toList();
+          .map(post -> getPostByMe(userId, post))
+          .toList();
 
         int totalPage = posts.getTotalPages() -1;
         return PostsByMeResponse.of(postByMe, totalPage);
