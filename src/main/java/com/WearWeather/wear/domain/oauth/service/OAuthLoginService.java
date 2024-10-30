@@ -10,11 +10,13 @@ import com.WearWeather.wear.domain.user.entity.User;
 import com.WearWeather.wear.domain.user.repository.UserRepository;
 import com.WearWeather.wear.global.jwt.TokenProvider;
 import java.util.Collections;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -36,7 +38,14 @@ public class OAuthLoginService {
 
         kakaoUserService.save((KaKaoUserInfo) oAuthUserInfo,user);
 
-        Authentication authentication = authenticateUser(user);
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+          user.getUserId(),
+          null,
+          user.getAuthorities().stream()
+            .map(authority -> new SimpleGrantedAuthority(authority.getAuthorityName()))
+            .collect(Collectors.toList())
+        );
+
         String accessToken = tokenProvider.createAccessToken(authentication);
 
         return LoginResponse.of(user, accessToken);
