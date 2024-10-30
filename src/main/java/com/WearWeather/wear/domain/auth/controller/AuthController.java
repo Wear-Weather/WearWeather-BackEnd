@@ -16,6 +16,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import java.util.Arrays;
+import java.util.Optional;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -57,7 +58,9 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<ResponseCommonDTO> logout(@LoggedInUser Long userId, @RequestHeader(AUTHORIZATION_HEADER) String tokenHeader) {
+    public ResponseEntity<ResponseCommonDTO> logout(@LoggedInUser Optional<Long> optionalUserId, @RequestHeader(AUTHORIZATION_HEADER) String tokenHeader) {
+        Long userId = optionalUserId.orElseThrow(() -> new CustomException(ErrorCode.SERVER_ERROR));
+
         String token = tokenHeader.replace("Bearer ", "");
         authService.logout(userId, token);
         return ResponseEntity.ok(new ResponseCommonDTO(true, "success logout"));
