@@ -17,6 +17,7 @@ import com.WearWeather.wear.global.common.dto.ResponseCommonDTO;
 import com.WearWeather.wear.global.jwt.LoggedInUser;
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -43,7 +44,7 @@ public class PostController {
     }
 
     @GetMapping("/top-liked")
-    public ResponseEntity<TopLikedPostsResponse> getTopLikedPosts(@LoggedInUser Long userId) {
+    public ResponseEntity<TopLikedPostsResponse> getTopLikedPosts(@LoggedInUser Optional<Long> userId) {
         List<TopLikedPostResponse> response = postService.getTopLikedPosts(userId);
         return ResponseEntity.ok(new TopLikedPostsResponse(response));
     }
@@ -61,30 +62,32 @@ public class PostController {
     }
 
     @GetMapping("/{postId}")
-    public ResponseEntity<PostDetailResponse> getPostDetail(@LoggedInUser Long userId, @PathVariable("postId") Long postId) {
+    public ResponseEntity<PostDetailResponse> getPostDetail(@LoggedInUser Optional<Long> userId, @PathVariable("postId") Long postId) {
         return ResponseEntity.ok(postService.getPostDetail(userId, postId));
     }
 
+
     @GetMapping
-    public ResponseEntity<PostsByLocationResponse> getPostsByLocation(@LoggedInUser Long userId,
-        @RequestParam("page") int page,
-        @RequestParam("size") int size,
-        @RequestParam("city") String city,
-        @RequestParam("district") String district,
-        @RequestParam("sort") SortType sort) {
+    public ResponseEntity<PostsByLocationResponse> getPostsByLocation(@LoggedInUser Optional<Long> userId,
+      @RequestParam("page") int page,
+      @RequestParam("size") int size,
+      @RequestParam("city") String city,
+      @RequestParam("district") String district,
+      @RequestParam("sort") SortType sort) {
         return ResponseEntity.ok(postService.getPostsByLocation(userId, page, size, city, district, sort));
     }
 
+
     @PostMapping("/search")
-    public ResponseEntity<PostsByFiltersResponse> searchPostsWithFilters(@LoggedInUser Long userId, @Valid @RequestBody PostsByFiltersRequest request) {
+    public ResponseEntity<PostsByFiltersResponse> searchPostsWithFilters(@LoggedInUser Optional<Long> userId, @Valid @RequestBody PostsByFiltersRequest request) {
         return ResponseEntity.ok(postService.searchPostsWithFilters(userId, request));
     }
 
 
     @GetMapping("/me")
     public ResponseEntity<PostsByMeResponse> getPostsByMe(@LoggedInUser Long userId,
-        @RequestParam("page") int page,
-        @RequestParam("size") int size) {
+      @RequestParam("page") int page,
+      @RequestParam("size") int size) {
         return ResponseEntity.ok(postService.getPostsByMe(userId, page, size));
     }
 }
