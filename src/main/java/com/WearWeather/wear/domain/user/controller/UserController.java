@@ -8,9 +8,12 @@ import com.WearWeather.wear.domain.user.dto.response.UserInfoResponse;
 import com.WearWeather.wear.domain.user.service.UserService;
 import com.WearWeather.wear.global.common.ResponseMessage;
 import com.WearWeather.wear.global.common.dto.ResponseCommonDTO;
+import com.WearWeather.wear.global.exception.CustomException;
+import com.WearWeather.wear.global.exception.ErrorCode;
 import com.WearWeather.wear.global.jwt.LoggedInUser;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -58,14 +61,17 @@ public class UserController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<UserInfoResponse> getUserInfo(@LoggedInUser Long userId) {
+    public ResponseEntity<UserInfoResponse> getUserInfo(@LoggedInUser Optional<Long> optionalUserId) {
+        Long userId = optionalUserId.orElseThrow(() -> new CustomException(ErrorCode.SERVER_ERROR));
 
         UserInfoResponse userInfoResponse = userService.getUserInfo(userId);
         return ResponseEntity.ok(userInfoResponse);
     }
 
     @PatchMapping("/me")
-    public ResponseEntity<ResponseCommonDTO> modifyUserInfo(@LoggedInUser Long userId, @Valid @RequestBody ModifyUserInfoRequest request) {
+    public ResponseEntity<ResponseCommonDTO> modifyUserInfo(@LoggedInUser Optional<Long> optionalUserId, @Valid @RequestBody ModifyUserInfoRequest request) {
+
+        Long userId = optionalUserId.orElseThrow(() -> new CustomException(ErrorCode.SERVER_ERROR));
 
         userService.modifyUserInfo(
             userId, request.getPassword(), request.getNickname());
