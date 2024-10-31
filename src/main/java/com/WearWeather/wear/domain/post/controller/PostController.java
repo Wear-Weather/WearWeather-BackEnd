@@ -44,7 +44,7 @@ public class PostController {
     }
 
     @GetMapping("/top-liked")
-    public ResponseEntity<TopLikedPostsResponse> getTopLikedPosts(@LoggedInUser Optional<Long> userId) {
+    public ResponseEntity<TopLikedPostsResponse> getTopLikedPosts(@LoggedInUser Long userId) {
         List<TopLikedPostResponse> response = postService.getTopLikedPosts(userId);
         return ResponseEntity.ok(new TopLikedPostsResponse(response));
     }
@@ -62,13 +62,13 @@ public class PostController {
     }
 
     @GetMapping("/{postId}")
-    public ResponseEntity<PostDetailResponse> getPostDetail(@LoggedInUser Optional<Long> userId, @PathVariable("postId") Long postId) {
+    public ResponseEntity<PostDetailResponse> getPostDetail(@LoggedInUser Long userId, @PathVariable("postId") Long postId) {
         return ResponseEntity.ok(postService.getPostDetail(userId, postId));
     }
 
 
     @GetMapping
-    public ResponseEntity<PostsByLocationResponse> getPostsByLocation(@LoggedInUser Optional<Long> userId,
+    public ResponseEntity<PostsByLocationResponse> getPostsByLocation(@LoggedInUser Long userId,
       @RequestParam("page") int page,
       @RequestParam("size") int size,
       @RequestParam("city") String city,
@@ -79,7 +79,7 @@ public class PostController {
 
 
     @PostMapping("/search")
-    public ResponseEntity<PostsByFiltersResponse> searchPostsWithFilters(@LoggedInUser Optional<Long> userId, @Valid @RequestBody PostsByFiltersRequest request) {
+    public ResponseEntity<PostsByFiltersResponse> searchPostsWithFilters(@LoggedInUser Long userId, @Valid @RequestBody PostsByFiltersRequest request) {
         return ResponseEntity.ok(postService.searchPostsWithFilters(userId, request));
     }
 

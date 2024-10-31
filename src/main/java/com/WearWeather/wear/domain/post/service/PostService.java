@@ -148,16 +148,18 @@ public class PostService {
           .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_POST));
     }
 
-    public List<TopLikedPostResponse> getTopLikedPosts(Optional<Long> userId) {
-        List<Long> invisiblePostIdsList = userId.isPresent() ? getInvisiblePostIdsList(userId.get()) : Collections.emptyList();
+    public List<TopLikedPostResponse> getTopLikedPosts(Long userId) {
+        // userId가 null이면 빈 리스트로 설정 (로그인하지 않은 사용자)
+        List<Long> invisiblePostIdsList = (userId != null) ? getInvisiblePostIdsList(userId) : Collections.emptyList();
 
         List<Long> getPostIdsNotInHiddenPostIds = findMostLikedPostIdForDay(invisiblePostIdsList);
         List<Post> posts = getPostsOrderByPostIds(getPostIdsNotInHiddenPostIds);
 
         return posts.stream()
-          .map(post -> getTopLikedPost(post, userId.orElse(null))) // userId가 없으면 null로 처리
+          .map(post -> getTopLikedPost(post, userId))
           .collect(Collectors.toList());
     }
+
 
     public List<Post> getPostsOrderByPostIds(List<Long> postIds) {
         List<Post> posts = postRepository.findAllByIdIn(postIds);
@@ -189,7 +191,7 @@ public class PostService {
           like);
     }
 
-    public PostDetailResponse getPostDetail(Optional<Long> userId, Long postId) {
+    public PostDetailResponse getPostDetail(Long userId, Long postId) {
         Post post = findById(postId);
 
         String postUserNickname = userService.getNicknameById(post.getUserId());
@@ -197,7 +199,7 @@ public class PostService {
         LocationResponse location = locationService.findCityIdAndDistrictId(post.getLocation().getCity(), post.getLocation().getDistrict());
         Map<String, List<String>> tags = getTagsByPostId(post.getId());
 
-        boolean like = checkLikeByPostAndUser(post.getId(), userId.orElse(null));
+        boolean like = checkLikeByPostAndUser(post.getId(), userId);
         boolean report = postReportService.hasReports(post.getId());
 
         return PostDetailResponse.of(
@@ -252,12 +254,12 @@ public class PostService {
         return likeRepository.existsByPostIdAndUserId(postId, userId);
     }
 
-    public PostsByLocationResponse getPostsByLocation(Optional<Long> userId, int page, int size, String city, String district, SortType sort) {
+    public PostsByLocationResponse getPostsByLocation(Long userId, int page, int size, String city, String district, SortType sort) {
         Location location = locationService.findCityIdAndDistrictId(city, district);
-        Page<Post> posts = getPostByLocation(page, size, location, sort, userId.orElse(null));
+        Page<Post> posts = getPostByLocation(page, size, location, sort, userId);
 
         List<PostByLocationResponse> responses = posts.stream()
-          .map(post -> getPostByLocation(post, userId.orElse(null)))
+          .map(post -> getPostByLocation(post, userId))
           .toList();
 
         int totalPages = posts.getTotalPages() - 1;
@@ -303,14 +305,14 @@ public class PostService {
         );
     }
 
-    public PostsByFiltersResponse searchPostsWithFilters(Optional<Long> userId, PostsByFiltersRequest request) {
+    public PostsByFiltersResponse searchPostsWithFilters(Long userId, PostsByFiltersRequest request) {
         // 검색 결과 페이징
-        Page<PostWithLocationName> posts = getPostByFilters(request, userId.orElse(null));
+        Page<PostWithLocationName> posts = getPostByFilters(request, userId);
 
         log.info(posts.getContent().toString());
 
         List<SearchPostResponse> responses = posts.stream()
-          .map(post -> getPostByFilters(post, userId.orElse(null)))
+          .map(post -> getPostByFilters(post, userId))
           .toList();
         int totalPage = posts.getTotalPages() - 1;
 

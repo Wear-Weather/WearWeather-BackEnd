@@ -61,17 +61,17 @@ public class UserController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<UserInfoResponse> getUserInfo(@LoggedInUser Optional<Long> optionalUserId) {
-        Long userId = optionalUserId.orElseThrow(() -> new CustomException(ErrorCode.SERVER_ERROR));
+    public ResponseEntity<UserInfoResponse> getUserInfo(@LoggedInUser Long userId) {
+//        Long userId = optionalUserId.orElseThrow(() -> new CustomException(ErrorCode.SERVER_ERROR));
 
         UserInfoResponse userInfoResponse = userService.getUserInfo(userId);
         return ResponseEntity.ok(userInfoResponse);
     }
 
     @PatchMapping("/me")
-    public ResponseEntity<ResponseCommonDTO> modifyUserInfo(@LoggedInUser Optional<Long> optionalUserId, @Valid @RequestBody ModifyUserInfoRequest request) {
+    public ResponseEntity<ResponseCommonDTO> modifyUserInfo(@LoggedInUser Long userId, @Valid @RequestBody ModifyUserInfoRequest request) {
 
-        Long userId = optionalUserId.orElseThrow(() -> new CustomException(ErrorCode.SERVER_ERROR));
+//        Long userId = optionalUserId.orElseThrow(() -> new CustomException(ErrorCode.SERVER_ERROR));
 
         userService.modifyUserInfo(
             userId, request.getPassword(), request.getNickname());
