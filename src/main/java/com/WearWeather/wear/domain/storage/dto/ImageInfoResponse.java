@@ -9,11 +9,16 @@ public class ImageInfoResponse {
 
     private Long id;
     private String url;
+    private int width;
+    private int height;
 
-    public static ImageInfoResponse of(Long id, String url) {
+    public static ImageInfoResponse of(Long id, ImageInfoDto imageInfoDto) {
         return ImageInfoResponse.builder()
-            .id(id)
-            .url(url)
-            .build();
+          .id(id)
+          .url(imageInfoDto.getUrl())
+          .width(imageInfoDto.getWidth())
+          .height(imageInfoDto.getHeight())
+          .build();
     }
 }
+
