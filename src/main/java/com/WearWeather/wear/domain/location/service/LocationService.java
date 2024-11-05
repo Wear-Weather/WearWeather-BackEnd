@@ -263,17 +263,9 @@ public class LocationService {
     public Mono<GeocodingLocationResponse> findLocationByGeoCoordApi(double longitude, double latitude){
 
         isValidCoordinates(longitude, latitude);
+        WebClient webClient = buildKakaoLocalBaseUrl();
 
         String restApiKey = "KakaoAK " + geoCoordApiKey;
-
-        DefaultUriBuilderFactory factory = new DefaultUriBuilderFactory(geoCoordBaseUrl);
-        factory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.VALUES_ONLY);
-
-        WebClient webClient = WebClient.builder()
-                .uriBuilderFactory(factory)
-                .baseUrl(geoCoordBaseUrl)
-                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .build();
 
         return webClient.get()
                 .uri(uriBuilder -> uriBuilder
@@ -423,5 +415,18 @@ public class LocationService {
     private String findDistrictByCityIdAndDistrictId(Long cityId, Long districtId){
         return districtRepository.findDistrictByCityIdAndId(cityId, districtId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_DISTRICT)).getDistrict();
+    }
+
+
+    private WebClient buildKakaoLocalBaseUrl(){
+
+        DefaultUriBuilderFactory factory = new DefaultUriBuilderFactory(geoCoordBaseUrl);
+        factory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.VALUES_ONLY);
+
+        return WebClient.builder()
+            .uriBuilderFactory(factory)
+            .baseUrl(geoCoordBaseUrl)
+            .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .build();
     }
 }
