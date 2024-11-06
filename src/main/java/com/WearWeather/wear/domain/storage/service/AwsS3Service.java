@@ -32,6 +32,17 @@ public class AwsS3Service {
     private String photoDir;
 
     private final AmazonS3 amazonS3;
+
+    @PostConstruct
+    private void init() {
+        File tempDir = new File(photoDir);
+        if (!tempDir.exists()) {
+            boolean dirCreated = tempDir.mkdirs();
+            if (!dirCreated) {
+                throw new RuntimeException("Failed to create directory: " + photoDir);
+            }
+        }
+    }
     
     /**
      * 업로드할 파일을 WebP로 변환 후 S3에 저장
