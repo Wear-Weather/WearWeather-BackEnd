@@ -60,7 +60,7 @@ public enum ErrorCode {
     INVALID_REQUEST_PARAMETER(BAD_REQUEST, "경도, 위도 값이 유효하지 않습니다."),
     INVALID_ADDRESS_REQUEST_PARAMETER(BAD_REQUEST, "주소 값이 유효하지 않습니다."),
     GEO_COORD_SERVER_ERROR(BAD_REQUEST,"서버 오류입니다."),
-  
+
     ALREADY_DELETE_USER(BAD_REQUEST, "해당 사용자는 이미 탈퇴한 사용자입니다."),
     NOT_FOUND_DELETE_REASON(NOT_FOUND, "존재하지 않는 탈퇴 이유 ID 입니다."),
 
@@ -79,6 +79,12 @@ public enum ErrorCode {
     REFRESH_TOKEN_EXPIRED(UNAUTHORIZED,"만료된 RefreshToken 입니다."),
     ACCESS_TOKEN_EXPIRED(UNAUTHORIZED,"만료된 AccessToken 입니다."),
     ACCESS_TOKEN_INVALID(UNAUTHORIZED,"잘못된 서명의 AccessToken 입니다."),
+
+    FILE_CONVERSION_FAILED(BAD_REQUEST,"파일 시스템에 쓰기 권한이 없거나 저장 공간이 부족합니다" ),
+    INVALID_IMAGE_FORMAT(BAD_REQUEST, "지원하지 않는 이미지 형식입니다."),
+    WEBP_CONVERSION_FAILED(BAD_REQUEST,"photoDir 경로에 쓰기 권한이 없거나 해당 디렉토리가 없습니다."),
+    S3_UPLOAD_FAILED(BAD_REQUEST,"S3에 이미지 업로드 중 오류가 발생하였습니다."),
+    NOT_FOUND_IMAGE_FILE(NOT_FOUND,"이미지 파일은 필수입니다"),
 
     ;
 

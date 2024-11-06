@@ -29,13 +29,11 @@ public class PostImageService {
     @Transactional
     public Long createPostImage(MultipartFile multipartFile, ImageInfoDto imageInfoDto) {
         PostImage postImage = PostImage.builder()
-            .postId(null)
-            .name(imageInfoDto.getS3Name())
-            .originName(multipartFile.getOriginalFilename())
-            .byteSize((int) multipartFile.getSize())
-            .width(imageInfoDto.getWidth())
-            .height(imageInfoDto.getHeight())
-            .build();
+          .postId(null)
+          .name(imageInfoDto.getS3Name())
+          .originName(multipartFile.getOriginalFilename())
+          .byteSize((int) multipartFile.getSize())
+          .build();
 
         return postImageRepository.save(postImage).getId();
     }
