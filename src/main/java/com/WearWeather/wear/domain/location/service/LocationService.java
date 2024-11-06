@@ -11,6 +11,8 @@ import com.WearWeather.wear.global.exception.CustomException;
 import com.WearWeather.wear.global.exception.ErrorCode;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.*;
 import java.io.IOException;
 import java.util.stream.Collectors;
@@ -39,12 +41,15 @@ public class LocationService {
     @Value("${location.api.base-url}")
     private String locationBaseUrl;
 
-    @Value("${kakao.geo.coord.base-url}")
+    @Value("${kakao.geo.base-url}")
     private String geoCoordBaseUrl;
+    @Value("${kakao.geo.api-key}")
+    private String geoCoordApiKey;
+
     @Value("${kakao.geo.coord.path}")
     private String geoCoordPath;
-    @Value("${kakao.geo.coord.api-key}")
-    private String geoCoordApiKey;
+    @Value("${kakao.geo.search.path}")
+    private String geoSearchPath;
 
     private final CityRepository cityRepository;
     private final DistrictRepository districtRepository;
@@ -263,17 +268,9 @@ public class LocationService {
     public Mono<GeocodingLocationResponse> findLocationByGeoCoordApi(double longitude, double latitude){
 
         isValidCoordinates(longitude, latitude);
+        WebClient webClient = buildKakaoLocalBaseUrl();
 
         String restApiKey = "KakaoAK " + geoCoordApiKey;
-
-        DefaultUriBuilderFactory factory = new DefaultUriBuilderFactory(geoCoordBaseUrl);
-        factory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.VALUES_ONLY);
-
-        WebClient webClient = WebClient.builder()
-                .uriBuilderFactory(factory)
-                .baseUrl(geoCoordBaseUrl)
-                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .build();
 
         return webClient.get()
                 .uri(uriBuilder -> uriBuilder
@@ -292,7 +289,8 @@ public class LocationService {
                              .flatMap(body -> Mono.error(new CustomException(ErrorCode.GEO_COORD_SERVER_ERROR)));
                 })
                 .bodyToMono(String.class)
-                 .map(this::mapLocation);
+                .map(this::mapLocation);
+
     }
 
     public void isValidCoordinates(double longitude, double latitude){
@@ -330,6 +328,74 @@ public class LocationService {
         }
 
         return address.substring(0, index + 1);
+    }
+
+
+    public Mono<SearchLocationResponse> searchLocation(String address){
+
+        String restApiKey = "KakaoAK " + geoCoordApiKey;
+        WebClient webClient = buildKakaoLocalBaseUrl();
+
+        try {
+            String queryParam = URLEncoder.encode(address, "UTF-8");
+
+            return webClient.get()
+                .uri(uriBuilder -> uriBuilder
+                    .path(geoSearchPath)
+                    .queryParam("query", queryParam)
+                    .build())
+                .header("Authorization", restApiKey)
+                .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError, clientResponse -> {
+                    return clientResponse.bodyToMono(String.class)
+                        .flatMap(body -> Mono.error(new CustomException(ErrorCode.INVALID_ADDRESS_REQUEST_PARAMETER)));
+                })
+                .onStatus(HttpStatusCode::is5xxServerError, clientResponse -> {
+                    return clientResponse.bodyToMono(String.class)
+                        .flatMap(body -> Mono.error(new CustomException(ErrorCode.GEO_COORD_SERVER_ERROR)));
+                })
+                .bodyToMono(String.class)
+                .map(this::mapSearchLocation);
+
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private SearchLocationResponse mapSearchLocation(String responseBody) {
+
+        String address_name = "address_name";
+        String x = "x";
+        String y = "y";
+        String region_1depth_name = "region_1depth_name";
+        String region_2depth_name = "region_2depth_name";
+
+        try {
+            JsonNode root = objectMapper.readTree(responseBody);
+            JsonNode documents = root.path("documents").get(0);
+
+            String address_full_name = extractAddressName(documents.path(address_name).asText());
+            String longitude = String.format("%.4f", documents.path(x).asDouble());
+            String latitude = String.format("%.4f", documents.path(y).asDouble());
+
+            JsonNode address = documents.path("address");
+
+            String region_1depth_city = address.path(region_1depth_name).asText().substring(0, 2);
+            String region_2depth_district = address.path(region_2depth_name).asText();
+
+            return SearchLocationResponse.of(address_full_name, longitude, latitude, region_1depth_city, region_2depth_district);
+
+        } catch (IOException e) {
+            throw new CustomException(ErrorCode.GEO_COORD_SERVER_ERROR);
+        }
+    }
+
+    private String extractAddressName(String address_name){
+        String[] parts = address_name.split(" ", 2);
+        String firstPart = parts[0].substring(0, 2);
+        String restOfAddress = parts[1];
+
+        return firstPart + " " + restOfAddress;
     }
 
     public RegionsResponse getRegions(){
@@ -423,5 +489,18 @@ public class LocationService {
     private String findDistrictByCityIdAndDistrictId(Long cityId, Long districtId){
         return districtRepository.findDistrictByCityIdAndId(cityId, districtId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_DISTRICT)).getDistrict();
+    }
+
+
+    private WebClient buildKakaoLocalBaseUrl(){
+
+        DefaultUriBuilderFactory factory = new DefaultUriBuilderFactory(geoCoordBaseUrl);
+        factory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.VALUES_ONLY);
+
+        return WebClient.builder()
+            .uriBuilderFactory(factory)
+            .baseUrl(geoCoordBaseUrl)
+            .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .build();
     }
 }
