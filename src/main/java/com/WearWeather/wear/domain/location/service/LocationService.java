@@ -41,13 +41,13 @@ public class LocationService {
     @Value("${location.api.base-url}")
     private String locationBaseUrl;
 
-    @Value("${kakao.geo.coord.base-url}")
+    @Value("${kakao.geo.base-url}")
     private String geoCoordBaseUrl;
-    @Value("${kakao.geo.coord.path}")
-    private String geoCoordPath;
-    @Value("${kakao.geo.coord.api-key}")
+    @Value("${kakao.geo.api-key}")
     private String geoCoordApiKey;
 
+    @Value("${kakao.geo.coord.path}")
+    private String geoCoordPath;
     @Value("${kakao.geo.search.path}")
     private String geoSearchPath;
 
