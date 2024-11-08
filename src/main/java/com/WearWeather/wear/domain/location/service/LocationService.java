@@ -9,9 +9,12 @@ import com.WearWeather.wear.domain.post.dto.response.LocationResponse;
 import com.WearWeather.wear.domain.post.entity.Location;
 import com.WearWeather.wear.global.exception.CustomException;
 import com.WearWeather.wear.global.exception.ErrorCode;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.UnsupportedEncodingException;
+import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.util.*;
 import java.io.IOException;
@@ -19,6 +22,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -346,10 +350,6 @@ public class LocationService {
                     .build())
                 .header("Authorization", restApiKey)
                 .retrieve()
-                .onStatus(HttpStatusCode::is4xxClientError, clientResponse -> {
-                    return clientResponse.bodyToMono(String.class)
-                        .flatMap(body -> Mono.error(new CustomException(ErrorCode.INVALID_ADDRESS_REQUEST_PARAMETER)));
-                })
                 .onStatus(HttpStatusCode::is5xxServerError, clientResponse -> {
                     return clientResponse.bodyToMono(String.class)
                         .flatMap(body -> Mono.error(new CustomException(ErrorCode.GEO_COORD_SERVER_ERROR)));
@@ -372,16 +372,24 @@ public class LocationService {
 
         try {
             JsonNode root = objectMapper.readTree(responseBody);
+
+            if(root.path("documents").isEmpty() || root.path("documents").isNull()){
+                return new SearchLocationResponse();
+            }
+
             JsonNode documents = root.path("documents").get(0);
-
-            String address_full_name = extractAddressName(documents.path(address_name).asText());
-            String longitude = String.format("%.4f", documents.path(x).asDouble());
-            String latitude = String.format("%.4f", documents.path(y).asDouble());
-
             JsonNode address = documents.path("address");
 
             String region_1depth_city = address.path(region_1depth_name).asText().substring(0, 2);
             String region_2depth_district = address.path(region_2depth_name).asText();
+
+            if(region_2depth_district.isEmpty() || region_2depth_district.isBlank()){
+                return new SearchLocationResponse();
+            }
+
+            String address_full_name = extractAddressName(documents.path(address_name).asText());
+            String longitude = String.format("%.4f", documents.path(x).asDouble());
+            String latitude = String.format("%.4f", documents.path(y).asDouble());
 
             return SearchLocationResponse.of(address_full_name, longitude, latitude, region_1depth_city, region_2depth_district);
 
