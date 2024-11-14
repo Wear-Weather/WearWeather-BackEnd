@@ -58,9 +58,21 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<ResponseCommonDTO> logout(@LoggedInUser Long userId, @RequestHeader(AUTHORIZATION_HEADER) String tokenHeader) {
+    public ResponseEntity<ResponseCommonDTO> logout(@LoggedInUser Long userId, @RequestHeader(AUTHORIZATION_HEADER) String tokenHeader, HttpServletResponse response) {
         String token = tokenHeader.replace("Bearer ", "");
         authService.logout(userId, token);
+
+        ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", "")
+          .path("/")
+          .sameSite("Strict")
+          .httpOnly(true)
+          .secure(true)
+          .domain("lookattheweather.store")
+          .maxAge(0)
+          .build();
+
+        response.addHeader("Set-Cookie", refreshTokenCookie.toString());
+
         return ResponseEntity.ok(new ResponseCommonDTO(true, "success logout"));
     }
 
