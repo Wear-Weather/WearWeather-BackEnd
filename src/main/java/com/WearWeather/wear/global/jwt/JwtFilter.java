@@ -38,13 +38,6 @@ public class JwtFilter extends GenericFilterBean {
         HttpServletResponse httpServletResponse = (HttpServletResponse) servletResponse; // 응답 객체 가져오기
 
         String requestURI = httpServletRequest.getRequestURI();
-        // 특정 API 제외
-        if (USERS_REISSUE.equals(requestURI)) {
-            logger.debug("JWT 필터를 건너뜀: {}", requestURI);
-            filterChain.doFilter(servletRequest, servletResponse);
-            return;
-        }
-
         String jwt = resolveToken(httpServletRequest);
         try {
             if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
