@@ -26,7 +26,8 @@ public class JwtFilter extends GenericFilterBean {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtFilter.class);
     public static final String AUTHORIZATION_HEADER = "Authorization";
-    private final TokenProvider tokenProvider; 
+    private final TokenProvider tokenProvider;
+    public static final String USERS_REISSUE = "/users/reissue";
 
     // 토큰의 인증정보(ID, 권한 정보 등)를 SecurityContext에 저장
     @Override
@@ -35,9 +36,16 @@ public class JwtFilter extends GenericFilterBean {
 
         HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
         HttpServletResponse httpServletResponse = (HttpServletResponse) servletResponse; // 응답 객체 가져오기
-        String jwt = resolveToken(httpServletRequest);
-        String requestURI = httpServletRequest.getRequestURI();
 
+        String requestURI = httpServletRequest.getRequestURI();
+        // 특정 API 제외
+        if (USERS_REISSUE.equals(requestURI)) {
+            logger.debug("JWT 필터를 건너뜀: {}", requestURI);
+            filterChain.doFilter(servletRequest, servletResponse);
+            return;
+        }
+
+        String jwt = resolveToken(httpServletRequest);
         try {
             if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
                 Authentication authentication = tokenProvider.getAuthentication(jwt);
