@@ -1,5 +1,11 @@
 package com.WearWeather.wear.domain.weather.service;
 
+import com.WearWeather.wear.domain.weather.dto.WeatherPerTimeResponse;
+import com.WearWeather.wear.global.exception.CustomException;
+import com.WearWeather.wear.global.exception.ErrorCode;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.time.LocalDateTime;
@@ -27,8 +33,10 @@ public class WeatherService {
     @Value("${weather.api.service-key}")
     private String serviceKey;
 
+    private final ObjectMapper objectMapper;
 
-    public String weatherTime(double longitude, double latitude) {
+
+    public WeatherPerTimeResponse weatherTime(double longitude, double latitude) {
 
         WebClient webClient = webClient(baseUrl);
 
@@ -51,10 +59,12 @@ public class WeatherService {
                     //TODO : 경도위도를 통해 좌표 계산하기
                     .queryParam("nx", 55)
                     .queryParam("ny", 127)
+                    .queryParam("dataType", "JSON")
                     .build())
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .bodyToMono(String.class)
+                .map(this::mapWeatherTime)
                 .block();
 
         } catch (UnsupportedEncodingException e) {
@@ -62,7 +72,7 @@ public class WeatherService {
         }
     }
 
-    private WebClient webClient(String baseUrl){
+    private WebClient webClient(String baseUrl) {
 
         DefaultUriBuilderFactory factory = new DefaultUriBuilderFactory(baseUrl);
         factory.setEncodingMode(EncodingMode.VALUES_ONLY);
@@ -73,7 +83,7 @@ public class WeatherService {
             .build();
     }
 
-    private String localDate(LocalDateTime now){
+    private String localDate(LocalDateTime now) {
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
 
@@ -106,5 +116,62 @@ public class WeatherService {
         }
 
         return String.format("%02d00", selectedBaseTime);
+    }
+
+    private WeatherPerTimeResponse mapWeatherTime(String responseBody) {
+
+        try {
+            JsonNode root = objectMapper.readTree(responseBody);
+
+            JsonNode body = root.path("response").path("body");
+            JsonNode items = body.path("items").path("item");
+
+            String tmp = null;
+            String weatherType = null;
+
+            for (JsonNode item : items){
+                String category = item.path("category").asText();
+                String fcstValue = item.path("fcstValue").asText();
+
+                if(category.equals("TMP")){
+                    tmp = fcstValue;
+                }
+
+                if(category.equals("PTY")){
+                    switch (fcstValue) {
+                        case "1":
+                            weatherType = "rain";
+                            break;
+                        case "2":
+                            weatherType = "sleet";
+                            break;
+                        case "3":
+                            weatherType = "snow";
+                            break;
+                        case "4":
+                            weatherType = "rain";
+                            break;
+                        //case "0"인 경우 추가하기
+                     }
+                }
+            }
+            return WeatherPerTimeResponse.of(tmp, weatherType, "메시지" );
+        } catch (IOException e) {
+            throw new CustomException(ErrorCode.FAIL_WEATHER_API_NO_DATA);
+        }
+    }
+
+    private String getWeatherTypeBySKY(String skyValue){
+
+        switch (skyValue) {
+            case "1" :
+                return "clear";
+            case "3" :
+                return "partly_cloudy";
+            case "4" :
+                return "cloudy";
+            default:
+                throw new CustomException(ErrorCode.INVALID_SKY_VALUE_WEATHER_API);
+        }
     }
 }
