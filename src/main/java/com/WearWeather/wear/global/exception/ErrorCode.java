@@ -87,7 +87,8 @@ public enum ErrorCode {
     NOT_FOUND_IMAGE_FILE(NOT_FOUND,"이미지 파일은 필수입니다"),
 
     FAIL_WEATHER_API_NO_DATA(NOT_FOUND,"날씨 조회에 실패하였습니다"),
-    INVALID_SKY_VALUE_WEATHER_API(NOT_FOUND,"올바르지 않은 SKY 값 입니다."),
+    INVALID_PTY_VALUE_WEATHER_API(NOT_FOUND,"올바르지 않은 강수 값입니다."),
+    INVALID_SKY_VALUE_WEATHER_API(NOT_FOUND,"올바르지 않은 하늘 값입니다."),
 
     ;
 

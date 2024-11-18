@@ -10,6 +10,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -126,65 +128,48 @@ public class WeatherService {
             JsonNode body = root.path("response").path("body");
             JsonNode items = body.path("items").path("item");
 
-            String tmp = null;
-            String weatherType = null;
-
-            for (JsonNode item : items){
+            Map<String, String> weatherValues = new HashMap<>();
+            
+            for (JsonNode item : items) {
                 String category = item.path("category").asText();
                 String fcstValue = item.path("fcstValue").asText();
 
-                if(category.equals("TMP")){
-                    tmp = fcstValue;
-                }
-
-                if(category.equals("PTY")){
-                    weatherType = getPTY(fcstValue, items);
+                if (category.equals("TMP") || category.equals("PTY") || category.equals("SKY")) {
+                    weatherValues.put(category, fcstValue);
                 }
             }
-            return WeatherPerTimeResponse.of(tmp, weatherType, "메시지");
+
+            String tmp = weatherValues.get("TMP");
+            String pty = weatherValues.get("PTY");
+            String sky = weatherValues.get("SKY");
+
+            String weatherType = null;
+
+            if(pty.equals("0")){
+                weatherType = getWeatherTypeBySKY(sky);
+            }else {
+                weatherType = getWeatherTypeByPTY(pty);
+            }
+
+            String message = createWeatherMessage(tmp, pty, sky);
+            
+            return WeatherPerTimeResponse.of(tmp, weatherType, message);
         } catch (IOException e) {
             throw new CustomException(ErrorCode.FAIL_WEATHER_API_NO_DATA);
         }
     }
 
-    private String getPTY(String fcstValue, JsonNode items){
+    private String getWeatherTypeByPTY(String pty){
 
-        String weatherType = null;
-
-        switch (fcstValue) {
-            case "1":
-                weatherType = "rain";
-                break;
-            case "2":
-                weatherType = "sleet";
-                break;
-            case "3":
-                weatherType = "snow";
-                break;
-            case "4":
-                weatherType = "rain";
-                break;
-            case "0":
-                String skyValue = getSkyValue(items);
-                weatherType = getWeatherTypeBySKY(skyValue);
-                break;
-        }
-
-        return weatherType;
+        return switch (pty) {
+            case "1" -> "rain";
+            case "2" -> "sleet";
+            case "3" -> "snow";
+            case "4" -> "rain";
+            default -> throw new CustomException(ErrorCode.INVALID_PTY_VALUE_WEATHER_API);
+        };
     }
-    private String getSkyValue(JsonNode items){
 
-        String fcstValue = null;
-
-        for (JsonNode item : items) {
-            String category = item.path("category").asText();
-
-            if(category.equals("SKY")){
-                fcstValue = item.path("fcstValue").asText();
-            }
-        }
-        return fcstValue;
-    }
     private String getWeatherTypeBySKY(String skyValue){
 
       return switch (skyValue) {
@@ -193,5 +178,68 @@ public class WeatherService {
         case "4" -> "cloudy";
         default -> throw new CustomException(ErrorCode.INVALID_SKY_VALUE_WEATHER_API);
       };
+    }
+
+    private String createWeatherMessage(String currentTmp, String pty, String sky) {
+
+        String message = createTmpMessage(currentTmp);
+
+        if(message.equals("기본 기온 메시지")){
+            message = createPtyMessage(pty);
+
+        }else if(message.equals("쌀쌀하고 ") || message.equals("기본 강수 메시지")){
+            message += createSkyMessage(sky);
+        }
+
+        return message;
+    }
+
+    private String createTmpMessage(String currentTmp){
+
+        String message = "기본 기온 메시지";
+
+        int numTmp = Integer.parseInt(currentTmp);
+
+        if (numTmp <= 0){
+            message = "매우 추운 날이에요!";
+        }else if (numTmp <= 10){
+            message = "쌀쌀하고 ";
+        }else if (numTmp > 30){
+            message = "매우 더운 날이에요!";
+        }
+
+        return message;
+    }
+
+    private String createPtyMessage(String pty){
+
+        String message = "기본 강수 메시지";
+
+        switch (pty) {
+            case "1" :
+                message = "비가 내리는 날이에요!";
+                break;
+            case "2" :
+                message = "눈/비가 내리는 날이에요!";
+                break;
+            case "3" :
+                message = "눈가 내리는 날이에요!";
+                break;
+            case "4" :
+                message = "소나기가 내리는 날이에요!";
+                break;
+        }
+
+        return message;
+    }
+
+    private String createSkyMessage(String sky){
+
+        return switch (sky) {
+            case "1" -> "하늘이 맑은 날이에요!";
+            case "3" -> "구름이 많은 날이에요!";
+            case "4" -> "날씨가 흐린 날이에요!";
+            default -> throw new CustomException(ErrorCode.INVALID_SKY_VALUE_WEATHER_API);
+        };
     }
 }
