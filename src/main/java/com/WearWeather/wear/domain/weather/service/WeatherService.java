@@ -39,7 +39,7 @@ public class WeatherService {
 
     private final ObjectMapper objectMapper;
 
-    public String weatherApi(double longitude, double latitude) {
+    public String weatherApi(double longitude, double latitude, int numOfRows) {
 
         WebClient webClient = webClient(baseUrl);
 
@@ -56,12 +56,12 @@ public class WeatherService {
                 .uri(uriBuilder -> uriBuilder
                     .path(pathUrl)
                     .queryParam("serviceKey", encodeServiceKey)
-                    .queryParam("numOfRows", 10)
+                    .queryParam("numOfRows", numOfRows)
                     .queryParam("pageNo", 1)
                     .queryParam("base_date", baseDate)
                     .queryParam("base_time", baseTime)
-                    .queryParam("nx", latXLngY.x)
-                    .queryParam("ny", latXLngY.y)
+                    .queryParam("nx", 55)
+                    .queryParam("ny", 127)
                     .queryParam("dataType", "JSON")
                     .build())
                 .accept(MediaType.APPLICATION_JSON)
@@ -121,7 +121,8 @@ public class WeatherService {
     }
 
     public WeatherPerTimeResponse weatherTime(double longitude, double latitude){
-        String responseBody = weatherApi(longitude, latitude);
+        int numOfRows = 10;
+        String responseBody = weatherApi(longitude, latitude, numOfRows);
         return mapWeatherTime(responseBody);
     }
 
@@ -249,7 +250,8 @@ public class WeatherService {
     }
 
     public WeatherTmpResponse weatherTmp(double longitude, double latitude) {
-        String responseBody = weatherApi(longitude, latitude);
+        int numOfRows = 500;
+        String responseBody = weatherApi(longitude, latitude, numOfRows);
         return mapWeatherTmp(responseBody);
     }
 
