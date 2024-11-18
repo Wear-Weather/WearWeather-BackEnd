@@ -2,6 +2,7 @@ package com.WearWeather.wear.domain.weather.service;
 
 import com.WearWeather.wear.domain.weather.domain.LatXLngY;
 import com.WearWeather.wear.domain.weather.dto.response.WeatherPerTimeResponse;
+import com.WearWeather.wear.domain.weather.dto.response.WeatherTmpResponse;
 import com.WearWeather.wear.global.exception.CustomException;
 import com.WearWeather.wear.global.exception.ErrorCode;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -245,6 +246,45 @@ public class WeatherService {
             case "4" -> "날씨가 흐린 날이에요!";
             default -> throw new CustomException(ErrorCode.INVALID_SKY_VALUE_WEATHER_API);
         };
+    }
+
+    public WeatherTmpResponse weatherTmp(double longitude, double latitude) {
+        String responseBody = weatherApi(longitude, latitude);
+        return mapWeatherTmp(responseBody);
+    }
+
+    private WeatherTmpResponse mapWeatherTmp(String responseBody) {
+
+        try {
+            JsonNode root = objectMapper.readTree(responseBody);
+
+            JsonNode body = root.path("response").path("body");
+            JsonNode items = body.path("items").path("item");
+
+            String minTemp = null;
+            String maxTemp = null;
+
+            for (JsonNode item : items) {
+                String category = item.path("category").asText();
+                String fcstValue = item.path("fcstValue").asText();
+
+                if (category.equals("TMN")){
+                    minTemp = fcstValue;
+                }
+
+                if(category.equals("TMX")) {
+                    maxTemp = fcstValue;
+                }
+            }
+
+            if (minTemp == null || maxTemp == null) {
+                throw new CustomException(ErrorCode.INVALID_WEATHER_TMP);
+            }
+
+            return WeatherTmpResponse.of(minTemp, maxTemp);
+        } catch (IOException e) {
+            throw new CustomException(ErrorCode.FAIL_WEATHER_API_NO_DATA);
+        }
     }
 
     private LatXLngY convertGRID_GPS(String mode, double lat_X, double lng_Y) {

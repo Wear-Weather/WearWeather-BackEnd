@@ -89,6 +89,7 @@ public enum ErrorCode {
     FAIL_WEATHER_API_NO_DATA(NOT_FOUND,"날씨 조회에 실패하였습니다"),
     INVALID_PTY_VALUE_WEATHER_API(NOT_FOUND,"올바르지 않은 강수 값입니다."),
     INVALID_SKY_VALUE_WEATHER_API(NOT_FOUND,"올바르지 않은 하늘 값입니다."),
+    INVALID_WEATHER_TMP(NOT_FOUND,"올바르지 않은 기온 값입니다."),
 
     ;
 
