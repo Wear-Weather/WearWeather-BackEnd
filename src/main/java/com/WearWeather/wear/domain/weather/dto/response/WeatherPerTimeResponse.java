@@ -1,4 +1,4 @@
-package com.WearWeather.wear.domain.weather.dto;
+package com.WearWeather.wear.domain.weather.dto.response;
 
 import lombok.Builder;
 
