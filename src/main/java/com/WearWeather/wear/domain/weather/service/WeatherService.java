@@ -138,40 +138,60 @@ public class WeatherService {
                 }
 
                 if(category.equals("PTY")){
-                    switch (fcstValue) {
-                        case "1":
-                            weatherType = "rain";
-                            break;
-                        case "2":
-                            weatherType = "sleet";
-                            break;
-                        case "3":
-                            weatherType = "snow";
-                            break;
-                        case "4":
-                            weatherType = "rain";
-                            break;
-                        //case "0"인 경우 추가하기
-                     }
+                    weatherType = getPTY(fcstValue, items);
                 }
             }
-            return WeatherPerTimeResponse.of(tmp, weatherType, "메시지" );
+            return WeatherPerTimeResponse.of(tmp, weatherType, "메시지");
         } catch (IOException e) {
             throw new CustomException(ErrorCode.FAIL_WEATHER_API_NO_DATA);
         }
     }
 
+    private String getPTY(String fcstValue, JsonNode items){
+
+        String weatherType = null;
+
+        switch (fcstValue) {
+            case "1":
+                weatherType = "rain";
+                break;
+            case "2":
+                weatherType = "sleet";
+                break;
+            case "3":
+                weatherType = "snow";
+                break;
+            case "4":
+                weatherType = "rain";
+                break;
+            case "0":
+                String skyValue = getSkyValue(items);
+                weatherType = getWeatherTypeBySKY(skyValue);
+                break;
+        }
+
+        return weatherType;
+    }
+    private String getSkyValue(JsonNode items){
+
+        String fcstValue = null;
+
+        for (JsonNode item : items) {
+            String category = item.path("category").asText();
+
+            if(category.equals("SKY")){
+                fcstValue = item.path("fcstValue").asText();
+            }
+        }
+        return fcstValue;
+    }
     private String getWeatherTypeBySKY(String skyValue){
 
-        switch (skyValue) {
-            case "1" :
-                return "clear";
-            case "3" :
-                return "partly_cloudy";
-            case "4" :
-                return "cloudy";
-            default:
-                throw new CustomException(ErrorCode.INVALID_SKY_VALUE_WEATHER_API);
-        }
+      return switch (skyValue) {
+        case "1" -> "clear";
+        case "3" -> "partly_cloudy";
+        case "4" -> "cloudy";
+        default -> throw new CustomException(ErrorCode.INVALID_SKY_VALUE_WEATHER_API);
+      };
     }
 }

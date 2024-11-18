@@ -2,7 +2,6 @@ package com.WearWeather.wear.domain.weather.controller;
 
 import com.WearWeather.wear.domain.weather.dto.WeatherPerTimeResponse;
 import com.WearWeather.wear.domain.weather.service.WeatherService;
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
