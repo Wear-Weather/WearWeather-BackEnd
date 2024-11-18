@@ -16,10 +16,12 @@ public class WeatherController {
     private final WeatherService weatherService;
 
     @GetMapping("/time")
-    public WeatherPerTimeResponse geocodingLocation(@RequestParam("longitude") double longitude,
+    public WeatherPerTimeResponse getWeatherPerTime(@RequestParam("longitude") double longitude,
                                      @RequestParam("latitude") double latitude){
         return weatherService.weatherTime(longitude, latitude);
     }
+
+
 
 
 }
