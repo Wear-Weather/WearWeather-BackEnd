@@ -1,6 +1,7 @@
 package com.WearWeather.wear.domain.weather.service;
 
-import com.WearWeather.wear.domain.weather.dto.WeatherPerTimeResponse;
+import com.WearWeather.wear.domain.weather.domain.LatXLngY;
+import com.WearWeather.wear.domain.weather.dto.response.WeatherPerTimeResponse;
 import com.WearWeather.wear.global.exception.CustomException;
 import com.WearWeather.wear.global.exception.ErrorCode;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -37,8 +38,7 @@ public class WeatherService {
 
     private final ObjectMapper objectMapper;
 
-
-    public WeatherPerTimeResponse weatherTime(double longitude, double latitude) {
+    public String weatherApi(double longitude, double latitude) {
 
         WebClient webClient = webClient(baseUrl);
 
@@ -50,6 +50,7 @@ public class WeatherService {
             String baseDate = localDate(now);
             String baseTime = getBaseTime(now);
 
+            LatXLngY latXLngY = convertGRID_GPS("TO_GRID", latitude, longitude);
             return webClient.get()
                 .uri(uriBuilder -> uriBuilder
                     .path(pathUrl)
@@ -58,15 +59,13 @@ public class WeatherService {
                     .queryParam("pageNo", 1)
                     .queryParam("base_date", baseDate)
                     .queryParam("base_time", baseTime)
-                    //TODO : 경도위도를 통해 좌표 계산하기
-                    .queryParam("nx", 55)
-                    .queryParam("ny", 127)
+                    .queryParam("nx", latXLngY.x)
+                    .queryParam("ny", latXLngY.y)
                     .queryParam("dataType", "JSON")
                     .build())
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .bodyToMono(String.class)
-                .map(this::mapWeatherTime)
                 .block();
 
         } catch (UnsupportedEncodingException e) {
@@ -118,6 +117,11 @@ public class WeatherService {
         }
 
         return String.format("%02d00", selectedBaseTime);
+    }
+
+    public WeatherPerTimeResponse weatherTime(double longitude, double latitude){
+        String responseBody = weatherApi(longitude, latitude);
+        return mapWeatherTime(responseBody);
     }
 
     private WeatherPerTimeResponse mapWeatherTime(String responseBody) {
@@ -242,4 +246,145 @@ public class WeatherService {
             default -> throw new CustomException(ErrorCode.INVALID_SKY_VALUE_WEATHER_API);
         };
     }
+
+    private LatXLngY convertGRID_GPS(String mode, double lat_X, double lng_Y) {
+        // 정의된 파라미터
+        final double RE = 6371.00877; // 지구 반경(km)
+        final double GRID = 5.0; // 격자 간격(km)
+        final double SLAT1 = 30.0; // 투영 위도1(degree)
+        final double SLAT2 = 60.0; // 투영 위도2(degree)
+        final double OLON = 126.0; // 기준점 경도(degree)
+        final double OLAT = 38.0; // 기준점 위도(degree)
+        final double XO = 42; // 기준점 X좌표(GRID)
+        final double YO = 135; // 기준점 Y좌표(GRID)
+
+        // 수학 상수
+        final double DEGRAD = Math.PI / 180.0; // Degree to Radian 변환 상수
+        final double RADDEG = 180.0 / Math.PI; // Radian to Degree 변환 상수
+
+        // 초기화
+        double re = RE / GRID; // 격자 크기에 맞춘 지구 반경
+        double slat1 = SLAT1 * DEGRAD; // 첫 번째 표준위도
+        double slat2 = SLAT2 * DEGRAD; // 두 번째 표준위도
+        double olon = OLON * DEGRAD; // 기준 경도
+        double olat = OLAT * DEGRAD; // 기준 위도
+
+        double sn = Math.tan(Math.PI * 0.25 + slat2 * 0.5) / Math.tan(Math.PI * 0.25 + slat1 * 0.5);
+        sn = Math.log(Math.cos(slat1) / Math.cos(slat2)) / Math.log(sn); // sn 계산
+        double sf = Math.tan(Math.PI * 0.25 + slat1 * 0.5);
+        sf = Math.pow(sf, sn) * Math.cos(slat1) / sn; // sf 계산
+        double ro = Math.tan(Math.PI * 0.25 + olat * 0.5);
+        ro = re * sf / Math.pow(ro, sn); // ro 계산
+
+        // 결과 객체 생성
+        LatXLngY rs = new LatXLngY();
+
+        if (mode.equals("TO_GRID")) {
+            // 위경도를 격자 좌표로 변환
+            double ra = Math.tan(Math.PI * 0.25 + lat_X * DEGRAD * 0.5);
+            ra = re * sf / Math.pow(ra, sn);
+            double theta = lng_Y * DEGRAD - olon; // 경도 차이 계산
+            if (theta > Math.PI) theta -= 2.0 * Math.PI; // 경도가 180도를 넘어가면 보정
+            if (theta < -Math.PI) theta += 2.0 * Math.PI; // 경도가 -180도 이하일 때 보정
+            theta *= sn;
+            rs.x = Math.floor(ra * Math.sin(theta) + XO + 0.5); // X좌표 계산
+            rs.y = Math.floor(ro - ra * Math.cos(theta) + YO + 0.5); // Y좌표 계산
+        } else if (mode.equals("TO_GPS")) {
+            // 격자 좌표를 위경도로 변환
+            double xn = lat_X - XO;
+            double yn = ro - lng_Y + YO;
+            double ra = Math.sqrt(xn * xn + yn * yn); // 거리 계산
+            if (sn < 0.0) ra = -ra;
+            double alat = Math.pow((re * sf / ra), (1.0 / sn)); // 위도 계산
+            alat = 2.0 * Math.atan(alat) - Math.PI * 0.5;
+            double theta = 0.0;
+            if (Math.abs(xn) <= 0.0) {
+                theta = 0.0;
+            } else if (Math.abs(yn) <= 0.0) {
+                theta = Math.PI * 0.5;
+                if (xn < 0.0) theta = -theta;
+            } else {
+                theta = Math.atan2(xn, yn);
+            }
+            double alon = theta / sn + olon; // 경도 계산
+            rs.lat = alat * RADDEG; // 위도
+            rs.lng = alon * RADDEG; // 경도
+        }
+
+        return rs; // 결과 반환
+
+//        double RE = 6371.00877; // 지구 반경(km)
+//        double GRID = 5.0; // 격자 간격(km)
+//        double SLAT1 = 30.0; // 투영 위도1(degree)
+//        double SLAT2 = 60.0; // 투영 위도2(degree)
+//        double OLON = 126.0; // 기준점 경도(degree)
+//        double OLAT = 38.0; // 기준점 위도(degree)
+//        double XO = 42; // 기준점 X좌표(GRID)
+//        double YO = 135; // 기준점 Y좌표(GRID)
+//
+//        // LCC DFS 좌표변환 ( code : "TO_GRID"(위경도->좌표, lat_X:위도,  lng_Y:경도), "TO_GPS"(좌표->위경도,  lat_X:x, lng_Y:y) )
+//
+//        double DEGRAD = Math.PI / 180.0;
+//        double RADDEG = 180.0 / Math.PI;
+//
+//        double re = RE / GRID;
+//        double slat1 = SLAT1 * DEGRAD;
+//        double slat2 = SLAT2 * DEGRAD;
+//        double olon = OLON * DEGRAD;
+//        double olat = OLAT * DEGRAD;
+//
+//        double sn = Math.tan(Math.PI * 0.25 + slat2 * 0.5) / Math.tan(Math.PI * 0.25 + slat1 * 0.5);
+//        sn = Math.log(Math.cos(slat1) / Math.cos(slat2)) / Math.log(sn);
+//        double sf = Math.tan(Math.PI * 0.25 + slat1 * 0.5);
+//        sf = Math.pow(sf, sn) * Math.cos(slat1) / sn;
+//        double ro = Math.tan(Math.PI * 0.25 + olat * 0.5);
+//        ro = re * sf / Math.pow(ro, sn);
+//        LatXLngY rs = new LatXLngY();
+//
+//        if (Objects.equals(mode, "TO_GRID")) {
+//            rs.lat = lat_X;
+//            rs.lng = lng_Y;
+//            double ra = Math.tan(Math.PI * 0.25 + (lat_X) * DEGRAD * 0.5);
+//            ra = re * sf / Math.pow(ra, sn);
+//            double theta = lng_Y * DEGRAD - olon;
+//            if (theta > Math.PI) theta -= 2.0 * Math.PI;
+//            if (theta < -Math.PI) theta += 2.0 * Math.PI;
+//            theta *= sn;
+//            rs.x = Math.floor(ra * Math.sin(theta) + XO + 0.5);
+//            rs.y = Math.floor(ro - ra * Math.cos(theta) + YO + 0.5);
+//        }
+//
+//        else {
+//            rs.x = lat_X;
+//            rs.y = lng_Y;
+//            double xn = lat_X - XO;
+//            double yn = ro - lng_Y + YO;
+//            double ra = Math.sqrt(xn * xn + yn * yn);
+//            if (sn < 0.0) {
+//                ra = -ra;
+//            }
+//            double alat = Math.pow((re * sf / ra), (1.0 / sn));
+//            alat = 2.0 * Math.atan(alat) - Math.PI * 0.5;
+//            double theta = 0.0;
+//            if (Math.abs(xn) <= 0.0) {
+//                theta = 0.0;
+//            }
+//            else {
+//                if (Math.abs(yn) <= 0.0) {
+//                    theta = Math.PI * 0.5;
+//                    if (xn < 0.0) {
+//                        theta = -theta;
+//                    }
+//                }
+//                else theta = Math.atan2(xn, yn);
+//            }
+//            double alon = theta / sn + olon;
+//            rs.lat = alat * RADDEG;
+//            rs.lng = alon * RADDEG;
+//        }
+//
+//        return rs;
+
+        }
+
 }
