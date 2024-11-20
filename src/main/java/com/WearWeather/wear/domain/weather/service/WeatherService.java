@@ -1,5 +1,6 @@
 package com.WearWeather.wear.domain.weather.service;
 
+import com.WearWeather.wear.domain.weather.domain.BaseDateTime;
 import com.WearWeather.wear.domain.weather.domain.LatXLngY;
 import com.WearWeather.wear.domain.weather.dto.response.WeatherPerTimeResponse;
 import com.WearWeather.wear.domain.weather.dto.response.WeatherTmpResponse;
@@ -47,19 +48,17 @@ public class WeatherService {
 
             String encodeServiceKey = URLEncoder.encode(serviceKey, "UTF-8");
 
-            LocalDateTime now = LocalDateTime.now();
-            String baseDate = localDate(now);
-            String baseTime = getBaseTime(now);
-
             LatXLngY latXLngY = convertGRID_GPS("toXY", latitude, longitude);
+            BaseDateTime baseDateTime = getBaseDateTime();
+
             return webClient.get()
                 .uri(uriBuilder -> uriBuilder
                     .path(pathUrl)
                     .queryParam("serviceKey", encodeServiceKey)
                     .queryParam("numOfRows", numOfRows)
                     .queryParam("pageNo", 1)
-                    .queryParam("base_date", baseDate)
-                    .queryParam("base_time", baseTime)
+                    .queryParam("base_date", baseDateTime.baseDate)
+                    .queryParam("base_time", baseDateTime.baseTime)
                     .queryParam("nx", String.valueOf((int) latXLngY.x))
                     .queryParam("ny", String.valueOf((int) latXLngY.y))
                     .queryParam("dataType", "JSON")
@@ -85,14 +84,11 @@ public class WeatherService {
             .build();
     }
 
-    private String localDate(LocalDateTime now) {
+    private BaseDateTime getBaseDateTime() {
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+        LocalDateTime now = LocalDateTime.now();
+        String baseDate = localDate(now);
 
-        return now.format(formatter);
-    }
-
-    private String getBaseTime(LocalDateTime now) {
         int[] baseTimeList = {2, 5, 8, 11, 14, 17, 20, 23};
 
         int currentHour = now.getHour();
@@ -101,23 +97,35 @@ public class WeatherService {
         int previousBaseTime = -1;
         int selectedBaseTime = -1;
 
-        for (int baseTime : baseTimeList) {
-            if (baseTime < currentHour) {
-                previousBaseTime = baseTime;
-                selectedBaseTime = baseTime;
-            } else if (baseTime == currentHour) {
-                if (minute <= 20) {
-                    selectedBaseTime = previousBaseTime;
+        if ((currentHour == 0) || (currentHour == 1) || (currentHour == 2 && minute <= 20)) {
+            baseDate = localDate(now.minusDays(1));
+            selectedBaseTime = 23;
+        }else{
+            for (int baseTime : baseTimeList) {
+                if (baseTime < currentHour) {
+                    previousBaseTime = baseTime;
+                } else if (baseTime == currentHour) {
+                    if (minute <= 20) {
+                        selectedBaseTime = previousBaseTime;
+                    } else {
+                        selectedBaseTime = baseTime;
+                    }
+                    break;
                 } else {
-                    selectedBaseTime = baseTime;
+                    selectedBaseTime = previousBaseTime;
+                    break;
                 }
-                break;
-            } else {
-                break;
             }
         }
 
-        return String.format("%02d00", selectedBaseTime);
+        return new BaseDateTime(baseDate, String.format("%02d00", selectedBaseTime));
+    }
+
+    private String localDate(LocalDateTime now) {
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+
+        return now.format(formatter);
     }
 
     public WeatherPerTimeResponse weatherTime(double longitude, double latitude){
@@ -149,7 +157,7 @@ public class WeatherService {
             String pty = weatherValues.get("PTY");
             String sky = weatherValues.get("SKY");
 
-            String weatherType = null;
+            String weatherType;
 
             if(pty.equals("0")){
                 weatherType = getWeatherTypeBySKY(sky);
@@ -289,7 +297,7 @@ public class WeatherService {
         }
     }
 
-    private LatXLngY convertGRID_GPS(String code, double lat_X, double lng_Y) {
+    private LatXLngY convertGRID_GPS(String mode, double lat_X, double lng_Y) {
 
         double RE = 6371.00877;  // 지구 반경(km)
         double GRID = 5.0;      // 격자 간격(km)
@@ -317,7 +325,7 @@ public class WeatherService {
         ro = (re * sf) / Math.pow(ro, sn);
 
         LatXLngY rs = new LatXLngY();
-        if ("toXY".equals(code)) {
+        if ("toXY".equals(mode)) {
             rs.lat = lat_X;
             rs.lng = lng_Y;
             double ra = Math.tan(Math.PI * 0.25 + (lat_X) * DEGRAD * 0.5);
