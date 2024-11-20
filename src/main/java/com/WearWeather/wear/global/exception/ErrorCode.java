@@ -86,6 +86,11 @@ public enum ErrorCode {
     S3_UPLOAD_FAILED(BAD_REQUEST,"S3에 이미지 업로드 중 오류가 발생하였습니다."),
     NOT_FOUND_IMAGE_FILE(NOT_FOUND,"이미지 파일은 필수입니다"),
 
+    FAIL_WEATHER_API_NO_DATA(NOT_FOUND,"날씨 조회에 실패하였습니다"),
+    INVALID_PTY_VALUE_WEATHER_API(NOT_FOUND,"올바르지 않은 강수 값입니다."),
+    INVALID_SKY_VALUE_WEATHER_API(NOT_FOUND,"올바르지 않은 하늘 값입니다."),
+    INVALID_WEATHER_TMP(NOT_FOUND,"올바르지 않은 기온 값입니다."),
+
     ;
 
     private final HttpStatus httpStatus;
