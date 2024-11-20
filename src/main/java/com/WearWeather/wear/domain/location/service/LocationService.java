@@ -316,7 +316,9 @@ public class LocationService {
             String exchangedCityName = exchangeCityName(city);
             String district = extractDistrict(documents.path(region_2depth_district).asText());
 
-            return GeocodingLocationResponse.of(exchangedCityName, district);
+            Location location = findCityIdAndDistrictId(exchangedCityName, district);
+
+            return GeocodingLocationResponse.of(exchangedCityName, location.getCity(), district, location.getDistrict());
 
         } catch (IOException e) {
             throw new CustomException(ErrorCode.GEO_COORD_SERVER_ERROR);
@@ -380,10 +382,10 @@ public class LocationService {
             JsonNode documents = root.path("documents").get(0);
             JsonNode address = documents.path("address");
 
-            String region_1depth_city = address.path(region_1depth_name).asText().substring(0, 2);
-            String region_2depth_district = address.path(region_2depth_name).asText();
+            String city = address.path(region_1depth_name).asText().substring(0, 2);
+            String district = address.path(region_2depth_name).asText();
 
-            if(region_2depth_district.isEmpty() || region_2depth_district.isBlank()){
+            if(district.isEmpty() || district.isBlank()){
                 return new SearchLocationResponse();
             }
 
@@ -391,7 +393,8 @@ public class LocationService {
             String longitude = String.format("%.4f", documents.path(x).asDouble());
             String latitude = String.format("%.4f", documents.path(y).asDouble());
 
-            return SearchLocationResponse.of(address_full_name, longitude, latitude, region_1depth_city, region_2depth_district);
+            Location location = findCityIdAndDistrictId(city, district);
+            return SearchLocationResponse.of(address_full_name, longitude, latitude, city, location.getCity(), district, location.getDistrict());
 
         } catch (IOException e) {
             throw new CustomException(ErrorCode.GEO_COORD_SERVER_ERROR);

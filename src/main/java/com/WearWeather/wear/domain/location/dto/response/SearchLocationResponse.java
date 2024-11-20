@@ -10,19 +10,23 @@ public record SearchLocationResponse(
         String latitude,
         String longitude,
         String city,
-        String district
+        Long cityId,
+        String district,
+        Long districtId
 ) {
     public SearchLocationResponse() {
-        this(null, null, null, null, null);
+        this(null, null, null, null, null, null, null);
     }
 
-    public static SearchLocationResponse of(String address_name, String latitude, String longitude, String city, String district){
+    public static SearchLocationResponse of(String address_name, String latitude, String longitude, String city, Long cityId, String district, Long districtId){
         return SearchLocationResponse.builder()
             .address_name(address_name)
             .latitude(latitude)
             .longitude(longitude)
             .city(city)
+            .cityId(cityId)
             .district(district)
+            .districtId(districtId)
             .build();
     }
 }
