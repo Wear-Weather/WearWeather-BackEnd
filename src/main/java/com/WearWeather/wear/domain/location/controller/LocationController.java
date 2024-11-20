@@ -20,7 +20,7 @@ public class LocationController {
         locationService.saveLocationData();
     }
 
-    @PostMapping("/location")
+    @GetMapping("/location")
     public Mono<GeocodingLocationResponse> geocodingLocation(@RequestParam("longitude") double longitude,
                                                              @RequestParam("latitude") double latitude){
         return locationService.findLocationByGeoCoordApi(longitude, latitude);
