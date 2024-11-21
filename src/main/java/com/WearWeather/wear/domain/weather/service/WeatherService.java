@@ -276,14 +276,14 @@ public class WeatherService {
 
             for (JsonNode item : items) {
                 String category = item.path("category").asText();
-                String fcstValue = item.path("fcstValue").asText();
+                int fcstValue = (int) Math.round(item.path("fcstValue").asDouble());
 
                 if (category.equals("TMN")){
-                    minTemp = fcstValue;
+                    minTemp = String.valueOf(fcstValue);
                 }
 
                 if(category.equals("TMX")) {
-                    maxTemp = fcstValue;
+                    maxTemp = String.valueOf(fcstValue);
                 }
             }
 
