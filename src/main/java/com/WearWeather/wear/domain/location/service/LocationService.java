@@ -22,7 +22,6 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -334,8 +333,7 @@ public class LocationService {
         return address.substring(0, index + 1);
     }
 
-
-    public Mono<SearchLocationResponse> searchLocation(String address){
+    public List<SearchLocationResponse> searchLocation(String address){
 
         String restApiKey = "KakaoAK " + geoCoordApiKey;
         WebClient webClient = buildKakaoLocalBaseUrl();
@@ -349,61 +347,52 @@ public class LocationService {
                     .queryParam("query", queryParam)
                     .build())
                 .header("Authorization", restApiKey)
+                .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
-                .onStatus(HttpStatusCode::is5xxServerError, clientResponse -> {
-                    return clientResponse.bodyToMono(String.class)
-                        .flatMap(body -> Mono.error(new CustomException(ErrorCode.GEO_COORD_SERVER_ERROR)));
-                })
                 .bodyToMono(String.class)
-                .map(this::mapSearchLocation);
+                .map(this::mapSearchLocation)
+                .block();
 
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private SearchLocationResponse mapSearchLocation(String responseBody) {
+    private List<SearchLocationResponse> mapSearchLocation(String responseBody) {
 
-        String address_name = "address_name";
-        String x = "x";
-        String y = "y";
-        String region_1depth_name = "region_1depth_name";
-        String region_2depth_name = "region_2depth_name";
+        List<SearchLocationResponse> locationList = new ArrayList<>();
 
         try {
             JsonNode root = objectMapper.readTree(responseBody);
 
-            if(root.path("documents").isEmpty() || root.path("documents").isNull()){
-                return new SearchLocationResponse();
+            JsonNode documents = root.path("documents");
+
+            if(documents.isEmpty() || documents.isNull()){
+                return Collections.emptyList();
             }
 
-            JsonNode documents = root.path("documents").get(0);
-            JsonNode address = documents.path("address");
+            for (JsonNode document : documents) {
+                JsonNode address = document.path("address");
 
-            String region_1depth_city = address.path(region_1depth_name).asText().substring(0, 2);
-            String region_2depth_district = address.path(region_2depth_name).asText();
+                String address_full_name = document.path("address_name").asText();
+                String longitude = String.format("%.4f", document.path("x").asDouble());
+                String latitude = String.format("%.4f", document.path("y").asDouble());
 
-            if(region_2depth_district.isEmpty() || region_2depth_district.isBlank()){
-                return new SearchLocationResponse();
+                String region_1depth_city = address.path("region_1depth_name").asText().substring(0, 2);
+                String region_2depth_district = address.path("region_2depth_name").asText();
+
+                if(region_2depth_district.isEmpty() || region_2depth_district.isBlank()){
+                    return Collections.emptyList();
+                }
+
+                locationList.add(SearchLocationResponse.of(address_full_name, longitude, latitude, region_1depth_city, region_2depth_district));
             }
 
-            String address_full_name = extractAddressName(documents.path(address_name).asText());
-            String longitude = String.format("%.4f", documents.path(x).asDouble());
-            String latitude = String.format("%.4f", documents.path(y).asDouble());
-
-            return SearchLocationResponse.of(address_full_name, longitude, latitude, region_1depth_city, region_2depth_district);
+            return locationList;
 
         } catch (IOException e) {
             throw new CustomException(ErrorCode.GEO_COORD_SERVER_ERROR);
         }
-    }
-
-    private String extractAddressName(String address_name){
-        String[] parts = address_name.split(" ", 2);
-        String firstPart = parts[0].substring(0, 2);
-        String restOfAddress = parts[1];
-
-        return firstPart + " " + restOfAddress;
     }
 
     public RegionsResponse getRegions(){
