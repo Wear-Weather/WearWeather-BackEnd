@@ -9,11 +9,13 @@ import com.WearWeather.wear.domain.post.dto.response.ImagesResponse;
 import com.WearWeather.wear.domain.post.dto.response.LocationResponse;
 import com.WearWeather.wear.domain.post.dto.response.PostByLocationResponse;
 import com.WearWeather.wear.domain.post.dto.response.PostByMeResponse;
+import com.WearWeather.wear.domain.post.dto.response.PostByTemperatureResponse;
 import com.WearWeather.wear.domain.post.dto.response.PostDetailResponse;
 import com.WearWeather.wear.domain.post.dto.response.PostWithLocationName;
 import com.WearWeather.wear.domain.post.dto.response.PostsByFiltersResponse;
 import com.WearWeather.wear.domain.post.dto.response.PostsByLocationResponse;
 import com.WearWeather.wear.domain.post.dto.response.PostsByMeResponse;
+import com.WearWeather.wear.domain.post.dto.response.PostsByTemperatureResponse;
 import com.WearWeather.wear.domain.post.dto.response.SearchPostResponse;
 import com.WearWeather.wear.domain.post.dto.response.TopLikedPostResponse;
 import com.WearWeather.wear.domain.post.entity.Location;
@@ -436,4 +438,43 @@ public class PostService {
         postIdsSet.addAll(reportedPostIds);
         return new ArrayList<>(postIdsSet);
     }
+
+    public PostsByTemperatureResponse getPostsByTemperature(Long userId, String tmp, int page, int size) {
+        Page<Post> posts = getPostByTemperature(userId, tmp, page, size);
+
+        List<PostByTemperatureResponse> responses = posts.stream()
+            .map(post -> getPostByTemperature(post, userId))
+            .toList();
+
+        int totalPages = posts.getTotalPages() - 1;
+
+        return PostsByTemperatureResponse.of(responses, totalPages);
+    }
+
+    public Page<Post> getPostByTemperature(Long userId, String tmp, int page, int size) {
+
+        List<Long> invisiblePostIds = (userId != null) ? getInvisiblePostIdsList(userId) : Collections.emptyList();
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        return postRepository.findPostsByTmp(tmp, pageable, invisiblePostIds);
+    }
+
+    public PostByTemperatureResponse getPostByTemperature(Post post, Long userId) {
+
+        String url = getImageUrl(post.getThumbnailImageId());
+        Map<String, List<String>> tags = getTagsByPostId(post.getId());
+        LocationResponse location = locationService.findCityIdAndDistrictId(post.getLocation().getCity(), post.getLocation().getDistrict());
+
+        boolean like = checkLikeByPostAndUser(post.getId(), userId);
+
+        return PostByTemperatureResponse.of(
+            post.getId(),
+            url,
+            location,
+            tags,
+            like
+        );
+    }
+
 }

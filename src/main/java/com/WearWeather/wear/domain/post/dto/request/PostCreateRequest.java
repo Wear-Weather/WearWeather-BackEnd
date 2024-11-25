@@ -28,6 +28,9 @@ public class PostCreateRequest implements PostImageRequest, TaggableRequest {
     private final String content;
 
     @NotBlank
+    private final String temperature;
+
+    @NotBlank
     private final String city;
 
     @NotBlank
@@ -51,6 +54,7 @@ public class PostCreateRequest implements PostImageRequest, TaggableRequest {
     public PostCreateRequest(
         @JsonProperty("title") String title,
         @JsonProperty("content") String content,
+        @JsonProperty("temperature") String temperature,
         @JsonProperty("city") String city,
         @JsonProperty("district") String district,
         @JsonProperty("weatherTagIds") Set<Long> weatherTagIds,
@@ -59,6 +63,7 @@ public class PostCreateRequest implements PostImageRequest, TaggableRequest {
     ) {
         this.title = title;
         this.content = content;
+        this.temperature = temperature;
         this.city = city;
         this.district = district;
         this.weatherTagIds = weatherTagIds;
@@ -71,6 +76,7 @@ public class PostCreateRequest implements PostImageRequest, TaggableRequest {
             .userId(userId)
             .title(title)
             .content(content)
+            .temperature(temperature)
             .location(location)
             .build();
     }

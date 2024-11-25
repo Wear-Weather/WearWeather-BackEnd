@@ -8,6 +8,7 @@ import com.WearWeather.wear.domain.post.dto.response.PostDetailResponse;
 import com.WearWeather.wear.domain.post.dto.response.PostsByFiltersResponse;
 import com.WearWeather.wear.domain.post.dto.response.PostsByLocationResponse;
 import com.WearWeather.wear.domain.post.dto.response.PostsByMeResponse;
+import com.WearWeather.wear.domain.post.dto.response.PostsByTemperatureResponse;
 import com.WearWeather.wear.domain.post.dto.response.TopLikedPostResponse;
 import com.WearWeather.wear.domain.post.dto.response.TopLikedPostsResponse;
 import com.WearWeather.wear.domain.post.entity.SortType;
@@ -17,7 +18,6 @@ import com.WearWeather.wear.global.common.dto.ResponseCommonDTO;
 import com.WearWeather.wear.global.jwt.LoggedInUser;
 import jakarta.validation.Valid;
 import java.util.List;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -83,6 +83,13 @@ public class PostController {
         return ResponseEntity.ok(postService.searchPostsWithFilters(userId, request));
     }
 
+    @GetMapping("/tmp")
+    public ResponseEntity<PostsByTemperatureResponse> getPostsByTemperature(@LoggedInUser Long userId,
+        @RequestParam("tmp") String tmp,
+        @RequestParam("page") int page,
+        @RequestParam("size") int size) {
+        return ResponseEntity.ok(postService.getPostsByTemperature(userId, tmp, page, size));
+    }
 
     @GetMapping("/me")
     public ResponseEntity<PostsByMeResponse> getPostsByMe(@LoggedInUser Long userId,
