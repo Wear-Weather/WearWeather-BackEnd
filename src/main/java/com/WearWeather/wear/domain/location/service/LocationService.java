@@ -349,10 +349,6 @@ public class LocationService {
                 .header("Authorization", restApiKey)
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
-                .onStatus(HttpStatusCode::is5xxServerError, clientResponse -> {
-                    return clientResponse.bodyToMono(String.class)
-                        .flatMap(body -> Mono.error(new CustomException(ErrorCode.GEO_COORD_SERVER_ERROR)));
-                })
                 .bodyToMono(String.class)
                 .map(this::mapSearchLocation)
                 .block();
@@ -378,7 +374,7 @@ public class LocationService {
             for (JsonNode document : documents) {
                 JsonNode address = document.path("address");
 
-                String address_full_name = extractAddressName(document.path("address_name").asText());
+                String address_full_name = document.path("address_name").asText();
                 String longitude = String.format("%.4f", document.path("x").asDouble());
                 String latitude = String.format("%.4f", document.path("y").asDouble());
 
@@ -397,14 +393,6 @@ public class LocationService {
         } catch (IOException e) {
             throw new CustomException(ErrorCode.GEO_COORD_SERVER_ERROR);
         }
-    }
-
-    private String extractAddressName(String address_name){
-        String[] parts = address_name.split(" ", 2);
-        String firstPart = parts[0].substring(0, 2);
-        String restOfAddress = parts[1];
-
-        return firstPart + " " + restOfAddress;
     }
 
     public RegionsResponse getRegions(){
