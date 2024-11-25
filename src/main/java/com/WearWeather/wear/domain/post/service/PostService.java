@@ -21,6 +21,7 @@ import com.WearWeather.wear.domain.post.dto.response.TopLikedPostResponse;
 import com.WearWeather.wear.domain.post.entity.Location;
 import com.WearWeather.wear.domain.post.entity.Post;
 import com.WearWeather.wear.domain.post.entity.SortType;
+import com.WearWeather.wear.domain.post.entity.TemperatureRange;
 import com.WearWeather.wear.domain.post.repository.PostRepository;
 import com.WearWeather.wear.domain.postHidden.service.PostHiddenService;
 import com.WearWeather.wear.domain.postImage.entity.PostImage;
@@ -28,7 +29,6 @@ import com.WearWeather.wear.domain.postImage.repository.PostImageRepository;
 import com.WearWeather.wear.domain.postImage.service.PostImageService;
 import com.WearWeather.wear.domain.postLike.dto.response.LikedPostByMeResponse;
 import com.WearWeather.wear.domain.postLike.repository.LikeRepository;
-import com.WearWeather.wear.domain.postLike.service.LikeService;
 import com.WearWeather.wear.domain.postReport.service.PostReportService;
 import com.WearWeather.wear.domain.postTag.entity.PostTag;
 import com.WearWeather.wear.domain.postTag.repository.PostTagRepository;
@@ -45,7 +45,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -439,8 +438,14 @@ public class PostService {
         return new ArrayList<>(postIdsSet);
     }
 
-    public PostsByTemperatureResponse getPostsByTemperature(Long userId, String tmp, int page, int size) {
-        Page<Post> posts = getPostByTemperature(userId, tmp, page, size);
+    public PostsByTemperatureResponse getPostsByTemperature(Long userId, int tmp, int page, int size) {
+
+        TemperatureRange temperatureRange = TemperatureRange.fromTemperature(tmp);
+
+        int tmpRangeStart = temperatureRange.getRangeStart();
+        int tmpRangeEnd = temperatureRange.getRangeEnd();
+
+        Page<Post> posts = getPostByTemperature(userId, tmpRangeStart, tmpRangeEnd, page, size);
 
         List<PostByTemperatureResponse> responses = posts.stream()
             .map(post -> getPostByTemperature(post, userId))
@@ -448,16 +453,16 @@ public class PostService {
 
         int totalPages = posts.getTotalPages() - 1;
 
-        return PostsByTemperatureResponse.of(responses, totalPages);
+        return PostsByTemperatureResponse.of(tmpRangeStart, tmpRangeEnd, responses, totalPages);
     }
 
-    public Page<Post> getPostByTemperature(Long userId, String tmp, int page, int size) {
+    public Page<Post> getPostByTemperature(Long userId, int rangeStart, int rangeEnd, int page, int size) {
 
         List<Long> invisiblePostIds = (userId != null) ? getInvisiblePostIdsList(userId) : Collections.emptyList();
 
         Pageable pageable = PageRequest.of(page, size);
 
-        return postRepository.findPostsByTmp(tmp, pageable, invisiblePostIds);
+        return postRepository.findPostsByTmp(rangeStart, rangeEnd, pageable, invisiblePostIds);
     }
 
     public PostByTemperatureResponse getPostByTemperature(Post post, Long userId) {

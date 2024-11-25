@@ -19,19 +19,19 @@ public class PostByTemperatureRepositoryCustomImpl implements PostByTemperatureR
     QPost qPost = QPost.post;
 
     @Override
-    public Page<Post> findPostsByTmp(String tmp, Pageable pageable, List<Long> invisiblePostIds) {
+    public Page<Post> findPostsByTmp(int rangeStart, int rangeEnd, Pageable pageable, List<Long> invisiblePostIds) {
 
-        List<Post> posts = fetchPosts(pageable, tmp, invisiblePostIds);
-        JPAQuery<Long> postsQueryCount = getPostsQueryCount(tmp, invisiblePostIds);
+        List<Post> posts = fetchPosts(pageable, rangeStart, rangeEnd, invisiblePostIds);
+        JPAQuery<Long> postsQueryCount = getPostsQueryCount( rangeStart, rangeEnd, invisiblePostIds);
 
         return PageableExecutionUtils.getPage(posts, pageable, postsQueryCount::fetchOne);
     }
 
-    private List<Post> fetchPosts(Pageable pageable, String tmp, List<Long> invisiblePostIds){
+    private List<Post> fetchPosts(Pageable pageable, int rangeStart, int rangeEnd, List<Long> invisiblePostIds){
         return jpaQueryFactory
                 .selectFrom(qPost)
                 .where(
-                        qPost.temperature.eq(tmp),
+                        qPost.temperature.between(rangeStart, rangeEnd),
                         qPost.id.notIn(invisiblePostIds)
                 )
                 .offset(pageable.getOffset())
@@ -40,13 +40,13 @@ public class PostByTemperatureRepositoryCustomImpl implements PostByTemperatureR
                 .fetch();
     }
 
-    private JPAQuery<Long> getPostsQueryCount(String tmp, List<Long> invisiblePostIds){
+    private JPAQuery<Long> getPostsQueryCount(int rangeStart, int rangeEnd, List<Long> invisiblePostIds){
 
         return jpaQueryFactory
                 .select(qPost.count())
                 .from(qPost)
                 .where(
-                    qPost.temperature.eq(tmp),
+                    qPost.temperature.between(rangeStart, rangeEnd),
                     qPost.id.notIn(invisiblePostIds)
                 );
     }

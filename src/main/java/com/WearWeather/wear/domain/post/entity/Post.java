@@ -42,7 +42,7 @@ public class Post extends BaseTimeEntity implements Serializable {
     private Location location;
 
     @Column(name = "tmp", nullable = false)
-    private String temperature;
+    private int temperature;
 
     @Column(name = "likeCount", nullable = false)
     private int likeCount = 0;

@@ -85,7 +85,7 @@ public class PostController {
 
     @GetMapping("/tmp")
     public ResponseEntity<PostsByTemperatureResponse> getPostsByTemperature(@LoggedInUser Long userId,
-        @RequestParam("tmp") String tmp,
+        @RequestParam("tmp") int tmp,
         @RequestParam("page") int page,
         @RequestParam("size") int size) {
         return ResponseEntity.ok(postService.getPostsByTemperature(userId, tmp, page, size));

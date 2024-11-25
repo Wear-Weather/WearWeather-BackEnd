@@ -6,6 +6,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface PostByTemperatureRepositoryCustom {
-    Page<Post> findPostsByTmp(String tmp, Pageable pageable, List<Long> invisiblePostIds);
+    Page<Post> findPostsByTmp(int rangeStart, int rangeEnd, Pageable pageable, List<Long> invisiblePostIds);
 
 }

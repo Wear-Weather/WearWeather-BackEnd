@@ -90,6 +90,7 @@ public enum ErrorCode {
     INVALID_PTY_VALUE_WEATHER_API(NOT_FOUND,"올바르지 않은 강수 값입니다."),
     INVALID_SKY_VALUE_WEATHER_API(NOT_FOUND,"올바르지 않은 하늘 값입니다."),
     INVALID_WEATHER_TMP(NOT_FOUND,"올바르지 않은 기온 값입니다."),
+    NOT_MATCH_TEMPERATURE_RANGE(NOT_FOUND,"해당하는 온도 구간이 없습니다."),
 
     ;
 
