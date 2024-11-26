@@ -7,20 +7,16 @@ import lombok.Builder;
 @Builder
 public record SearchLocationResponse(
         String address_name,
-        String latitude,
         String longitude,
+        String latitude,
         String city,
         String district
 ) {
-    public SearchLocationResponse() {
-        this(null, null, null, null, null);
-    }
-
-    public static SearchLocationResponse of(String address_name, String latitude, String longitude, String city, String district){
+    public static SearchLocationResponse of(String address_name, String longitude, String latitude, String city, String district){
         return SearchLocationResponse.builder()
             .address_name(address_name)
-            .latitude(latitude)
             .longitude(longitude)
+            .latitude(latitude)
             .city(city)
             .district(district)
             .build();
