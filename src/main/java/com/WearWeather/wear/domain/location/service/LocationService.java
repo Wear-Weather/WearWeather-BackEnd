@@ -372,7 +372,13 @@ public class LocationService {
             }
 
             for (JsonNode document : documents) {
-                JsonNode address = document.path("address");
+
+                JsonNode address;
+                if(!document.path("address").isNull()){
+                    address = document.path("address");
+                }else {
+                    address = document.path("road_address");
+                }
 
                 String address_full_name = document.path("address_name").asText();
                 String longitude = String.format("%.4f", document.path("x").asDouble());
