@@ -210,7 +210,7 @@ public class WeatherService {
 
     private String createTmpMessage(String currentTmp){
 
-        String message = "기본 기온 메시지";
+        String message;
 
         int numTmp = Integer.parseInt(currentTmp);
 
@@ -218,8 +218,10 @@ public class WeatherService {
             message = "매우 추운 날이에요!";
         }else if (numTmp <= 10){
             message = "쌀쌀하고 ";
-        }else if (numTmp > 30){
+        }else if (numTmp > 30) {
             message = "매우 더운 날이에요!";
+        }else {
+            message = "";
         }
 
         return message;
@@ -227,7 +229,7 @@ public class WeatherService {
 
     private String createPtyMessage(String pty){
 
-        String message = "기본 강수 메시지";
+        String message;
 
         switch (pty) {
             case "1" :
@@ -241,6 +243,9 @@ public class WeatherService {
                 break;
             case "4" :
                 message = "소나기가 내리는 날이에요!";
+                break;
+            default :
+                message = "";
                 break;
         }
 
