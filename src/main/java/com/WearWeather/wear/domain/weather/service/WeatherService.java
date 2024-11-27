@@ -199,9 +199,8 @@ public class WeatherService {
         String message = createTmpMessage(currentTmp);
 
         if(message.equals("기본 기온 메시지")){
-            message = createPtyMessage(pty);
-
-        }else if(message.equals("쌀쌀하고 ") || message.equals("기본 강수 메시지")){
+            message = createPtyMessage(pty, sky);
+        }else if(message.equals("쌀쌀하고 ")){
             message += createSkyMessage(sky);
         }
 
@@ -210,7 +209,7 @@ public class WeatherService {
 
     private String createTmpMessage(String currentTmp){
 
-        String message = "기본 기온 메시지";
+        String message;
 
         int numTmp = Integer.parseInt(currentTmp);
 
@@ -220,16 +219,21 @@ public class WeatherService {
             message = "쌀쌀하고 ";
         }else if (numTmp > 30){
             message = "매우 더운 날이에요!";
+        }else {
+            message = "기본 기온 메시지";
         }
 
         return message;
     }
 
-    private String createPtyMessage(String pty){
+    private String createPtyMessage(String pty, String sky){
 
-        String message = "기본 강수 메시지";
+        String message;
 
         switch (pty) {
+            case "0" :
+                message = createSkyMessage(sky);
+                break;
             case "1" :
                 message = "비가 내리는 날이에요!";
                 break;
@@ -242,6 +246,9 @@ public class WeatherService {
             case "4" :
                 message = "소나기가 내리는 날이에요!";
                 break;
+            default :
+                throw new CustomException(ErrorCode.INVALID_PTY_VALUE_WEATHER_API);
+
         }
 
         return message;
