@@ -17,6 +17,7 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.util.Collections;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -71,9 +72,13 @@ public class PostByFilterRepositoryCustomImpl implements PostByFilterRepositoryC
     BooleanBuilder tagConditions = new BooleanBuilder();
     BooleanBuilder havingConditions = new BooleanBuilder();
 
-    createTagConditions(request.getSeasonTagIds(), tagConditions, havingConditions);
-    createTagConditions(request.getWeatherTagIds(), tagConditions, havingConditions);
-    createTagConditions(request.getTemperatureTagIds(), tagConditions, havingConditions);
+    if(request.seasonTagIds().isEmpty() && request.weatherTagIds().isEmpty() && request.temperatureTagIds().isEmpty()){
+      return Collections.emptyList();
+    }
+
+    createTagConditions(request.seasonTagIds(), tagConditions, havingConditions);
+    createTagConditions(request.weatherTagIds(), tagConditions, havingConditions);
+    createTagConditions(request.temperatureTagIds(), tagConditions, havingConditions);
 
     JPAQuery<Long> postIdByTagFilter = jpaQueryFactory.select(qPostTag.postId)
         .from(qPostTag)
@@ -100,7 +105,7 @@ public class PostByFilterRepositoryCustomImpl implements PostByFilterRepositoryC
   public BooleanBuilder findPostIdByLocationFilter(PostsByFiltersRequest request) {
 
     BooleanBuilder locationConditions = new BooleanBuilder();
-    List<Location> locationList = request.getLocationList().stream()
+    List<Location> locationList = request.location().stream()
         .map(LocationRequest::toEntity)
         .toList();
 
