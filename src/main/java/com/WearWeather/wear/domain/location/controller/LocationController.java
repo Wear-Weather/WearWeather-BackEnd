@@ -4,6 +4,8 @@ import com.WearWeather.wear.domain.location.dto.response.GeocodingLocationRespon
 import com.WearWeather.wear.domain.location.dto.response.RegionsResponse;
 import com.WearWeather.wear.domain.location.dto.response.SearchLocationResponse;
 import com.WearWeather.wear.domain.location.service.LocationService;
+import java.util.Collections;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
@@ -27,7 +29,11 @@ public class LocationController {
     }
 
     @GetMapping("/location/search")
-    public Mono<SearchLocationResponse> searchLocation(@RequestParam("address") String address){
+    public List<SearchLocationResponse> searchLocation(@RequestParam(required = true, value= "address") String address){
+        if(address.isEmpty()){
+            return Collections.emptyList();
+        }
+
         return locationService.searchLocation(address);
     }
 
