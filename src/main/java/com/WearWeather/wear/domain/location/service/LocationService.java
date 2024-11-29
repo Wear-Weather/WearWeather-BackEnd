@@ -387,15 +387,15 @@ public class LocationService {
                 String longitude = String.format("%.4f", document.path("x").asDouble());
                 String latitude = String.format("%.4f", document.path("y").asDouble());
 
-                String city = address.path("region_1depth_name").asText().substring(0, 2);
-                String district = address.path("region_2depth_name").asText();
+                String cityName = address.path("region_1depth_name").asText().substring(0, 2);
+                String districtName = address.path("region_2depth_name").asText();
 
-                if(district.isEmpty() || district.isBlank()){
+                if(districtName.isEmpty() || districtName.isBlank()){
                     return Collections.emptyList();
                 }
 
-                Location location = findCityIdAndDistrictId(city, district);
-                locationList.add(SearchLocationResponse.of(address_full_name, longitude, latitude, city, location.getCity(), district, location.getDistrict()));
+                Location location = findCityIdAndDistrictId(cityName, districtName);
+                locationList.add(SearchLocationResponse.of(address_full_name, longitude, latitude, cityName, location.getCity(), districtName, location.getDistrict()));
             }
 
           return locationList;
