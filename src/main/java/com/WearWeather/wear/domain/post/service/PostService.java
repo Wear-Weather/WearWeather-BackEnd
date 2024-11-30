@@ -7,13 +7,11 @@ import com.WearWeather.wear.domain.post.dto.request.PostsByFiltersRequest;
 import com.WearWeather.wear.domain.post.dto.response.ImageDetailResponse;
 import com.WearWeather.wear.domain.post.dto.response.ImagesResponse;
 import com.WearWeather.wear.domain.post.dto.response.LocationResponse;
-import com.WearWeather.wear.domain.post.dto.response.PostByLocationResponse;
 import com.WearWeather.wear.domain.post.dto.response.PostByMeResponse;
 import com.WearWeather.wear.domain.post.dto.response.PostByTemperatureResponse;
 import com.WearWeather.wear.domain.post.dto.response.PostDetailResponse;
 import com.WearWeather.wear.domain.post.dto.response.PostWithLocationName;
 import com.WearWeather.wear.domain.post.dto.response.PostsByFiltersResponse;
-import com.WearWeather.wear.domain.post.dto.response.PostsByLocationResponse;
 import com.WearWeather.wear.domain.post.dto.response.PostsByMeResponse;
 import com.WearWeather.wear.domain.post.dto.response.PostsByTemperatureResponse;
 import com.WearWeather.wear.domain.post.dto.response.SearchPostResponse;
@@ -255,31 +253,6 @@ public class PostService {
         return likeRepository.existsByPostIdAndUserId(postId, userId);
     }
 
-    public PostsByLocationResponse getPostsByLocation(Long userId, int page, int size, String city, String district, SortType sort) {
-        Location location = locationService.findCityIdAndDistrictId(city, district);
-        Page<Post> posts = getPostByLocation(page, size, location, sort, userId);
-
-        List<PostByLocationResponse> responses = posts.stream()
-          .map(post -> getPostByLocation(post, userId))
-          .toList();
-
-        int totalPages = posts.getTotalPages() - 1;
-
-        return PostsByLocationResponse.of(LocationResponse.of(city, district), responses, totalPages);
-    }
-
-
-    public Page<Post> getPostByLocation(int page, int size, Location location, SortType sort, Long userId) {
-        String sortType = getSortColumnName(sort);
-
-        List<Long> invisiblePostIds = (userId != null) ? getInvisiblePostIdsList(userId) : Collections.emptyList();
-
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sortType).descending());
-
-        return postRepository.getPostsExcludingInvisiblePosts(pageable, location, invisiblePostIds);
-    }
-
-
     public String getSortColumnName(SortType sortType) {
         if (Objects.equals(sortType, SortType.LATEST)) {
             return SORT_COLUMN_BY_CREATE_AT;
@@ -292,25 +265,9 @@ public class PostService {
         return SORT_COLUMN_BY_CREATE_AT;
     }
 
-    public PostByLocationResponse getPostByLocation(Post post, Long userId) {
-        String url = getImageUrl(post.getThumbnailImageId());
-        Map<String, List<String>> tags = getTagsByPostId(post.getId());
+    public PostsByFiltersResponse getPosts(Long userId, PostsByFiltersRequest request) {
 
-        boolean like = checkLikeByPostAndUser(post.getId(), userId);
-
-        return PostByLocationResponse.of(
-          post.getId(),
-          url,
-          tags,
-          like
-        );
-    }
-
-    public PostsByFiltersResponse searchPostsWithFilters(Long userId, PostsByFiltersRequest request) {
-        // 검색 결과 페이징
         Page<PostWithLocationName> posts = getPostByFilters(request, userId);
-
-        log.info(posts.getContent().toString());
 
         List<SearchPostResponse> responses = posts.stream()
           .map(post -> getPostByFilters(post, userId))
@@ -321,12 +278,11 @@ public class PostService {
     }
 
     public Page<PostWithLocationName> getPostByFilters(PostsByFiltersRequest request, Long userId) {
-        String sortType = getSortColumnName(request.getSort());
+        String sortType = getSortColumnName(request.sort());
 
-        // 로그인한 사용자만 숨김 및 신고 게시글 필터링
         List<Long> invisiblePostIds = (userId != null) ? getInvisiblePostIdsList(userId) : Collections.emptyList();
 
-        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), Sort.by(sortType).descending());
+        Pageable pageable = PageRequest.of(request.page(), request.size(), Sort.by(sortType).descending());
 
         return postRepository.findPostsByFilters(request, pageable, invisiblePostIds);
     }
@@ -411,10 +367,6 @@ public class PostService {
         List<Long> hiddenPostIds = findHiddenPostsByUserId(userId);
         List<Long> reportedByMePostIds = findReportedPostsByUserId(userId);
         List<Long> reportedPostIds = findMoreFiveReportedPosts();
-
-        log.info("hiddenPostId is = {}" ,hiddenPostIds.toString());
-        log.info("reportedByMePostIds is = {}" ,reportedByMePostIds.toString());
-        log.info("reportedPostIds is = {}" ,reportedPostIds.toString());
 
         return distinctMergedPostIdsList(hiddenPostIds, reportedByMePostIds, reportedPostIds);
     }

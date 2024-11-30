@@ -28,5 +28,4 @@ public class WeatherController {
         return weatherService.weatherTmp(longitude, latitude);
     }
 
-
 }

@@ -6,12 +6,10 @@ import com.WearWeather.wear.domain.post.dto.request.PostsByFiltersRequest;
 import com.WearWeather.wear.domain.post.dto.response.PostCreateResponse;
 import com.WearWeather.wear.domain.post.dto.response.PostDetailResponse;
 import com.WearWeather.wear.domain.post.dto.response.PostsByFiltersResponse;
-import com.WearWeather.wear.domain.post.dto.response.PostsByLocationResponse;
 import com.WearWeather.wear.domain.post.dto.response.PostsByMeResponse;
 import com.WearWeather.wear.domain.post.dto.response.PostsByTemperatureResponse;
 import com.WearWeather.wear.domain.post.dto.response.TopLikedPostResponse;
 import com.WearWeather.wear.domain.post.dto.response.TopLikedPostsResponse;
-import com.WearWeather.wear.domain.post.entity.SortType;
 import com.WearWeather.wear.domain.post.service.PostService;
 import com.WearWeather.wear.global.common.ResponseMessage;
 import com.WearWeather.wear.global.common.dto.ResponseCommonDTO;
@@ -66,21 +64,9 @@ public class PostController {
         return ResponseEntity.ok(postService.getPostDetail(userId, postId));
     }
 
-
-    @GetMapping
-    public ResponseEntity<PostsByLocationResponse> getPostsByLocation(@LoggedInUser Long userId,
-      @RequestParam("page") int page,
-      @RequestParam("size") int size,
-      @RequestParam("city") String city,
-      @RequestParam("district") String district,
-      @RequestParam("sort") SortType sort) {
-        return ResponseEntity.ok(postService.getPostsByLocation(userId, page, size, city, district, sort));
-    }
-
-
     @PostMapping("/search")
-    public ResponseEntity<PostsByFiltersResponse> searchPostsWithFilters(@LoggedInUser Long userId, @Valid @RequestBody PostsByFiltersRequest request) {
-        return ResponseEntity.ok(postService.searchPostsWithFilters(userId, request));
+    public ResponseEntity<PostsByFiltersResponse> getPosts(@LoggedInUser Long userId, @Valid @RequestBody PostsByFiltersRequest request) {
+        return ResponseEntity.ok(postService.getPosts(userId, request));
     }
 
     @GetMapping("/tmp")

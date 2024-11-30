@@ -315,7 +315,9 @@ public class LocationService {
             String exchangedCityName = exchangeCityName(city);
             String district = extractDistrict(documents.path(region_2depth_district).asText());
 
-            return GeocodingLocationResponse.of(exchangedCityName, district);
+            Location location = findCityIdAndDistrictId(exchangedCityName, district);
+
+            return GeocodingLocationResponse.of(exchangedCityName, location.getCity(), district, location.getDistrict());
 
         } catch (IOException e) {
             throw new CustomException(ErrorCode.GEO_COORD_SERVER_ERROR);
@@ -372,23 +374,30 @@ public class LocationService {
             }
 
             for (JsonNode document : documents) {
-                JsonNode address = document.path("address");
+
+                JsonNode address;
+                if(!document.path("address").isNull()){
+                    address = document.path("address");
+                }else {
+                    address = document.path("road_address");
+                }
 
                 String address_full_name = document.path("address_name").asText();
                 String longitude = String.format("%.4f", document.path("x").asDouble());
                 String latitude = String.format("%.4f", document.path("y").asDouble());
 
-                String region_1depth_city = address.path("region_1depth_name").asText().substring(0, 2);
-                String region_2depth_district = address.path("region_2depth_name").asText();
+                String cityName = address.path("region_1depth_name").asText().substring(0, 2);
+                String districtName = address.path("region_2depth_name").asText();
 
-                if(region_2depth_district.isEmpty() || region_2depth_district.isBlank()){
+                if(districtName.isEmpty() || districtName.isBlank()){
                     return Collections.emptyList();
                 }
 
-                locationList.add(SearchLocationResponse.of(address_full_name, longitude, latitude, region_1depth_city, region_2depth_district));
+                Location location = findCityIdAndDistrictId(cityName, districtName);
+                locationList.add(SearchLocationResponse.of(address_full_name, longitude, latitude, cityName, location.getCity(), districtName, location.getDistrict()));
             }
 
-            return locationList;
+          return locationList;
 
         } catch (IOException e) {
             throw new CustomException(ErrorCode.GEO_COORD_SERVER_ERROR);
