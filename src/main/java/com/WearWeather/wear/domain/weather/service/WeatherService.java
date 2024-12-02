@@ -382,8 +382,17 @@ public class WeatherService {
 
         OutfitGuideByTemperature outfitGuide = OutfitGuideByTemperature.fromTemperature(tmp);
 
-        String category = outfitGuide.getRangeStart() + degree + between + outfitGuide.getRangeEnd() + degree + closingSentence;
+        String category;
 
-        return OutfitGuideResponse.of(category, outfitGuide.getRecommendLook());
+        if(tmp <= 5) {
+            category = outfitGuide.getRangeEnd() + degree + " 이하";
+        }else if(tmp >= 27){
+            category = outfitGuide.getRangeStart() + degree + " 이상";
+        }else{
+            category = outfitGuide.getRangeStart() + degree + between + outfitGuide.getRangeEnd() + degree;
+        }
+
+        String finalCategorySentence = category + closingSentence;
+        return OutfitGuideResponse.of(finalCategorySentence, outfitGuide.getRecommendLook());
     }
 }
