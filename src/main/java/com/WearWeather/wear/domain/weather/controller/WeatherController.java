@@ -1,5 +1,6 @@
 package com.WearWeather.wear.domain.weather.controller;
 
+import com.WearWeather.wear.domain.weather.dto.response.OutfitGuideResponse;
 import com.WearWeather.wear.domain.weather.dto.response.WeatherPerTimeResponse;
 import com.WearWeather.wear.domain.weather.dto.response.WeatherTmpResponse;
 import com.WearWeather.wear.domain.weather.service.WeatherService;
@@ -26,6 +27,11 @@ public class WeatherController {
     public WeatherTmpResponse getWeatherTmp(@RequestParam("longitude") double longitude,
                                             @RequestParam("latitude") double latitude){
         return weatherService.weatherTmp(longitude, latitude);
+    }
+
+    @GetMapping("/guide/outfit")
+    public OutfitGuideResponse getOutfitGuide(@RequestParam("tmp") int tmp){
+        return weatherService.getOutfitGuide(tmp);
     }
 
 }
