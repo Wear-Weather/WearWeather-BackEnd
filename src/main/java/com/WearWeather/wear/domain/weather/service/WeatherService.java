@@ -385,9 +385,9 @@ public class WeatherService {
         String category;
 
         if(tmp <= 5) {
-            category = outfitGuide.getRangeEnd() + degree + " 이하";
+            category = degree + outfitGuide.getRangeEnd() + degree;
         }else if(tmp >= 27){
-            category = outfitGuide.getRangeStart() + degree + " 이상";
+            category = outfitGuide.getRangeStart() + degree + between;
         }else{
             category = outfitGuide.getRangeStart() + degree + between + outfitGuide.getRangeEnd() + degree;
         }
