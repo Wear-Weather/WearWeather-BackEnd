@@ -7,6 +7,7 @@ import com.WearWeather.wear.domain.post.dto.response.PostCreateResponse;
 import com.WearWeather.wear.domain.post.dto.response.PostDetailResponse;
 import com.WearWeather.wear.domain.post.dto.response.PostsByFiltersResponse;
 import com.WearWeather.wear.domain.post.dto.response.PostsByMeResponse;
+import com.WearWeather.wear.domain.post.dto.response.PostsByTemperatureResponse;
 import com.WearWeather.wear.domain.post.dto.response.TopLikedPostResponse;
 import com.WearWeather.wear.domain.post.dto.response.TopLikedPostsResponse;
 import com.WearWeather.wear.domain.post.service.PostService;
@@ -66,6 +67,14 @@ public class PostController {
     @PostMapping("/search")
     public ResponseEntity<PostsByFiltersResponse> getPosts(@LoggedInUser Long userId, @Valid @RequestBody PostsByFiltersRequest request) {
         return ResponseEntity.ok(postService.getPosts(userId, request));
+    }
+
+    @GetMapping("/tmp")
+    public ResponseEntity<PostsByTemperatureResponse> getPostsByTemperature(@LoggedInUser Long userId,
+        @RequestParam("tmp") int tmp,
+        @RequestParam("page") int page,
+        @RequestParam("size") int size) {
+        return ResponseEntity.ok(postService.getPostsByTemperature(userId, tmp, page, size));
     }
 
     @GetMapping("/me")

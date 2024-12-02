@@ -7,11 +7,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-public interface PostRepository extends JpaRepository<Post, Long>, PostByFilterRepositoryCustom {
+public interface PostRepository extends JpaRepository<Post, Long>, PostByFilterRepositoryCustom, PostByTemperatureRepositoryCustom {
 
-    List<Post> findAllByIdIn(List<Long> postIdList);
-    Page<Post> findByUserId(Long userId, Pageable pageable);
+  List<Post> findAllByIdIn(List<Long> postIdList);
 
-    @Query("SELECT id FROM Post ORDER BY id DESC LIMIT 20")
-    List<Long> find20IdsByOrderByIdDesc();
+  Page<Post> findByUserId(Long userId, Pageable pageable);
+
+  @Query("SELECT id FROM Post ORDER BY id DESC LIMIT 20")
+  List<Long> find20IdsByOrderByIdDesc();
 }

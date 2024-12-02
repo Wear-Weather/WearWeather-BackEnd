@@ -8,15 +8,18 @@ import com.WearWeather.wear.domain.post.dto.response.ImageDetailResponse;
 import com.WearWeather.wear.domain.post.dto.response.ImagesResponse;
 import com.WearWeather.wear.domain.post.dto.response.LocationResponse;
 import com.WearWeather.wear.domain.post.dto.response.PostByMeResponse;
+import com.WearWeather.wear.domain.post.dto.response.PostByTemperatureResponse;
 import com.WearWeather.wear.domain.post.dto.response.PostDetailResponse;
 import com.WearWeather.wear.domain.post.dto.response.PostWithLocationName;
 import com.WearWeather.wear.domain.post.dto.response.PostsByFiltersResponse;
 import com.WearWeather.wear.domain.post.dto.response.PostsByMeResponse;
+import com.WearWeather.wear.domain.post.dto.response.PostsByTemperatureResponse;
 import com.WearWeather.wear.domain.post.dto.response.SearchPostResponse;
 import com.WearWeather.wear.domain.post.dto.response.TopLikedPostResponse;
 import com.WearWeather.wear.domain.post.entity.Location;
 import com.WearWeather.wear.domain.post.entity.Post;
 import com.WearWeather.wear.domain.post.entity.SortType;
+import com.WearWeather.wear.domain.post.entity.TemperatureRange;
 import com.WearWeather.wear.domain.post.repository.PostRepository;
 import com.WearWeather.wear.domain.postHidden.service.PostHiddenService;
 import com.WearWeather.wear.domain.postImage.entity.PostImage;
@@ -386,4 +389,49 @@ public class PostService {
         postIdsSet.addAll(reportedPostIds);
         return new ArrayList<>(postIdsSet);
     }
+
+    public PostsByTemperatureResponse getPostsByTemperature(Long userId, int tmp, int page, int size) {
+
+        TemperatureRange temperatureRange = TemperatureRange.fromTemperature(tmp);
+
+        int tmpRangeStart = temperatureRange.getRangeStart();
+        int tmpRangeEnd = temperatureRange.getRangeEnd();
+
+        Page<Post> posts = getPostByTemperature(userId, tmpRangeStart, tmpRangeEnd, page, size);
+
+        List<PostByTemperatureResponse> responses = posts.stream()
+            .map(post -> getPostByTemperature(post, userId))
+            .toList();
+
+        int totalPages = posts.getTotalPages() - 1;
+
+        return PostsByTemperatureResponse.of(tmpRangeStart, tmpRangeEnd, responses, totalPages);
+    }
+
+    public Page<Post> getPostByTemperature(Long userId, int rangeStart, int rangeEnd, int page, int size) {
+
+        List<Long> invisiblePostIds = (userId != null) ? getInvisiblePostIdsList(userId) : Collections.emptyList();
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        return postRepository.findPostsByTmp(rangeStart, rangeEnd, pageable, invisiblePostIds);
+    }
+
+    public PostByTemperatureResponse getPostByTemperature(Post post, Long userId) {
+
+        String url = getImageUrl(post.getThumbnailImageId());
+        Map<String, List<String>> tags = getTagsByPostId(post.getId());
+        LocationResponse location = locationService.findCityIdAndDistrictId(post.getLocation().getCity(), post.getLocation().getDistrict());
+
+        boolean like = checkLikeByPostAndUser(post.getId(), userId);
+
+        return PostByTemperatureResponse.of(
+            post.getId(),
+            url,
+            location,
+            tags,
+            like
+        );
+    }
+
 }

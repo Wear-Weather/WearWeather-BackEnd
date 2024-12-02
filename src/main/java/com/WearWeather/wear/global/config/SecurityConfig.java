@@ -70,6 +70,7 @@ public class SecurityConfig {
             .requestMatchers(HttpMethod.GET, "/posts").permitAll()
             .requestMatchers(HttpMethod.POST, "/posts/search").permitAll()
             .requestMatchers(HttpMethod.GET, "/posts/{postId}").permitAll()
+            .requestMatchers(HttpMethod.GET, "/posts/tmp").permitAll()
 
             .requestMatchers("/h2-console/**").permitAll()
             .anyRequest().authenticated()
