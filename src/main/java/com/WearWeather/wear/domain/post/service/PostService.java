@@ -7,11 +7,13 @@ import com.WearWeather.wear.domain.post.dto.request.PostsByFiltersRequest;
 import com.WearWeather.wear.domain.post.dto.response.ImageDetailResponse;
 import com.WearWeather.wear.domain.post.dto.response.ImagesResponse;
 import com.WearWeather.wear.domain.post.dto.response.LocationResponse;
+import com.WearWeather.wear.domain.post.dto.response.PostByLocationResponse;
 import com.WearWeather.wear.domain.post.dto.response.PostByMeResponse;
 import com.WearWeather.wear.domain.post.dto.response.PostByTemperatureResponse;
 import com.WearWeather.wear.domain.post.dto.response.PostDetailResponse;
 import com.WearWeather.wear.domain.post.dto.response.PostWithLocationName;
 import com.WearWeather.wear.domain.post.dto.response.PostsByFiltersResponse;
+import com.WearWeather.wear.domain.post.dto.response.PostsByLocationResponse;
 import com.WearWeather.wear.domain.post.dto.response.PostsByMeResponse;
 import com.WearWeather.wear.domain.post.dto.response.PostsByTemperatureResponse;
 import com.WearWeather.wear.domain.post.dto.response.SearchPostResponse;
@@ -434,4 +436,41 @@ public class PostService {
         );
     }
 
+    public PostsByLocationResponse getPostsByLocation(Long userId, int page, int size, String city, String district, SortType sort) {
+        Location location = locationService.findCityIdAndDistrictId(city, district);
+        Page<Post> posts = getPostByLocation(page, size, location, sort, userId);
+
+        List<PostByLocationResponse> responses = posts.stream()
+            .map(post -> getPostByLocation(post, userId))
+            .toList();
+
+        int totalPages = posts.getTotalPages() - 1;
+
+        return PostsByLocationResponse.of(LocationResponse.of(city, district), responses, totalPages);
+    }
+
+
+    public Page<Post> getPostByLocation(int page, int size, Location location, SortType sort, Long userId) {
+        String sortType = getSortColumnName(sort);
+
+        List<Long> invisiblePostIds = (userId != null) ? getInvisiblePostIdsList(userId) : Collections.emptyList();
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortType).descending());
+
+        return postRepository.getPostsExcludingInvisiblePosts(pageable, location, invisiblePostIds);
+    }
+
+    public PostByLocationResponse getPostByLocation(Post post, Long userId) {
+        String url = getImageUrl(post.getThumbnailImageId());
+        Map<String, List<String>> tags = getTagsByPostId(post.getId());
+
+        boolean like = checkLikeByPostAndUser(post.getId(), userId);
+
+        return PostByLocationResponse.of(
+            post.getId(),
+            url,
+            tags,
+            like
+        );
+    }
 }
