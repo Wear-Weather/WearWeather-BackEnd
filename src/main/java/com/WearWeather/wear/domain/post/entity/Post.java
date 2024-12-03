@@ -44,6 +44,9 @@ public class Post extends BaseTimeEntity implements Serializable {
     @Column(name = "tmp", nullable = false)
     private int temperature;
 
+    @Column(name = "gender", nullable = false)
+    private Gender gender;
+
     @Column(name = "likeCount", nullable = false)
     private int likeCount = 0;
 
