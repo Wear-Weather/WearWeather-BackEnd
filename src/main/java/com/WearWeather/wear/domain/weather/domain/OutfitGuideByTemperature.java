@@ -1,12 +1,11 @@
-package com.WearWeather.wear.domain.post.entity;
+package com.WearWeather.wear.domain.weather.domain;
 
-import com.WearWeather.wear.global.exception.CustomErrorResponse;
 import com.WearWeather.wear.global.exception.CustomException;
 import com.WearWeather.wear.global.exception.ErrorCode;
 import lombok.Getter;
 
 @Getter
-public enum TemperatureRange {
+public enum OutfitGuideByTemperature {
 
     WINTER_CLOTHES(-50, 5, "겨울 옷(야상, 패딩, 장갑)"),
     SPRING_COAT(6, 9, "트렌치코트, 간절기 야상 "),
@@ -19,21 +18,20 @@ public enum TemperatureRange {
 
     private final int rangeStart;
     private final int rangeEnd;
-    @Getter
-    private final String label;
+    private final String recommendLook;
 
-    TemperatureRange(int rangeStart, int rangeEnd, String label) {
+    OutfitGuideByTemperature(int rangeStart, int rangeEnd, String recommendLook) {
         this.rangeStart = rangeStart;
         this.rangeEnd = rangeEnd;
-        this.label = label;
+        this.recommendLook = recommendLook;
     }
 
     public boolean isInRange(int tmp) {
         return tmp >= rangeStart && tmp <= rangeEnd;
     }
 
-    public static TemperatureRange fromTemperature(int tmp) {
-        for (TemperatureRange range : TemperatureRange.values()) {
+    public static OutfitGuideByTemperature fromTemperature(int tmp) {
+        for (OutfitGuideByTemperature range : OutfitGuideByTemperature.values()) {
             if (range.isInRange(tmp)) {
                 return range;
             }

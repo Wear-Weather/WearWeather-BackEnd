@@ -2,6 +2,8 @@ package com.WearWeather.wear.domain.weather.service;
 
 import com.WearWeather.wear.domain.weather.domain.BaseDateTime;
 import com.WearWeather.wear.domain.weather.domain.LatXLngY;
+import com.WearWeather.wear.domain.weather.domain.OutfitGuideByTemperature;
+import com.WearWeather.wear.domain.weather.dto.response.OutfitGuideResponse;
 import com.WearWeather.wear.domain.weather.dto.response.WeatherPerTimeResponse;
 import com.WearWeather.wear.domain.weather.dto.response.WeatherTmpResponse;
 import com.WearWeather.wear.global.exception.CustomException;
@@ -372,4 +374,25 @@ public class WeatherService {
         return rs;
         }
 
+    public OutfitGuideResponse getOutfitGuide(int tmp) {
+
+        String degree = "°C";
+        String between = "~";
+        String closingSentence = "에 적합한 룩이에요";
+
+        OutfitGuideByTemperature outfitGuide = OutfitGuideByTemperature.fromTemperature(tmp);
+
+        String category;
+
+        if(tmp <= 5) {
+            category = outfitGuide.getRangeEnd() + degree + " 이하";
+        }else if(tmp >= 27){
+            category = outfitGuide.getRangeStart() + degree + " 이상";
+        }else{
+            category = outfitGuide.getRangeStart() + degree + between + outfitGuide.getRangeEnd() + degree;
+        }
+
+        String finalCategorySentence = category + closingSentence;
+        return OutfitGuideResponse.of(finalCategorySentence, outfitGuide.getRecommendLook());
+    }
 }
