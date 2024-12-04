@@ -1,5 +1,6 @@
 package com.WearWeather.wear.domain.post.dto.request;
 
+import com.WearWeather.wear.domain.post.entity.Gender;
 import com.WearWeather.wear.domain.post.entity.Location;
 import com.WearWeather.wear.domain.post.entity.Post;
 import com.WearWeather.wear.domain.postImage.dto.request.PostImageRequest;
@@ -27,8 +28,10 @@ public class PostCreateRequest implements PostImageRequest, TaggableRequest {
     @Size(max = 50)
     private final String content;
 
-    @NotBlank
+    @NotNull
     private final int temperature;
+    
+    private final Gender gender;
 
     @NotBlank
     private final String city;
@@ -55,6 +58,7 @@ public class PostCreateRequest implements PostImageRequest, TaggableRequest {
         @JsonProperty("title") String title,
         @JsonProperty("content") String content,
         @JsonProperty("temperature") int temperature,
+        @JsonProperty("gender") Gender gender,
         @JsonProperty("city") String city,
         @JsonProperty("district") String district,
         @JsonProperty("weatherTagIds") Set<Long> weatherTagIds,
@@ -64,6 +68,7 @@ public class PostCreateRequest implements PostImageRequest, TaggableRequest {
         this.title = title;
         this.content = content;
         this.temperature = temperature;
+        this.gender = gender;
         this.city = city;
         this.district = district;
         this.weatherTagIds = weatherTagIds;
@@ -77,6 +82,7 @@ public class PostCreateRequest implements PostImageRequest, TaggableRequest {
             .title(title)
             .content(content)
             .temperature(temperature)
+            .gender(gender)
             .location(location)
             .build();
     }
