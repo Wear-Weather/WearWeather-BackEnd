@@ -30,7 +30,7 @@ public class PostCreateRequest implements PostImageRequest, TaggableRequest {
 
     @NotNull
     private final int temperature;
-    
+
     private final Gender gender;
 
     @NotBlank

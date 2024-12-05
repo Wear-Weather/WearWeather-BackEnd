@@ -4,6 +4,8 @@ import com.WearWeather.wear.global.common.BaseTimeEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -44,7 +46,7 @@ public class Post extends BaseTimeEntity implements Serializable {
     @Column(name = "tmp", nullable = false)
     private int temperature;
 
-    @Column(name = "gender", nullable = false)
+    @Enumerated(EnumType.STRING)
     private Gender gender;
 
     @Column(name = "likeCount", nullable = false)
