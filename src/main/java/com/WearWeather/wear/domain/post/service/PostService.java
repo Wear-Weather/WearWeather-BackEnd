@@ -93,7 +93,7 @@ public class PostService {
         Location location = locationService.findCityIdAndDistrictId(request.getCity(),request.getDistrict());
         Post post = validateUserPermission(userId, postId);
 
-        post.updatePostDetails(request.getTitle(), request.getContent(), location);
+        post.updatePostDetails(request.getTitle(), request.getContent(), request.getGender(), location);
         postImageService.updatePostImages(post, request);
         postTagService.updatePostTags(post,request);
     }
