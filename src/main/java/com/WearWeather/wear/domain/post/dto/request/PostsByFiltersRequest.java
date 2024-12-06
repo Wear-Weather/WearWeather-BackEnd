@@ -24,6 +24,8 @@ public record PostsByFiltersRequest (
     List<Long> weatherTagIds,
     List<Long> temperatureTagIds,
 
+    String gender,
+
     @NotNull(message = "정렬 방법은 필수입니다.")
     SortType sort
 ){

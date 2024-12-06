@@ -299,7 +299,8 @@ public class PostService {
             post,
             url,
             tags,
-            like
+            like,
+            post.gender()
         );
     }
 
