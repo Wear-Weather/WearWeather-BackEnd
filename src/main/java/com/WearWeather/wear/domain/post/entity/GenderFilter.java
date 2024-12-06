@@ -1,11 +1,13 @@
 package com.WearWeather.wear.domain.post.entity;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
-public enum Gender {
+@AllArgsConstructor
+public enum GenderFilter {
+    ALL,
     MALE,
     FEMALE;
 
 }
-

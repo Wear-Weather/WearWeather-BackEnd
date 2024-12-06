@@ -5,6 +5,7 @@ import com.WearWeather.wear.domain.post.entity.Location;
 import com.WearWeather.wear.domain.post.entity.Post;
 import com.WearWeather.wear.domain.postImage.dto.request.PostImageRequest;
 import com.WearWeather.wear.domain.tag.dto.TaggableRequest;
+import com.WearWeather.wear.global.validation.Enum;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
@@ -31,6 +32,7 @@ public class PostCreateRequest implements PostImageRequest, TaggableRequest {
     @NotNull
     private final int temperature;
 
+    @Enum(target = Gender.class, message = "올바른 성별 값을 입력해주세요.")
     private final Gender gender;
 
     @NotBlank
