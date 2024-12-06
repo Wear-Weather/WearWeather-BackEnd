@@ -1,4 +1,5 @@
 package com.WearWeather.wear.domain.post.dto.response;
+import com.WearWeather.wear.domain.post.entity.Gender;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -18,8 +19,9 @@ public class SearchPostResponse {
     private final List<String> weatherTags;
     private final List<String> temperatureTags;
     private final boolean likeByUser;
+    private final Gender gender;
 
-    public static SearchPostResponse of(PostWithLocationName post, String url, Map<String, List<String>> tags, boolean like){
+    public static SearchPostResponse of(PostWithLocationName post, String url, Map<String, List<String>> tags, boolean like, Gender gender){
         return SearchPostResponse.builder()
                 .postId(post.postId())
                 .thumbnail(url)
@@ -28,6 +30,7 @@ public class SearchPostResponse {
                 .weatherTags(tags.get("WEATHER"))
                 .temperatureTags(tags.get("TEMPERATURE"))
                 .likeByUser(like)
+                .gender(gender)
                 .build();
     }
 

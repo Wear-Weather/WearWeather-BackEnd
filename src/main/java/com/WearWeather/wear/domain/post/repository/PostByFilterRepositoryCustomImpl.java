@@ -5,6 +5,7 @@ import com.WearWeather.wear.domain.location.entity.QDistrict;
 import com.WearWeather.wear.domain.post.dto.request.LocationRequest;
 import com.WearWeather.wear.domain.post.dto.request.PostsByFiltersRequest;
 import com.WearWeather.wear.domain.post.dto.response.PostWithLocationName;
+import com.WearWeather.wear.domain.post.entity.Gender;
 import com.WearWeather.wear.domain.post.entity.Location;
 import com.WearWeather.wear.domain.post.entity.QPost;
 import com.WearWeather.wear.domain.postTag.entity.QPostTag;
@@ -62,6 +63,10 @@ public class PostByFilterRepositoryCustomImpl implements PostByFilterRepositoryC
 
     if (!invisiblePostIdsList.isEmpty()) {
       conditions.and(qPost.id.notIn(invisiblePostIdsList));
+    }
+
+    if(!request.gender().equals("ALL")){
+      conditions.and(qPost.gender.eq(Gender.valueOf(request.gender())));
     }
 
     return conditions;
@@ -190,7 +195,8 @@ public class PostByFilterRepositoryCustomImpl implements PostByFilterRepositoryC
             qPost.id.as("postId"),
             qPost.thumbnailImageId.as("thumbnailImageId"),
             qCity.city.as("cityName"),
-            qDistrict.district.as("districtName")
+            qDistrict.district.as("districtName"),
+            qPost.gender.as("gender")
         ))
         .from(qPost)
         .leftJoin(qCity).on(qPost.location.city.eq(qCity.id))
