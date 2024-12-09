@@ -4,11 +4,13 @@ import lombok.Builder;
 
 @Builder
 public record OutfitGuideResponse(
-        String categorySentence,
-        String outfit
+      String category,
+      String categorySentence,
+      String outfit
 ){
-  public static OutfitGuideResponse of(String categorySentence, String outfit){
+  public static OutfitGuideResponse of(String category, String categorySentence, String outfit){
     return OutfitGuideResponse.builder()
+        .category(category)
         .categorySentence(categorySentence)
         .outfit(outfit)
         .build();

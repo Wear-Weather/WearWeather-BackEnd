@@ -393,6 +393,6 @@ public class WeatherService {
         }
 
         String finalCategorySentence = category + closingSentence;
-        return OutfitGuideResponse.of(finalCategorySentence, outfitGuide.getRecommendLook());
+        return OutfitGuideResponse.of(outfitGuide.name(), finalCategorySentence, outfitGuide.getRecommendLook());
     }
 }
