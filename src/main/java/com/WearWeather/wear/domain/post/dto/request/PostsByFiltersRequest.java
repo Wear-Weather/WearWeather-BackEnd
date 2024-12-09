@@ -27,7 +27,7 @@ public record PostsByFiltersRequest (
     List<Long> temperatureTagIds,
 
     @ValidEnum(enumClass = GenderFilter.class, message = "올바른 성별 필터 값을 입력해주세요.")
-    GenderFilter gender,
+    String gender,
 
     @NotNull(message = "정렬 방법은 필수입니다.")
     SortType sort

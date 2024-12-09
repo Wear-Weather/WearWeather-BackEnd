@@ -33,7 +33,7 @@ public class PostCreateRequest implements PostImageRequest, TaggableRequest {
     private final int temperature;
 
     @ValidEnum(enumClass = Gender.class, message = "올바른 성별 값을 입력해주세요.")
-    private final Gender gender;
+    private final String gender;
 
     @NotBlank
     private final String city;
@@ -60,7 +60,7 @@ public class PostCreateRequest implements PostImageRequest, TaggableRequest {
         @JsonProperty("title") String title,
         @JsonProperty("content") String content,
         @JsonProperty("temperature") int temperature,
-        @JsonProperty("gender") Gender gender,
+        @JsonProperty("gender") String gender,
         @JsonProperty("city") String city,
         @JsonProperty("district") String district,
         @JsonProperty("weatherTagIds") Set<Long> weatherTagIds,
@@ -84,7 +84,7 @@ public class PostCreateRequest implements PostImageRequest, TaggableRequest {
             .title(title)
             .content(content)
             .temperature(temperature)
-            .gender(gender)
+            .gender(Gender.valueOf(gender))
             .location(location)
             .build();
     }
