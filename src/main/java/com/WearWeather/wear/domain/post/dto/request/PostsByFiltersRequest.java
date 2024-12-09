@@ -2,7 +2,7 @@ package com.WearWeather.wear.domain.post.dto.request;
 
 import com.WearWeather.wear.domain.post.entity.GenderFilter;
 import com.WearWeather.wear.domain.post.entity.SortType;
-import com.WearWeather.wear.global.validation.Enum;
+import com.WearWeather.wear.global.validation.ValidEnum;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -26,8 +26,8 @@ public record PostsByFiltersRequest (
     List<Long> weatherTagIds,
     List<Long> temperatureTagIds,
 
-    @Enum(target = GenderFilter.class, message = "올바른 성별 필터 값을 입력해주세요.")
-    String gender,
+    @ValidEnum(enumClass = GenderFilter.class, message = "올바른 성별 필터 값을 입력해주세요.")
+    GenderFilter gender,
 
     @NotNull(message = "정렬 방법은 필수입니다.")
     SortType sort
