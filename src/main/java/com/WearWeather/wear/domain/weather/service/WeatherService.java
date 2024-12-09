@@ -1,9 +1,13 @@
 package com.WearWeather.wear.domain.weather.service;
 
+import com.WearWeather.wear.domain.storage.service.AwsS3Service;
 import com.WearWeather.wear.domain.weather.domain.BaseDateTime;
 import com.WearWeather.wear.domain.weather.domain.LatXLngY;
+import com.WearWeather.wear.domain.weather.domain.OutfitGuideByTemperature;
+import com.WearWeather.wear.domain.weather.dto.response.OutfitGuideResponse;
 import com.WearWeather.wear.domain.weather.dto.response.WeatherPerTimeResponse;
 import com.WearWeather.wear.domain.weather.dto.response.WeatherTmpResponse;
+import com.WearWeather.wear.domain.weather.repository.OutfitGuideImageRepository;
 import com.WearWeather.wear.global.exception.CustomException;
 import com.WearWeather.wear.global.exception.ErrorCode;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -14,6 +18,7 @@ import java.net.URLEncoder;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,6 +44,9 @@ public class WeatherService {
     private String serviceKey;
 
     private final ObjectMapper objectMapper;
+
+    private final OutfitGuideImageRepository outfitGuideImageRepository;
+    private final AwsS3Service awsS3Service;
 
     public String weatherApi(double longitude, double latitude, int numOfRows) {
 
@@ -372,4 +380,36 @@ public class WeatherService {
         return rs;
         }
 
+    public OutfitGuideResponse getOutfitGuide(int tmp) {
+
+        String degree = "°C";
+        String between = "~";
+        String closingSentence = "에 적합한 룩이에요";
+
+        OutfitGuideByTemperature outfitGuide = OutfitGuideByTemperature.fromTemperature(tmp);
+
+        String category;
+
+        if(tmp <= 5) {
+            category = degree + outfitGuide.getRangeEnd() + degree;
+        }else if(tmp >= 27){
+            category = outfitGuide.getRangeStart() + degree + between;
+        }else{
+            category = outfitGuide.getRangeStart() + degree + between + outfitGuide.getRangeEnd() + degree;
+        }
+
+        String finalCategorySentence = category + closingSentence;
+
+        List<String> outfitImages = getGuideImagesUrl(outfitGuide.getGuideId());
+
+        return OutfitGuideResponse.of(outfitGuide.name(), finalCategorySentence, outfitGuide.getRecommendLook(), outfitImages);
+    }
+
+    public List<String> getGuideImagesUrl(Long guideId) {
+        return outfitGuideImageRepository.findGuideImagesByNowTemperature(guideId)
+            .orElseThrow(() -> new CustomException(ErrorCode.IMAGE_NOT_FOUND))
+            .stream()
+            .map(awsS3Service::getUrl)
+            .toList();
+    }
 }

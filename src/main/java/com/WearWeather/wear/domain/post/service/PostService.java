@@ -21,7 +21,7 @@ import com.WearWeather.wear.domain.post.dto.response.TopLikedPostResponse;
 import com.WearWeather.wear.domain.post.entity.Location;
 import com.WearWeather.wear.domain.post.entity.Post;
 import com.WearWeather.wear.domain.post.entity.SortType;
-import com.WearWeather.wear.domain.post.entity.TemperatureRange;
+import com.WearWeather.wear.domain.weather.domain.OutfitGuideByTemperature;
 import com.WearWeather.wear.domain.post.repository.PostRepository;
 import com.WearWeather.wear.domain.postHidden.service.PostHiddenService;
 import com.WearWeather.wear.domain.postImage.entity.PostImage;
@@ -395,10 +395,10 @@ public class PostService {
 
     public PostsByTemperatureResponse getPostsByTemperature(Long userId, int tmp, int page, int size) {
 
-        TemperatureRange temperatureRange = TemperatureRange.fromTemperature(tmp);
+        OutfitGuideByTemperature outfitGuideByTemperature = OutfitGuideByTemperature.fromTemperature(tmp);
 
-        int tmpRangeStart = temperatureRange.getRangeStart();
-        int tmpRangeEnd = temperatureRange.getRangeEnd();
+        int tmpRangeStart = outfitGuideByTemperature.getRangeStart();
+        int tmpRangeEnd = outfitGuideByTemperature.getRangeEnd();
 
         Page<Post> posts = getPostByTemperature(userId, tmpRangeStart, tmpRangeEnd, page, size);
 
