@@ -3,17 +3,16 @@ package com.WearWeather.wear.global.validation;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
-public class EnumValidator implements ConstraintValidator<Enum, String> {
-  private Enum annotation;
-
+public class EnumValidator implements ConstraintValidator<ValidEnum, String> {
+  private ValidEnum annotation;
   @Override
-  public void initialize(Enum constraintAnnotation) {
+  public void initialize(ValidEnum constraintAnnotation) {
     this.annotation = constraintAnnotation;
   }
 
   @Override
   public boolean isValid(String value, ConstraintValidatorContext context) {
-    Object[] enumValues = this.annotation.target().getEnumConstants();
+    Object[] enumValues = this.annotation.enumClass().getEnumConstants();
     if (enumValues != null) {
       for (Object enumValue : enumValues) {
         if (value.equals(enumValue.toString())) {

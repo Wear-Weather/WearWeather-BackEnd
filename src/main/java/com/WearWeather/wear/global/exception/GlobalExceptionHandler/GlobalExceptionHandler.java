@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private final String VALIDATION_ERROR = "VALIDATION_ERROR";
+
     @ExceptionHandler({CustomException.class})
     public ResponseEntity<CustomErrorResponse> handleCustomException(CustomException ex) {
         CustomErrorResponse errorResponse = new CustomErrorResponse(
@@ -21,13 +23,13 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, ex.getHttpStatus());
     }
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ExceptionHandler({MethodArgumentNotValidException.class})
     protected ResponseEntity<CustomErrorResponse> handleException(MethodArgumentNotValidException ex) {
 
         FieldError fieldError = ex.getBindingResult().getFieldErrors().get(0);
         CustomErrorResponse errorResponse = new CustomErrorResponse(
             HttpStatus.BAD_REQUEST.name(),
-            "VALIDATION_ERROR",
+            VALIDATION_ERROR,
             fieldError.getDefaultMessage()
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);

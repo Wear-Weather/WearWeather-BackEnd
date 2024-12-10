@@ -5,7 +5,7 @@ import com.WearWeather.wear.domain.post.entity.Location;
 import com.WearWeather.wear.domain.post.entity.Post;
 import com.WearWeather.wear.domain.postImage.dto.request.PostImageRequest;
 import com.WearWeather.wear.domain.tag.dto.TaggableRequest;
-import com.WearWeather.wear.global.validation.Enum;
+import com.WearWeather.wear.global.validation.ValidEnum;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
@@ -32,8 +32,8 @@ public class PostCreateRequest implements PostImageRequest, TaggableRequest {
     @NotNull
     private final int temperature;
 
-    @Enum(target = Gender.class, message = "올바른 성별 값을 입력해주세요.")
-    private final Gender gender;
+    @ValidEnum(enumClass = Gender.class, message = "올바른 성별 값을 입력해주세요.")
+    private final String gender;
 
     @NotBlank
     private final String city;
@@ -60,7 +60,7 @@ public class PostCreateRequest implements PostImageRequest, TaggableRequest {
         @JsonProperty("title") String title,
         @JsonProperty("content") String content,
         @JsonProperty("temperature") int temperature,
-        @JsonProperty("gender") Gender gender,
+        @JsonProperty("gender") String gender,
         @JsonProperty("city") String city,
         @JsonProperty("district") String district,
         @JsonProperty("weatherTagIds") Set<Long> weatherTagIds,
@@ -84,7 +84,7 @@ public class PostCreateRequest implements PostImageRequest, TaggableRequest {
             .title(title)
             .content(content)
             .temperature(temperature)
-            .gender(gender)
+            .gender(Gender.valueOf(gender))
             .location(location)
             .build();
     }
