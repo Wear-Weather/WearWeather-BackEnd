@@ -475,7 +475,8 @@ public class PostService {
             post.getId(),
             url,
             tags,
-            like
+            like,
+            post.getGender()
         );
     }
 }
