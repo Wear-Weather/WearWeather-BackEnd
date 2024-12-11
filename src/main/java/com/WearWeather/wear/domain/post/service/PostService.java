@@ -18,6 +18,7 @@ import com.WearWeather.wear.domain.post.dto.response.PostsByMeResponse;
 import com.WearWeather.wear.domain.post.dto.response.PostsByTemperatureResponse;
 import com.WearWeather.wear.domain.post.dto.response.SearchPostResponse;
 import com.WearWeather.wear.domain.post.dto.response.TopLikedPostResponse;
+import com.WearWeather.wear.domain.post.entity.Gender;
 import com.WearWeather.wear.domain.post.entity.Location;
 import com.WearWeather.wear.domain.post.entity.Post;
 import com.WearWeather.wear.domain.post.entity.SortType;
@@ -95,7 +96,8 @@ public class PostService {
         Location location = locationService.findCityIdAndDistrictId(request.getCity(),request.getDistrict());
         Post post = validateUserPermission(userId, postId);
 
-        post.updatePostDetails(request.getTitle(), request.getContent(), request.getGender(), location);
+        post.updatePostDetails(request.getTitle(), request.getContent(),
+            Gender.valueOf(request.getGender()), location);
         postImageService.updatePostImages(post, request);
         postTagService.updatePostTags(post,request);
     }
