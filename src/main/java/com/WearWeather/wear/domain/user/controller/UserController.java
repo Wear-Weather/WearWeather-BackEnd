@@ -79,7 +79,7 @@ public class UserController {
     }
 
     @DeleteMapping
-    public ResponseEntity<ResponseCommonDTO> deleteUser(@LoggedInUser Long userId,@RequestParam @NotBlank String deleteReason) {
+    public ResponseEntity<ResponseCommonDTO> deleteUser(@LoggedInUser Long userId, @RequestParam("deleteReason") @NotBlank String deleteReason) {
 
         userService.deleteUser(userId, deleteReason);
         return ResponseEntity.ok(new ResponseCommonDTO(true, ResponseMessage.SUCCESS_DELETE_USER));
