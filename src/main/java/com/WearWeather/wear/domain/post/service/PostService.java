@@ -187,11 +187,12 @@ public class PostService {
         boolean like = checkLikeByPostAndUser(post.getId(), userId);
 
         return TopLikedPostResponse.of(
-          post,
-          url,
-          location,
-          tags,
-          like);
+            post,
+            url,
+            location,
+            tags,
+            like,
+            post.getGender());
     }
 
     public PostDetailResponse getPostDetail(Long userId, Long postId) {
