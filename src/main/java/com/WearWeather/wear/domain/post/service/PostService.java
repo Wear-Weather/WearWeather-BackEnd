@@ -339,7 +339,8 @@ public class PostService {
             location,
             tags,
             like,
-            report
+            report,
+            post.getGender()
         );
     }
 
