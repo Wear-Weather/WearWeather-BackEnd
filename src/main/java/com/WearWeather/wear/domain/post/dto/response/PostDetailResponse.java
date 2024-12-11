@@ -1,5 +1,6 @@
 package com.WearWeather.wear.domain.post.dto.response;
 
+import com.WearWeather.wear.domain.post.entity.Gender;
 import com.WearWeather.wear.domain.post.entity.Post;
 import lombok.Builder;
 import lombok.Getter;
@@ -26,8 +27,9 @@ public class PostDetailResponse {
     private final boolean likeByUser;
     private final int likedCount;
     private final boolean reportPost;
+    private final Gender gender;
 
-    public static PostDetailResponse of(String nickname, Post post, ImagesResponse images, LocationResponse location, Map<String, List<String>> tags, boolean like, boolean report){
+    public static PostDetailResponse of(String nickname, Post post, ImagesResponse images, LocationResponse location, Map<String, List<String>> tags, boolean like, boolean report, Gender gender){
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm");
         String formattedDateTime = post.getCreatedAt().format(formatter);
@@ -45,6 +47,7 @@ public class PostDetailResponse {
                 .temperatureTags(tags.get("TEMPERATURE"))
                 .likeByUser(like)
                 .reportPost(report)
+                .gender(gender)
                 .build();
     }
 }

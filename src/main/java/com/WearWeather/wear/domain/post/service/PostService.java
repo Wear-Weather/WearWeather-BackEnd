@@ -213,7 +213,8 @@ public class PostService {
           location,
           tags,
           like,
-          report);
+          report,
+          post.getGender());
     }
 
     public ImagesResponse getImagesResponse(Long postId) {
