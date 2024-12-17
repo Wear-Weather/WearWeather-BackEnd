@@ -1,6 +1,7 @@
 package com.WearWeather.wear.domain.postLike.repository;
 
 import com.WearWeather.wear.domain.postLike.entity.Like;
+import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
@@ -14,6 +15,6 @@ public interface LikeRepository extends JpaRepository<Like, Long>, LikeRepositor
 
     @Modifying
     @Query("DELETE FROM Like li WHERE li.postId = :postId")
-    void deleteByPostId(Long postId);
+    void deleteByPostId(@Param("postId") Long postId);
 
 }

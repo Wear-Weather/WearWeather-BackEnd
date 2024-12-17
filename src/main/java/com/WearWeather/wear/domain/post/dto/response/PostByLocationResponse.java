@@ -1,4 +1,5 @@
 package com.WearWeather.wear.domain.post.dto.response;
+import com.WearWeather.wear.domain.post.entity.Gender;
 import lombok.Builder;
 
 import java.util.List;
@@ -12,9 +13,10 @@ public record PostByLocationResponse(
         String seasonTag,
         List<String> weatherTags,
         List<String> temperatureTags,
-        boolean likeByUser
+        boolean likeByUser,
+        Gender gender
 ) {
-    public static PostByLocationResponse of(Long postId, String url, Map<String, List<String>> tags, boolean like){
+    public static PostByLocationResponse of(Long postId, String url, Map<String, List<String>> tags, boolean like, Gender gender){
         return PostByLocationResponse.builder()
                 .postId(postId)
                 .thumbnail(url)
@@ -22,6 +24,7 @@ public record PostByLocationResponse(
                 .weatherTags(tags.get("WEATHER"))
                 .temperatureTags(tags.get("TEMPERATURE"))
                 .likeByUser(like)
+                .gender(gender)
                 .build();
     }
 }

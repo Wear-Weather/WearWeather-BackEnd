@@ -50,13 +50,13 @@ public class PostController {
     }
 
     @PatchMapping("/{postId}")
-    public ResponseEntity<ResponseCommonDTO> updatePost(@LoggedInUser Long userId, @PathVariable Long postId, @RequestBody @Valid PostUpdateRequest request) {
+    public ResponseEntity<ResponseCommonDTO> updatePost(@LoggedInUser Long userId, @PathVariable("postId") Long postId, @RequestBody @Valid PostUpdateRequest request) {
         postService.updatePost(userId, postId, request);
         return ResponseEntity.ok(new ResponseCommonDTO(true, ResponseMessage.SUCCESS_UPDATE_POST));
     }
 
     @DeleteMapping("/{postId}")
-    public ResponseEntity<ResponseCommonDTO> deletePost(@LoggedInUser Long userId, @PathVariable Long postId) {
+    public ResponseEntity<ResponseCommonDTO> deletePost(@LoggedInUser Long userId, @PathVariable("postId") Long postId) {
         postService.deletePost(userId, postId);
         return ResponseEntity.ok(new ResponseCommonDTO(true, ResponseMessage.SUCCESS_DELETE_POST));
     }

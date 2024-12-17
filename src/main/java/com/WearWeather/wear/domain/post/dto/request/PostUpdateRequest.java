@@ -3,6 +3,7 @@ package com.WearWeather.wear.domain.post.dto.request;
 import com.WearWeather.wear.domain.post.entity.Gender;
 import com.WearWeather.wear.domain.postImage.dto.request.PostImageRequest;
 import com.WearWeather.wear.domain.tag.dto.TaggableRequest;
+import com.WearWeather.wear.global.validation.ValidEnum;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
@@ -32,7 +33,8 @@ public class PostUpdateRequest implements PostImageRequest, TaggableRequest {
     @NotBlank
     private final String district;
 
-    private final Gender gender;
+    @ValidEnum(enumClass = Gender.class, message = "올바른 성별 값을 입력해주세요.")
+    private final String gender;
 
     @NotNull
     @Size(max = 2)
@@ -54,7 +56,7 @@ public class PostUpdateRequest implements PostImageRequest, TaggableRequest {
         @JsonProperty("content") String content,
         @JsonProperty("city") String city,
         @JsonProperty("district") String district,
-        @JsonProperty("gender") Gender gender,
+        @JsonProperty("gender") String gender,
         @JsonProperty("weatherTagIds") Set<Long> weatherTagIds,
         @JsonProperty("temperatureTagIds") Set<Long> temperatureTagIds,
         @JsonProperty("seasonTagId") Long seasonTagId
