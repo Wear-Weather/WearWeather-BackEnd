@@ -67,6 +67,8 @@ public class SecurityConfig {
               "/basic-location", "/location/**", "/regions","/users/delete-reasons", "/weather/**"
             ).permitAll()
             .requestMatchers(HttpMethod.GET, "/posts/top-liked").permitAll()
+            .requestMatchers(HttpMethod.GET, "/posts/me").authenticated()
+
             .requestMatchers(HttpMethod.GET, "/posts").permitAll()
             .requestMatchers(HttpMethod.POST, "/posts/search").permitAll()
             .requestMatchers(HttpMethod.GET, "/posts/{postId}").permitAll()
