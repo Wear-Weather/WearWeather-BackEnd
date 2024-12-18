@@ -20,9 +20,9 @@ public class LoginFacade {
     private final UserService userService;
 
     public LoginResponse checkLogin(LoginRequest request) {
+        User user = userService.getUserByEmail(request.getEmail());
         Authentication authentication = authenticationProvider.authenticateWithCredentials(request.getEmail(), request.getPassword());
         String accessToken = tokenProvider.createAccessToken(authentication);
-        User user = userService.getUserByEmail(request.getEmail());
         return LoginResponse.of(user, accessToken);
     }
 }
