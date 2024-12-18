@@ -5,6 +5,7 @@ import static com.WearWeather.wear.global.exception.ErrorCode.REDIS_VALUE_INVALI
 import static com.WearWeather.wear.global.exception.ErrorCode.REDIS_VALUE_NOT_FOUND;
 
 import com.WearWeather.wear.global.exception.CustomException;
+import com.WearWeather.wear.global.exception.ErrorCode;
 import java.time.Duration;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,13 +22,7 @@ public class RedisService {
     }
 
     public String getValues(Long key) {
-        String values = redisDao.getValues(String.valueOf(key));
-
-        if(values != null && values.isBlank()) {
-            throw new CustomException(REDIS_VALUE_INVALID);
-        }
-
-        return values;
+        return redisDao.getValues(String.valueOf(key));
     }
 
     public Integer getValuesInteger(Long key) {
