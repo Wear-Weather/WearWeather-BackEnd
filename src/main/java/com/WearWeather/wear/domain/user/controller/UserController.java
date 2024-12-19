@@ -5,6 +5,7 @@ import com.WearWeather.wear.domain.user.dto.response.FindUserEmailResponse;
 import com.WearWeather.wear.domain.user.dto.response.NicknameDuplicateCheckResponse;
 import com.WearWeather.wear.domain.user.dto.response.UserIdForPasswordUpdateResponse;
 import com.WearWeather.wear.domain.user.dto.response.UserInfoResponse;
+import com.WearWeather.wear.domain.user.facade.UserDeleteFacade;
 import com.WearWeather.wear.domain.user.service.UserService;
 import com.WearWeather.wear.global.common.ResponseMessage;
 import com.WearWeather.wear.global.common.dto.ResponseCommonDTO;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final UserDeleteFacade userDeleteFacade;
 
     @PostMapping("/register")
     public ResponseEntity<ResponseCommonDTO> signup(@Valid @RequestBody RegisterUserRequest request) {
@@ -55,24 +57,18 @@ public class UserController {
 
     @PatchMapping("/password")
     public ResponseEntity<ResponseCommonDTO> modifyPassword(@Valid @RequestBody ModifyUserPasswordRequest request) {
-
         userService.modifyPassword(request);
         return ResponseEntity.ok(new ResponseCommonDTO(true, ResponseMessage.MODIFY_PASSWORD));
     }
 
     @GetMapping("/me")
     public ResponseEntity<UserInfoResponse> getUserInfo(@LoggedInUser Long userId) {
-//        Long userId = optionalUserId.orElseThrow(() -> new CustomException(ErrorCode.SERVER_ERROR));
-
         UserInfoResponse userInfoResponse = userService.getUserInfo(userId);
         return ResponseEntity.ok(userInfoResponse);
     }
 
     @PatchMapping("/me")
     public ResponseEntity<ResponseCommonDTO> modifyUserInfo(@LoggedInUser Long userId, @Valid @RequestBody ModifyUserInfoRequest request) {
-
-//        Long userId = optionalUserId.orElseThrow(() -> new CustomException(ErrorCode.SERVER_ERROR));
-
         userService.modifyUserInfo(
             userId, request.getPassword(), request.getNickname());
         return ResponseEntity.ok(new ResponseCommonDTO(true, ResponseMessage.MODIFY_USERINFO));
@@ -80,8 +76,7 @@ public class UserController {
 
     @DeleteMapping
     public ResponseEntity<ResponseCommonDTO> deleteUser(@LoggedInUser Long userId,@RequestParam @NotBlank String deleteReason) {
-
-        userService.deleteUser(userId, deleteReason);
+        userDeleteFacade.deleteUser(userId, deleteReason);
         return ResponseEntity.ok(new ResponseCommonDTO(true, ResponseMessage.SUCCESS_DELETE_USER));
     }
 
