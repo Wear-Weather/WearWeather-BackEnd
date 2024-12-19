@@ -210,7 +210,7 @@ public class UserServiceTest {
     public void getUserInfoTest() {
 
         User user = UserFixture.createUser();
-        UserInfoResponse response = new UserInfoResponse(UserFixture.email, UserFixture.name, UserFixture.nickname);
+        UserInfoResponse response = new UserInfoResponse(UserFixture.email, UserFixture.name, UserFixture.nickname,UserFixture.isSocial);
 
         when(userRepository.findByUserIdAndIsDeleteFalse(UserFixture.userId)).thenReturn(Optional.of(user));
 
