@@ -1,21 +1,16 @@
 package com.WearWeather.wear.domain.user.service;
 
-import com.WearWeather.wear.domain.oauth.infrastructure.kakao.dto.KakaoUserDto;
-import com.WearWeather.wear.domain.oauth.infrastructure.kakao.entity.KakaoUser;
 import com.WearWeather.wear.domain.oauth.infrastructure.kakao.service.KakaoUserService;
 import com.WearWeather.wear.domain.oauth.service.RequestOAuthUnlinkService;
-import com.WearWeather.wear.domain.user.dto.request.DeleteReasonRequest;
 import com.WearWeather.wear.domain.user.dto.request.ModifyUserPasswordRequest;
 import com.WearWeather.wear.domain.user.dto.request.RegisterUserRequest;
 import com.WearWeather.wear.domain.user.dto.response.UserIdForPasswordUpdateResponse;
 import com.WearWeather.wear.domain.user.dto.response.UserInfoResponse;
-import com.WearWeather.wear.domain.user.enums.DeleteReason;
 import com.WearWeather.wear.domain.user.entity.User;
 import com.WearWeather.wear.domain.user.repository.UserNicknameMapping;
 import com.WearWeather.wear.domain.user.repository.UserRepository;
 import com.WearWeather.wear.global.exception.CustomException;
 import com.WearWeather.wear.global.exception.ErrorCode;
-import java.util.Arrays;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -140,27 +135,9 @@ public class UserService {
             .orElse("탈퇴한 사용자");
     }
 
-    @Transactional
-    public void deleteUser(Long userId, String reason) {
-        DeleteReason deleteReason = getDeleteReason(reason);
+    public User softDelete(Long userId) {
         User user = getUser(userId);
         user.updateIsDelete();
-
-        userDeleteService.save(user, deleteReason);
-
-        if (user.isSocial()) {
-            KakaoUser kakaoUser = kakaoUserService.getKakaoUserByUserId(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.KAKAO_USER_NOT_FOUND));
-
-            requestOAuthUnlinkService.request(KakaoUserDto.of(kakaoUser));
-            kakaoUserService.deleteKakaoUser(kakaoUser);
-        }
-    }
-
-    private DeleteReason getDeleteReason(String reason) {
-        return Arrays.stream(DeleteReason.values())
-            .filter(deleteReason -> deleteReason.getDescription().equals(reason))
-            .findFirst()
-            .orElseThrow(() -> new CustomException(ErrorCode.INVALID_DELETE_REASON));
+        return user;
     }
 }

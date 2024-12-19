@@ -17,12 +17,11 @@ import com.WearWeather.wear.domain.oauth.infrastructure.kakao.dto.KakaoUserDto;
 import com.WearWeather.wear.domain.oauth.infrastructure.kakao.entity.KakaoUser;
 import com.WearWeather.wear.domain.oauth.infrastructure.kakao.service.KakaoUserService;
 import com.WearWeather.wear.domain.oauth.service.RequestOAuthUnlinkService;
-import com.WearWeather.wear.domain.user.dto.request.DeleteReasonRequest;
 import com.WearWeather.wear.domain.user.dto.request.ModifyUserPasswordRequest;
 import com.WearWeather.wear.domain.user.dto.request.RegisterUserRequest;
 import com.WearWeather.wear.domain.user.dto.response.UserInfoResponse;
 import com.WearWeather.wear.domain.user.entity.User;
-import com.WearWeather.wear.domain.user.enums.DeleteReason;
+import com.WearWeather.wear.domain.user.facade.UserDeleteFacade;
 import com.WearWeather.wear.domain.user.repository.UserRepository;
 import com.WearWeather.wear.domain.user.service.UserDeleteService;
 import com.WearWeather.wear.domain.user.service.UserService;
@@ -44,6 +43,9 @@ public class UserServiceTest {
 
     @InjectMocks
     UserService userService;
+
+    @InjectMocks
+    UserDeleteFacade userDeleteFacade;
 
     @Mock
     UserDeleteService userDeleteService;
@@ -90,8 +92,8 @@ public class UserServiceTest {
         when(userRepository.existsByEmailAndIsDeleteFalse(UserFixture.email)).thenReturn(true);
 
         assertThatThrownBy(() -> userService.checkDuplicatedUserEmail(UserFixture.email))
-            .isInstanceOf(CustomException.class)
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.EMAIL_ALREADY_EXIST);
+          .isInstanceOf(CustomException.class)
+          .hasFieldOrPropertyWithValue("errorCode", ErrorCode.EMAIL_ALREADY_EXIST);
 
     }
 
@@ -102,8 +104,8 @@ public class UserServiceTest {
         when(userRepository.existsByNicknameAndIsDeleteFalse(UserFixture.nickname)).thenReturn(true);
 
         assertThatThrownBy(() -> userService.checkDuplicatedUserNickName(UserFixture.nickname))
-            .isInstanceOf(CustomException.class)
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.NICKNAME_ALREADY_EXIST);
+          .isInstanceOf(CustomException.class)
+          .hasFieldOrPropertyWithValue("errorCode", ErrorCode.NICKNAME_ALREADY_EXIST);
 
     }
 
@@ -125,8 +127,8 @@ public class UserServiceTest {
     public void findEmailNotMatchRequestTest() {
 
         assertThatThrownBy(() -> userService.findUserEmail(UserFixture.name, UserFixture.nickname))
-            .isInstanceOf(CustomException.class)
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.NOT_MATCH_EMAIL);
+          .isInstanceOf(CustomException.class)
+          .hasFieldOrPropertyWithValue("errorCode", ErrorCode.NOT_MATCH_EMAIL);
 
     }
 
@@ -137,8 +139,8 @@ public class UserServiceTest {
         when(userRepository.findByEmailAndNameAndNicknameAndIsDeleteFalse(UserFixture.email, UserFixture.name, UserFixture.nickname)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> userService.findUserPassword(UserFixture.email, UserFixture.name, UserFixture.nickname))
-            .isInstanceOf(CustomException.class)
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.NOT_EXIST_USER);
+          .isInstanceOf(CustomException.class)
+          .hasFieldOrPropertyWithValue("errorCode", ErrorCode.NOT_EXIST_USER);
 
     }
 
@@ -174,10 +176,10 @@ public class UserServiceTest {
         when(passwordEncoder.encode(newPassword)).thenReturn(newPassword);
 
         doThrow(new CustomException(ErrorCode.FAIL_UPDATE_PASSWORD))
-            .when(user).updatePassword(anyString(), anyBoolean());
+          .when(user).updatePassword(anyString(), anyBoolean());
 
         CustomException exception = assertThrows(CustomException.class, () ->
-            userService.modifyPassword(request));
+          userService.modifyPassword(request));
         assertEquals(ErrorCode.FAIL_UPDATE_PASSWORD, exception.getErrorCode());
     }
 
@@ -197,10 +199,10 @@ public class UserServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
         doThrow(new CustomException(ErrorCode.SOCIAL_ACCOUNT_CANNOT_BE_MODIFIED))
-            .when(user).updatePassword(anyString(), eq(true));
+          .when(user).updatePassword(anyString(), eq(true));
 
         CustomException exception = assertThrows(CustomException.class, () ->
-            userService.modifyPassword(request));
+          userService.modifyPassword(request));
 
         assertEquals(ErrorCode.FAIL_UPDATE_PASSWORD, exception.getErrorCode());
     }
@@ -210,7 +212,7 @@ public class UserServiceTest {
     public void getUserInfoTest() {
 
         User user = UserFixture.createUser();
-        UserInfoResponse response = new UserInfoResponse(UserFixture.email, UserFixture.name, UserFixture.nickname,UserFixture.isSocial);
+        UserInfoResponse response = new UserInfoResponse(UserFixture.email, UserFixture.name, UserFixture.nickname, UserFixture.isSocial);
 
         when(userRepository.findByUserIdAndIsDeleteFalse(UserFixture.userId)).thenReturn(Optional.of(user));
 
@@ -228,7 +230,7 @@ public class UserServiceTest {
         when(userRepository.findByUserIdAndIsDeleteFalse(UserFixture.userId)).thenReturn(Optional.empty());
 
         CustomException exception = assertThrows(CustomException.class, () ->
-            userService.getUserInfo(UserFixture.userId));
+          userService.getUserInfo(UserFixture.userId));
         assertEquals(ErrorCode.NOT_EXIST_USER, exception.getErrorCode());
     }
 
@@ -254,7 +256,7 @@ public class UserServiceTest {
         when(userRepository.findByUserIdAndIsDeleteFalse(UserFixture.userId)).thenReturn(Optional.empty());
 
         CustomException exception = assertThrows(CustomException.class, () ->
-            userService.modifyUserInfo(UserFixture.userId, UserFixture.password, UserFixture.nickname));
+          userService.modifyUserInfo(UserFixture.userId, UserFixture.password, UserFixture.nickname));
         assertEquals(ErrorCode.NOT_EXIST_USER, exception.getErrorCode());
     }
 
@@ -268,101 +270,12 @@ public class UserServiceTest {
         when(passwordEncoder.encode(UserFixture.password)).thenReturn(UserFixture.password);
 
         doThrow(new CustomException(ErrorCode.INVALID_NICKNAME))
-            .when(user).updateUserInfo(anyString(), anyString(), anyBoolean());
+          .when(user).updateUserInfo(anyString(), anyString(), anyBoolean());
 
         CustomException exception = assertThrows(CustomException.class, () ->
-            userService.modifyUserInfo(UserFixture.userId, UserFixture.password, UserFixture.nickname));
+          userService.modifyUserInfo(UserFixture.userId, UserFixture.password, UserFixture.nickname));
 
         assertEquals(ErrorCode.FAIL_UPDATE_USER_INFO, exception.getErrorCode());
 
-    }
-
-    @Test
-    @DisplayName("정상 테스트 : 일반 사용자가 회원 탈퇴에 성공한다")
-    public void deleteUserSuccessTest() {
-        // given
-        Long userId = 1L;
-        String deleteReason = "오류가 잦아요";
-
-        User user = mock(User.class);
-        DeleteReason enumReason = DeleteReason.ERROR_FREQUENT;
-
-        when(userRepository.findByUserIdAndIsDeleteFalse(userId)).thenReturn(Optional.of(user));
-
-        // when
-        userService.deleteUser(userId, deleteReason);
-
-        // then
-        verify(user).updateIsDelete();
-        verify(userDeleteService).save(user, enumReason);
-    }
-
-    @Test
-    @DisplayName("예외 테스트 : 존재하지 않는 사용자 정보로 회원 탈퇴를 시도하여 실패한다.")
-    public void deleteUserNotFoundTest() {
-        // given
-        Long userId = 1L;
-        String deleteReason = "오류가 잦아요";
-
-        when(userRepository.findByUserIdAndIsDeleteFalse(userId)).thenReturn(Optional.empty());
-
-        // when & then
-        assertThatThrownBy(() -> userService.deleteUser(userId, deleteReason))
-            .isInstanceOf(CustomException.class)
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.NOT_EXIST_USER);
-    }
-
-    @Test
-    @DisplayName("예외 테스트 : 유효하지 않은 탈퇴 이유 값으로 회원 탈퇴를 시도하여 실패한다.")
-    public void deleteUserWithInvalidReasonTest() {
-        // given
-        Long userId = 1L;
-        String invalidReason = "유효하지 않은 탈퇴 이유";
-
-        // when & then
-        assertThatThrownBy(() -> userService.deleteUser(userId, invalidReason))
-            .isInstanceOf(CustomException.class)
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_DELETE_REASON);
-    }
-
-    @Test
-    @DisplayName("정상 테스트 : 소셜 로그인 사용자가 회원 탈퇴를 성공한다")
-    public void deleteSocialUserTest() {
-        // given
-        Long userId = 1L;
-        String deleteReason = "서비스 기능이 미흡해요";
-
-        User user = mock(User.class);
-        DeleteReason enumReason = DeleteReason.POOR_FUNCTIONALITY;
-
-        when(userRepository.findByUserIdAndIsDeleteFalse(userId)).thenReturn(Optional.of(user));
-        when(user.isSocial()).thenReturn(true);
-        when(kakaoUserService.getKakaoUserByUserId(userId)).thenReturn(Optional.of(kakaoUser));
-
-        // when
-        userService.deleteUser(userId, deleteReason);
-
-        // then
-        verify(user).updateIsDelete();
-        verify(userDeleteService).save(user, enumReason);
-        verify(kakaoUserService).deleteKakaoUser(kakaoUser);
-    }
-
-    @Test
-    @DisplayName("예외 테스트 : 소셜 로그인 사용자 정보가 없어 회원 탈퇴에 실패한다")
-    public void deleteSocialUserNotFoundTest() {
-        // given
-        Long userId = 1L;
-        String deleteReason = "서비스 기능이 미흡해요";
-
-        User user = mock(User.class);
-        when(userRepository.findByUserIdAndIsDeleteFalse(userId)).thenReturn(Optional.of(user));
-        when(user.isSocial()).thenReturn(true);
-        when(kakaoUserService.getKakaoUserByUserId(userId)).thenReturn(Optional.empty());
-
-        // when & then
-        assertThatThrownBy(() -> userService.deleteUser(userId, deleteReason))
-            .isInstanceOf(CustomException.class)
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.KAKAO_USER_NOT_FOUND);
     }
 }
