@@ -11,6 +11,7 @@ import com.WearWeather.wear.global.exception.CustomException;
 import com.WearWeather.wear.global.exception.ErrorCode;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,36 +40,35 @@ public class PostImageService {
     }
 
     @Transactional
-    public void savePostIdInImages(Post post,PostImageRequest request) {
-        validateImageIds(request.getImageIds());
+    public void mappingPostIdInImages(Post post, PostImageRequest request) {
+        List<PostImage> postImages = getPostImages(request.getImageIds());
 
-        List<PostImage> postImages = postImageRepository.findByIdIn(request.getImageIds());
-        if (postImages.isEmpty()) {
-            throw new CustomException(ErrorCode.IMAGE_NOT_FOUND);
+        for (PostImage postImage : postImages) {
+            mappingPost(postImage,post);
         }
 
-        for (int i = 0; i < postImages.size(); i++) {
-            PostImage postImage = postImages.get(i);
-            if (postImage.getPostId() != null) {
-                throw new CustomException(ErrorCode.IMAGE_ID_ALREADY_ASSOCIATED_WITH_POST);
-            }
-            postImage.updatePostId(post.getId());
+        assignThumbnailImage(post, postImages);
+    }
 
-            if (i == 0) {
-                post.addThumbnailImageId(postImage.getId());
-            }
+    public List<PostImage> getPostImages(List<Long> imageIds) {
+        return Optional.ofNullable(postImageRepository.findByIdIn(imageIds))
+          .filter(images -> !images.isEmpty())
+          .orElseThrow(() -> new CustomException(ErrorCode.IMAGE_NOT_FOUND));
+    }
+
+    public void mappingPost(PostImage postImage,Post post) {
+        validatePostImageAssociation(postImage);
+        postImage.updatePostId(post.getId());
+    }
+
+    public void validatePostImageAssociation(PostImage postImage) {
+        if (postImage.getPostId() != null) {
+            throw new CustomException(ErrorCode.IMAGE_ID_ALREADY_ASSOCIATED_WITH_POST);
         }
     }
 
-    private void validateImageIds(List<Long> imageIds) {
-        if (imageIds == null || imageIds.isEmpty()) {
-            throw new CustomException(ErrorCode.IMAGE_INVALID_ID_IN_LIST);
-        }
-
-        boolean hasInvalidId = imageIds.stream().anyMatch(id -> id == null || id <= 0);
-        if (hasInvalidId) {
-            throw new CustomException(ErrorCode.IMAGE_INVALID_ID);
-        }
+    private void assignThumbnailImage(Post post, List<PostImage> postImages) {
+            post.addThumbnailImageId(postImages.get(0).getId());
     }
 
     @Transactional
@@ -128,5 +128,16 @@ public class PostImageService {
                 awsS3Service.delete(image.getName());
                 postImageRepository.delete(image);
             });
+    }
+
+    public String getImageUrl(Long thumbnailId) {
+        PostImage postImage = postImageRepository.findById(thumbnailId)
+          .orElseThrow(() -> new CustomException(ErrorCode.IMAGE_NOT_FOUND));
+
+       return awsS3Service.getUrl(postImage.getName());
+    }
+
+    public List<PostImage> getPostImagesByPost(Long postId) {
+        return postImageRepository.findByPostId(postId);
     }
 }
