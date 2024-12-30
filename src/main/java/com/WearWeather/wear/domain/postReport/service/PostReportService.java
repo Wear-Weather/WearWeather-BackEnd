@@ -4,7 +4,6 @@ import com.WearWeather.wear.domain.post.service.PostValidationService;
 import com.WearWeather.wear.domain.postReport.repository.PostIdMapping;
 import com.WearWeather.wear.domain.postReport.entity.PostReport;
 import com.WearWeather.wear.domain.postReport.repository.PostReportRepository;
-import com.WearWeather.wear.domain.user.service.UserService;
 import com.WearWeather.wear.global.exception.CustomException;
 import com.WearWeather.wear.global.exception.ErrorCode;
 import java.util.List;
@@ -52,7 +51,7 @@ public class PostReportService {
         return checkPostReported(postId) && hasExceededReportCount(postId);
     }
 
-    public List<Long> findPostsExceedingReportCount(){
+    public List<Long> getPostsExceedingReportCount(){
         return postReportRepository.findPostsExceedingReportCount();
     }
 
@@ -61,7 +60,7 @@ public class PostReportService {
         postReportRepository.deleteByPostId(postId);
     }
 
-    public List<Long> findReportedPostsByUserId(Long userId){
+    public List<Long> getReportedPostsByUserId(Long userId){
         List<PostIdMapping> postIdMappings = postReportRepository.findAllByUserId(userId);
 
         return postIdMappings.stream()
