@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.List;
@@ -52,8 +53,10 @@ public class PostCreateRequest implements PostImageRequest, TaggableRequest {
     @NotNull
     private final Long seasonTagId;
 
+    @NotNull(message = "이미지 리스트는 null일 수 없습니다.")
     @NotEmpty(message = "이미지 업로드는 필수입니다.")
-    private final List<Long> imageIds = new ArrayList<>();
+    private final List<@NotNull(message = "이미지 ID는 null일 수 없습니다.")
+                       @Positive(message = "이미지 ID는 양수여야 합니다.") Long> imageIds = new ArrayList<>();
 
     @JsonCreator
     public PostCreateRequest(
