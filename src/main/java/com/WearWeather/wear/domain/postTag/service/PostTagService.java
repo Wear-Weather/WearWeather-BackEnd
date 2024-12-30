@@ -4,12 +4,15 @@ import com.WearWeather.wear.domain.post.entity.Post;
 import com.WearWeather.wear.domain.postTag.entity.PostTag;
 import com.WearWeather.wear.domain.postTag.repository.PostTagRepository;
 import com.WearWeather.wear.domain.tag.dto.TaggableRequest;
+import com.WearWeather.wear.domain.tag.entity.Tag;
 import com.WearWeather.wear.domain.tag.repository.TagRepository;
 import com.WearWeather.wear.global.exception.CustomException;
 import com.WearWeather.wear.global.exception.ErrorCode;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -66,5 +69,19 @@ public class PostTagService {
         postTagRepository.deleteByPostId(postId);
     }
 
+    public Map<String, List<String>> getTagsByPostId(Long postId) {
+            List<PostTag> postTags = postTagRepository.findByPostId(postId);
 
-}
+            List<Long> tagIds = postTags.stream()
+              .map(PostTag::getTagId)
+              .collect(Collectors.toList());
+
+            List<Tag> tags = tagRepository.findAllById(tagIds);
+
+            return tags.stream()
+              .collect(Collectors.groupingBy(
+                Tag::getCategory,
+                Collectors.mapping(Tag::getContent, Collectors.toList())
+              ));
+        }
+    }
