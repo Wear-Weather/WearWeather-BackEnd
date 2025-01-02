@@ -37,7 +37,7 @@ public class PostHiddenService {
         postHiddenRepository.save(postHidden);
     }
 
-    public List<Long> findHiddenPostsByUserId(Long userId){
+    public List<Long> getHiddenPostsByUserId(Long userId){
         List<PostIdMapping> postIdMappings = postHiddenRepository.findAllByUserId(userId);
 
         return postIdMappings.stream()

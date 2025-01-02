@@ -35,9 +35,11 @@ public class AwsS3Service {
 
     @PostConstruct
     private void init() {
-        File tempDir = new File(photoDir);
+        System.out.println("Java Temp Dir: " + System.getProperty("java.io.tmpdir"));
+        File tempDir = new File(photoDir, "post-image"); // 하위 디렉토리 포함
         if (!tempDir.exists()) {
             boolean dirCreated = tempDir.mkdirs();
+            System.out.println("PhotoDir Created: " + tempDir.getAbsolutePath() + " -> " + dirCreated);
             if (!dirCreated) {
                 throw new RuntimeException("Failed to create directory: " + photoDir);
             }
@@ -76,15 +78,35 @@ public class AwsS3Service {
 
     private File convertToWebp(String fileName, File originalFile) {
         try {
+            // WebP 저장 파일 경로 생성
+            File outputFile = new File(photoDir, fileName);
+            File outputDir = outputFile.getParentFile();
+
+            // 디렉토리 확인 및 생성
+            if (!outputDir.exists()) {
+                boolean dirCreated = outputDir.mkdirs();
+                System.out.println("Output Directory Created: " + outputDir.getAbsolutePath() + " -> " + dirCreated);
+                if (!dirCreated) {
+                    throw new IOException("Failed to create directory: " + outputDir.getAbsolutePath());
+                }
+            }
+
+            // WebP 변환 수행
+            System.out.println("Converting to WebP: " + originalFile.getAbsolutePath());
             return ImmutableImage.loader()
               .fromFile(originalFile)
-              .output(WebpWriter.DEFAULT, new File(photoDir, fileName + ".webp"));
+              .output(WebpWriter.DEFAULT, outputFile);
         } catch (IllegalArgumentException e) {
+            System.out.println("Invalid Image Format: " + e.getMessage());
             throw new CustomException(ErrorCode.INVALID_IMAGE_FORMAT);
         } catch (IOException e) {
+            System.out.println("WebP Conversion Failed: " + e.getMessage());
             throw new CustomException(ErrorCode.WEBP_CONVERSION_FAILED);
         }
     }
+
+
+
 
     private void uploadFileToS3(File file, String fileName) {
         try (FileInputStream fileInputStream = new FileInputStream(file)) {
