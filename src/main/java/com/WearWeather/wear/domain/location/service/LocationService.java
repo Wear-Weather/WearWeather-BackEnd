@@ -9,12 +9,9 @@ import com.WearWeather.wear.domain.post.dto.response.LocationResponse;
 import com.WearWeather.wear.domain.post.entity.Location;
 import com.WearWeather.wear.global.exception.CustomException;
 import com.WearWeather.wear.global.exception.ErrorCode;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.UnsupportedEncodingException;
-import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.util.*;
 import java.io.IOException;
@@ -315,7 +312,7 @@ public class LocationService {
             String exchangedCityName = exchangeCityName(city);
             String district = extractDistrict(documents.path(region_2depth_district).asText());
 
-            Location location = findCityIdAndDistrictId(exchangedCityName, district);
+            Location location = getCityAndDistrict(exchangedCityName, district);
 
             return GeocodingLocationResponse.of(exchangedCityName, location.getCity(), district, location.getDistrict());
 
@@ -393,7 +390,7 @@ public class LocationService {
                     return Collections.emptyList();
                 }
 
-                Location location = findCityIdAndDistrictId(cityName, districtName);
+                Location location = getCityAndDistrict(cityName, districtName);
                 locationList.add(SearchLocationResponse.of(address_full_name, longitude, latitude, cityName, location.getCity(), districtName, location.getDistrict()));
             }
 
@@ -463,7 +460,7 @@ public class LocationService {
         return DistrictResponse.of(districtId, districtName);
     }
 
-    public Location findCityIdAndDistrictId(String city, String district){
+    public Location getCityAndDistrict(String city, String district){
         Long cityId = findCityIdByCity(city);
         Long districtId = findDistrictIdByCityIdAndDistrict(cityId, district);
 
@@ -480,7 +477,7 @@ public class LocationService {
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_DISTRICT_ID)).getId();
     }
 
-    public LocationResponse findCityIdAndDistrictId(Long cityId, Long districtId){
+    public LocationResponse getCityAndDistrict(Long cityId, Long districtId){
         String city = findCityById(cityId);
         String district = findDistrictByCityIdAndDistrictId(cityId, districtId);
 

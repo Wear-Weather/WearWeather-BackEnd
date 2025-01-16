@@ -3,6 +3,9 @@ package com.WearWeather.wear.domain.postLike.controller;
 import com.WearWeather.wear.domain.postLike.dto.response.LikedPostsByMeResponse;
 import com.WearWeather.wear.domain.postLike.dto.response.TotalLikedCountAfterLike;
 import com.WearWeather.wear.domain.postLike.dto.response.TotalLikedCountAfterUnlike;
+import com.WearWeather.wear.domain.postLike.facade.LikeCreateFacade;
+import com.WearWeather.wear.domain.postLike.facade.LikeDeleteFacade;
+import com.WearWeather.wear.domain.postLike.facade.LikeReaderFacade;
 import com.WearWeather.wear.domain.postLike.service.LikeService;
 import com.WearWeather.wear.global.jwt.LoggedInUser;
 import lombok.RequiredArgsConstructor;
@@ -23,23 +26,25 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class LikeController {
 
-    private final LikeService likeService;
+    private final LikeReaderFacade likeReaderFacade;
+    private final LikeCreateFacade likeCreateFacade;
+    private final LikeDeleteFacade likeDeleteFacade;
 
     @PostMapping("/{postId}")
     public ResponseEntity<TotalLikedCountAfterLike> addLike(@LoggedInUser Long userId, @PathVariable("postId") Long postId) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(likeService.addLike(userId, postId));
+        return ResponseEntity.status(HttpStatus.CREATED).body(likeCreateFacade.addLike(userId, postId));
     }
 
     @DeleteMapping("/{postId}")
     public ResponseEntity<TotalLikedCountAfterUnlike> removeLike(@LoggedInUser Long userId, @PathVariable("postId") Long postId) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(likeService.removeLike(userId, postId));
+        return ResponseEntity.status(HttpStatus.CREATED).body(likeDeleteFacade.removeLike(userId, postId));
     }
 
     @GetMapping
     public ResponseEntity<LikedPostsByMeResponse> getLikedPostsByMe(@LoggedInUser Long userId,
         @RequestParam("page") int page,
         @RequestParam("size") int size) {
-        return ResponseEntity.ok(likeService.getLikedPostsByMe(userId, page, size));
+        return ResponseEntity.ok(likeReaderFacade.getLikedPostsByMe(userId, page, size));
     }
 
 }
