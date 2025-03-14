@@ -1,6 +1,7 @@
 package com.WearWeather.wear.domain.oauth.service;
 
 import com.WearWeather.wear.domain.auth.dto.response.LoginResponse;
+import com.WearWeather.wear.domain.auth.dto.response.TokenResponse;
 import com.WearWeather.wear.domain.oauth.domain.oauth.OAuthLoginParams;
 import com.WearWeather.wear.domain.oauth.domain.oauth.OAuthUserInfo;
 import com.WearWeather.wear.domain.oauth.infrastructure.kakao.KaKaoUserInfo;
@@ -32,7 +33,7 @@ public class OAuthLoginService {
     private final PasswordEncoder passwordEncoder;
     private final KakaoUserService kakaoUserService;
 
-    public LoginResponse login(OAuthLoginParams params) {
+    public TokenResponse login(OAuthLoginParams params) {
         OAuthUserInfo oAuthUserInfo = requestOAuthInfoService.request(params);
         User user = findOrRegisterUser(oAuthUserInfo);
 
@@ -47,8 +48,9 @@ public class OAuthLoginService {
         );
 
         String accessToken = tokenProvider.createAccessToken(authentication);
+        String refreshToken = tokenProvider.createRefreshToken(user.getUserId());
 
-        return LoginResponse.of(user, accessToken);
+        return TokenResponse.of(accessToken, refreshToken);
     }
 
     private User findOrRegisterUser(OAuthUserInfo oAuthUserInfo) {

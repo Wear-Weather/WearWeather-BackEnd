@@ -3,7 +3,6 @@ package com.WearWeather.wear.domain.auth.controller;
 import static com.WearWeather.wear.global.jwt.JwtFilter.AUTHORIZATION_HEADER;
 
 import com.WearWeather.wear.domain.auth.dto.request.LoginRequest;
-import com.WearWeather.wear.domain.auth.dto.response.LoginResponse;
 import com.WearWeather.wear.domain.auth.dto.response.TokenResponse;
 import com.WearWeather.wear.domain.auth.facade.LogOutFacade;
 import com.WearWeather.wear.domain.auth.facade.LoginFacade;
@@ -13,13 +12,13 @@ import com.WearWeather.wear.global.exception.CustomException;
 import com.WearWeather.wear.global.exception.ErrorCode;
 import com.WearWeather.wear.global.jwt.JwtCookieManager;
 import com.WearWeather.wear.global.jwt.LoggedInUser;
-import com.WearWeather.wear.global.jwt.TokenProvider;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import java.util.Arrays;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -35,17 +34,14 @@ public class AuthController {
     private final LoginFacade loginFacade;
     private final LogOutFacade logOutFacade;
     private final ReissueFacade reissueFacade;
-    private final TokenProvider tokenProvider;
     private final JwtCookieManager jwtCookieManager;
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request, HttpServletResponse response) {
-        LoginResponse loginResponse = loginFacade.checkLogin(request);
-
-        jwtCookieManager.saveAccessTokenToCookie(response, loginResponse.getAccessToken());
-        String refreshToken = tokenProvider.renewRefreshToken(loginResponse.getAccessToken());
-        jwtCookieManager.saveRefreshTokenToCookie(response, refreshToken);
-        return ResponseEntity.ok(loginResponse);
+    public ResponseEntity<Void> login(@Valid @RequestBody LoginRequest request, HttpServletResponse response) {
+        TokenResponse tokenResponse = loginFacade.checkLogin(request);
+        jwtCookieManager.saveAccessTokenToCookie(response, tokenResponse.getAccessToken());
+        jwtCookieManager.saveRefreshTokenToCookie(response, tokenResponse.getRefreshToken());
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @PostMapping("/logout")
@@ -57,7 +53,7 @@ public class AuthController {
     }
 
     @PostMapping("/reissue")
-    public ResponseEntity<TokenResponse> reissue(HttpServletRequest request) {
+    public ResponseEntity<String> reissue(HttpServletRequest request) {
         Cookie[] cookies = request.getCookies();
         if (cookies == null) {
             throw new CustomException(ErrorCode.NOT_FOUND_COOKIE);
@@ -73,7 +69,7 @@ public class AuthController {
             throw new CustomException(ErrorCode.NOT_FOUND_REFRESH_TOKEN_IN_COOKIE);
         }
 
-        TokenResponse newToken = reissueFacade.reissue(refreshToken);
+        String newToken = reissueFacade.reissue(refreshToken);
         return ResponseEntity.ok(newToken);
     }
 }

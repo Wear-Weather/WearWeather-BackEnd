@@ -8,8 +8,16 @@ import lombok.Getter;
 @Getter
 @Builder
 @AllArgsConstructor
-@Data
 public class TokenResponse {
 
     private final String accessToken;
+    private final String refreshToken;
+
+    public static TokenResponse of(String accessToken, String refreshToken) {
+        return TokenResponse.builder()
+          .accessToken(accessToken)
+          .refreshToken(refreshToken)
+          .build();
+    }
 }
+
