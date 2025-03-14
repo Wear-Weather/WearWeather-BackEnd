@@ -11,6 +11,7 @@ import com.WearWeather.wear.domain.auth.facade.ReissueFacade;
 import com.WearWeather.wear.global.common.dto.ResponseCommonDTO;
 import com.WearWeather.wear.global.exception.CustomException;
 import com.WearWeather.wear.global.exception.ErrorCode;
+import com.WearWeather.wear.global.jwt.JwtCookieManager;
 import com.WearWeather.wear.global.jwt.LoggedInUser;
 import com.WearWeather.wear.global.jwt.TokenProvider;
 import jakarta.servlet.http.Cookie;
@@ -18,7 +19,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import java.util.Arrays;
-import org.springframework.http.ResponseCookie;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/auth")
 public class AuthController {
 
@@ -34,29 +36,15 @@ public class AuthController {
     private final LogOutFacade logOutFacade;
     private final ReissueFacade reissueFacade;
     private final TokenProvider tokenProvider;
-
-    public AuthController(TokenProvider tokenProvider, LoginFacade loginFacade, LogOutFacade logOutFacade, ReissueFacade reissueFacade) {
-        this.tokenProvider = tokenProvider;
-        this.loginFacade = loginFacade;
-        this.logOutFacade = logOutFacade;
-        this.reissueFacade = reissueFacade;
-    }
+    private final JwtCookieManager jwtCookieManager;
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request, HttpServletResponse response) {
         LoginResponse loginResponse = loginFacade.checkLogin(request);
 
+        jwtCookieManager.saveAccessTokenToCookie(response, loginResponse.getAccessToken());
         String refreshToken = tokenProvider.renewRefreshToken(loginResponse.getAccessToken());
-        ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", refreshToken)
-          .path("/")
-          .sameSite("Strict")
-          .httpOnly(true)
-          .secure(true)
-          .domain("lookattheweather.store")
-          .maxAge(7 * 24 * 60 * 60)
-          .build();
-        response.addHeader("Set-Cookie", refreshTokenCookie.toString());
-
+        jwtCookieManager.saveRefreshTokenToCookie(response, refreshToken);
         return ResponseEntity.ok(loginResponse);
     }
 
@@ -64,17 +52,7 @@ public class AuthController {
     public ResponseEntity<ResponseCommonDTO> logout(@LoggedInUser Long userId, @RequestHeader(AUTHORIZATION_HEADER) String tokenHeader, HttpServletResponse response) {
         String token = tokenHeader.replace("Bearer ", "");
         logOutFacade.logout(userId, token);
-
-        ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", "")
-          .path("/")
-          .sameSite("Strict")
-          .httpOnly(true)
-          .secure(true)
-          .domain("lookattheweather.store")
-          .maxAge(0)
-          .build();
-        response.addHeader("Set-Cookie", refreshTokenCookie.toString());
-
+        jwtCookieManager.clearAuthCookies(response);
         return ResponseEntity.ok(new ResponseCommonDTO(true, "success logout"));
     }
 

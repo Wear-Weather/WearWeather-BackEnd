@@ -3,6 +3,7 @@ package com.WearWeather.wear.domain.oauth.controller;
 import com.WearWeather.wear.domain.auth.dto.response.LoginResponse;
 import com.WearWeather.wear.domain.oauth.infrastructure.kakao.KakaoLoginParam;
 import com.WearWeather.wear.domain.oauth.service.OAuthLoginService;
+import com.WearWeather.wear.global.jwt.JwtCookieManager;
 import com.WearWeather.wear.global.jwt.TokenProvider;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -24,24 +25,16 @@ public class OAuthController {
 
     private final OAuthLoginService oAuthLoginService;
     private final TokenProvider tokenProvider;
+    private final JwtCookieManager jwtCookieManager;
 
     @GetMapping("/kakao")
     public ResponseEntity<LoginResponse> kakaoLogin(@RequestParam("code") String code, HttpServletResponse response) {
         KakaoLoginParam param = new KakaoLoginParam(code);
         LoginResponse loginResponse = oAuthLoginService.login(param);
 
+        jwtCookieManager.saveAccessTokenToCookie(response, loginResponse.getAccessToken());
         String refreshToken = tokenProvider.renewRefreshToken(loginResponse.getAccessToken());
-        ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", refreshToken)
-            .path("/")
-            .sameSite("Strict")
-            .httpOnly(true)
-            .secure(true)
-            .domain("lookattheweather.store")
-            .maxAge(7 * 24 * 60 * 60)
-            .build();
-
-        response.addHeader("Set-Cookie", refreshTokenCookie.toString());
-
+        jwtCookieManager.saveRefreshTokenToCookie(response, refreshToken);
         return new ResponseEntity<>(loginResponse, HttpStatus.OK);
     }
 }
