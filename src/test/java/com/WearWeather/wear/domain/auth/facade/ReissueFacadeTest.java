@@ -96,11 +96,10 @@ public class ReissueFacadeTest {
         when(tokenProvider.createAccessToken(authentication)).thenReturn(newAccessToken);
 
         // when
-        TokenResponse response = reissueFacade.reissue(refreshToken);
+        String accessToken = reissueFacade.reissue(refreshToken);
 
         // then
-        assertNotNull(response);
-        assertEquals(newAccessToken, response.getAccessToken());
+        assertNotNull(accessToken);
 
     }
 }

@@ -21,16 +21,15 @@ public class ReissueFacade {
     private final AuthenticationProvider authenticationProvider;
     private final TokenProvider tokenProvider;
 
-    public TokenResponse reissue(String refreshToken) {
+    public String reissue(String refreshToken) {
         Long userId = tokenProvider.getRefreshTokenInfo(refreshToken);
         String savedRefreshToken = redisService.getValues(userId);
         validateRefreshToken(savedRefreshToken, refreshToken);
 
         User user = userService.getUser(userId);
         Authentication authentication = authenticationProvider.createAuthenticatedToken(user);
-        String newAccessToken = tokenProvider.createAccessToken(authentication);
 
-        return new TokenResponse(newAccessToken);
+        return tokenProvider.createAccessToken(authentication);
     }
 
     private void validateRefreshToken(String savedRefreshToken, String refreshToken) {

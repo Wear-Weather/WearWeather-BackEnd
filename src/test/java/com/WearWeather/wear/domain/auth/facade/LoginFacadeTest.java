@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 
 import com.WearWeather.wear.domain.auth.dto.request.LoginRequest;
 import com.WearWeather.wear.domain.auth.dto.response.LoginResponse;
+import com.WearWeather.wear.domain.auth.dto.response.TokenResponse;
 import com.WearWeather.wear.domain.auth.provider.AuthenticationProvider;
 import com.WearWeather.wear.domain.user.entity.User;
 import com.WearWeather.wear.domain.user.service.UserService;
@@ -67,7 +68,7 @@ public class LoginFacadeTest {
         when(tokenProvider.createAccessToken(authentication)).thenReturn("accessToken");
 
         // when
-        LoginResponse result = loginFacade.checkLogin(request);
+        TokenResponse result = loginFacade.checkLogin(request);
 
         // then
         assertNotNull(result);
@@ -90,7 +91,7 @@ public class LoginFacadeTest {
         when(tokenProvider.createAccessToken(authentication)).thenReturn("accessToken");
 
         // when
-        LoginResponse response = loginFacade.checkLogin(request);
+        TokenResponse response = loginFacade.checkLogin(request);
 
         // then
         assertNotNull(response);
