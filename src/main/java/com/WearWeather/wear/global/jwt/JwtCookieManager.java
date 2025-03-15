@@ -55,6 +55,12 @@ public class JwtCookieManager {
         return cookie;
     }
 
+    public void saveAccessTokenToCookie(HttpServletRequest request, HttpServletResponse response, String accessToken) {
+        boolean isLocal = isLocalRequest(request);
+        ResponseCookie accessTokenCookie = createCookie(ACCESS_TOKEN_COOKIE_NAME, accessToken, isLocal, ACCESS_TOKEN_EXPIRATION);
+        response.addHeader("Set-Cookie", accessTokenCookie.toString());
+    }
+
     public void saveRefreshTokenToCookie(HttpServletRequest request, HttpServletResponse response, String refreshToken) {
         boolean isLocal = isLocalRequest(request);
         ResponseCookie refreshTokenCookie = createCookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken, isLocal, REFRESH_TOKEN_EXPIRATION);
