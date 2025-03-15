@@ -35,13 +35,33 @@ public class JwtCookieManager {
     /**
      * 공통적으로 사용되는 쿠키 생성 메서드
      */
+//    private ResponseCookie createCookie(String name, String value, boolean isLocal, int maxAge) {
+//        ResponseCookie cookie = ResponseCookie.from(name, value)
+//          .path("/")
+//          .httpOnly(true)
+//          .secure(!isLocal)  // 로컬이면 false, 운영이면 true
+//          .sameSite(isLocal ? "Lax" : "None")  // 로컬은 Lax, 운영은 Strict
+//          .domain(isLocal ? LOCALHOST : DOMAIN) // 로컬이면 localhost, 운영이면 도메인 지정
+//          .maxAge(maxAge)
+//          .build();
+//
+//        log.info("쿠키 생성: [{}]", name);
+//        log.info("   - 값: {}", value.isEmpty() ? "삭제됨 (Empty)" : "설정됨");
+//        log.info("   - Secure: {}", cookie.isSecure() ? "true (운영)" : "false (로컬)");
+//        log.info("   - SameSite: {}", cookie.getSameSite());
+//        log.info("   - Domain: {}", cookie.getDomain());
+//        log.info("   - Max Age: {} 초", maxAge);
+//
+//        return cookie;
+//    }
+
     private ResponseCookie createCookie(String name, String value, boolean isLocal, int maxAge) {
         ResponseCookie cookie = ResponseCookie.from(name, value)
           .path("/")
           .httpOnly(true)
-          .secure(!isLocal)  // 로컬이면 false, 운영이면 true
-          .sameSite(isLocal ? "Lax" : "None")  // 로컬은 Lax, 운영은 Strict
-          .domain(isLocal ? LOCALHOST : DOMAIN) // 로컬이면 localhost, 운영이면 도메인 지정
+          .secure(true)  // 로컬이면 false, 운영이면 true
+          .sameSite("Strict")  // 로컬은 Lax, 운영은 Strict
+          .domain("lookattheweather.store") // 로컬이면 localhost, 운영이면 도메인 지정
           .maxAge(maxAge)
           .build();
 
