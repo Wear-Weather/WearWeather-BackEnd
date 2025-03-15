@@ -13,7 +13,7 @@ public class JwtCookieManager {
 
     private static final String ACCESS_TOKEN_COOKIE_NAME = "accessToken";
     private static final String REFRESH_TOKEN_COOKIE_NAME = "refreshToken";
-    private static final String DOMAIN = "lookattheweather.store";
+    private static final String DOMAIN = ".lookattheweather.store";
     private static final String LOCALHOST = "localhost";
 
     private static final int ACCESS_TOKEN_EXPIRATION = 24 * 60 * 60; // 24시간
