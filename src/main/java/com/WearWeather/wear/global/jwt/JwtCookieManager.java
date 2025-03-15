@@ -35,33 +35,13 @@ public class JwtCookieManager {
     /**
      * 공통적으로 사용되는 쿠키 생성 메서드
      */
-//    private ResponseCookie createCookie(String name, String value, boolean isLocal, int maxAge) {
-//        ResponseCookie cookie = ResponseCookie.from(name, value)
-//          .path("/")
-//          .httpOnly(true)
-//          .secure(!isLocal)  // 로컬이면 false, 운영이면 true
-//          .sameSite(isLocal ? "Lax" : "None")  // 로컬은 Lax, 운영은 Strict
-//          .domain(isLocal ? LOCALHOST : DOMAIN) // 로컬이면 localhost, 운영이면 도메인 지정
-//          .maxAge(maxAge)
-//          .build();
-//
-//        log.info("쿠키 생성: [{}]", name);
-//        log.info("   - 값: {}", value.isEmpty() ? "삭제됨 (Empty)" : "설정됨");
-//        log.info("   - Secure: {}", cookie.isSecure() ? "true (운영)" : "false (로컬)");
-//        log.info("   - SameSite: {}", cookie.getSameSite());
-//        log.info("   - Domain: {}", cookie.getDomain());
-//        log.info("   - Max Age: {} 초", maxAge);
-//
-//        return cookie;
-//    }
-
     private ResponseCookie createCookie(String name, String value, boolean isLocal, int maxAge) {
         ResponseCookie cookie = ResponseCookie.from(name, value)
           .path("/")
           .httpOnly(true)
-          .secure(true)  // 로컬이면 false, 운영이면 true
-          .sameSite("Strict")  // 로컬은 Lax, 운영은 Strict
-          .domain("lookattheweather.store") // 로컬이면 localhost, 운영이면 도메인 지정
+          .secure(!isLocal)  // 로컬이면 false, 운영이면 true
+          .sameSite(isLocal ? "Lax" : "Strict")  // 로컬은 Lax, 운영은 Strict
+          .domain(isLocal ? LOCALHOST : DOMAIN) // 로컬이면 localhost, 운영이면 도메인 지정
           .maxAge(maxAge)
           .build();
 
@@ -78,9 +58,15 @@ public class JwtCookieManager {
     public void saveAccessTokenToCookie(HttpServletRequest request, HttpServletResponse response, String accessToken) {
         boolean isLocal = isLocalRequest(request);
         ResponseCookie accessTokenCookie = createCookie(ACCESS_TOKEN_COOKIE_NAME, accessToken, isLocal, ACCESS_TOKEN_EXPIRATION);
+
+        log.info("📢 [쿠키 생성] Set-Cookie 헤더 추가: {}", accessTokenCookie.toString());
+
         response.addHeader("Set-Cookie", accessTokenCookie.toString());
 
+        // 응답 직후에도 헤더 확인 (이 부분은 null일 가능성이 있음)
+        log.info("📢 [Set-Cookie 응답 확인] {}", response.getHeader("Set-Cookie"));
     }
+
 
     public void saveRefreshTokenToCookie(HttpServletRequest request, HttpServletResponse response, String refreshToken) {
         boolean isLocal = isLocalRequest(request);
