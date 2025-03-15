@@ -3,9 +3,11 @@ package com.WearWeather.wear.global.jwt;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 public class JwtCookieManager {
 
@@ -17,13 +19,24 @@ public class JwtCookieManager {
     private static final int ACCESS_TOKEN_EXPIRATION = 24 * 60 * 60; // 24시간
     private static final int REFRESH_TOKEN_EXPIRATION = 7 * 24 * 60 * 60; // 7일
 
+    /**
+     * 요청을 보낸 클라이언트가 localhost인지 확인 (Origin 기반)
+     */
     private boolean isLocalRequest(HttpServletRequest request) {
         String origin = request.getHeader("Origin");
-        return origin != null && (origin.contains(LOCALHOST) || origin.contains("127.0.0.1"));
+        boolean isLocal = origin != null && (origin.contains(LOCALHOST) || origin.contains("127.0.0.1"));
+
+        log.info("요청 Origin: {}", origin);
+        log.info("요청이 로컬인가? {}", isLocal ? "YES (Localhost)" : "NO (Production)");
+
+        return isLocal;
     }
 
+    /**
+     * 공통적으로 사용되는 쿠키 생성 메서드
+     */
     private ResponseCookie createCookie(String name, String value, boolean isLocal, int maxAge) {
-        return ResponseCookie.from(name, value)
+        ResponseCookie cookie = ResponseCookie.from(name, value)
           .path("/")
           .httpOnly(true)
           .secure(!isLocal)  // 로컬이면 false, 운영이면 true
@@ -31,12 +44,15 @@ public class JwtCookieManager {
           .domain(isLocal ? LOCALHOST : DOMAIN) // 로컬이면 localhost, 운영이면 도메인 지정
           .maxAge(maxAge)
           .build();
-    }
 
-    public void saveAccessTokenToCookie(HttpServletRequest request, HttpServletResponse response, String accessToken) {
-        boolean isLocal = isLocalRequest(request);
-        ResponseCookie accessTokenCookie = createCookie(ACCESS_TOKEN_COOKIE_NAME, accessToken, isLocal, ACCESS_TOKEN_EXPIRATION);
-        response.addHeader("Set-Cookie", accessTokenCookie.toString());
+        log.info("쿠키 생성: [{}]", name);
+        log.info("   - 값: {}", value.isEmpty() ? "삭제됨 (Empty)" : "설정됨");
+        log.info("   - Secure: {}", cookie.isSecure() ? "true (운영)" : "false (로컬)");
+        log.info("   - SameSite: {}", cookie.getSameSite());
+        log.info("   - Domain: {}", cookie.getDomain());
+        log.info("   - Max Age: {} 초", maxAge);
+
+        return cookie;
     }
 
     public void saveRefreshTokenToCookie(HttpServletRequest request, HttpServletResponse response, String refreshToken) {
