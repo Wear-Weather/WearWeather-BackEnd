@@ -7,6 +7,7 @@ import com.WearWeather.wear.domain.oauth.service.OAuthLoginService;
 import com.WearWeather.wear.global.jwt.JwtCookieManager;
 import com.WearWeather.wear.global.jwt.TokenProvider;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,11 +30,11 @@ public class OAuthController {
     private final JwtCookieManager jwtCookieManager;
 
     @GetMapping("/kakao")
-    public ResponseEntity<Void> kakaoLogin(@RequestParam("code") String code, HttpServletResponse response) {
+    public ResponseEntity<Void> kakaoLogin(@RequestParam("code") String code, HttpServletRequest request, HttpServletResponse response) {
         KakaoLoginParam param = new KakaoLoginParam(code);
         TokenResponse tokenResponse  = oAuthLoginService.login(param);
-        jwtCookieManager.saveAccessTokenToCookie(response, tokenResponse.getAccessToken());
-        jwtCookieManager.saveRefreshTokenToCookie(response, tokenResponse.getRefreshToken());
+        jwtCookieManager.saveAccessTokenToCookie(request,response, tokenResponse.getAccessToken());
+        jwtCookieManager.saveRefreshTokenToCookie(request,response, tokenResponse.getRefreshToken());
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }

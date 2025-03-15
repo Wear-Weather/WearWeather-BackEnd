@@ -37,18 +37,18 @@ public class AuthController {
     private final JwtCookieManager jwtCookieManager;
 
     @PostMapping("/login")
-    public ResponseEntity<Void> login(@Valid @RequestBody LoginRequest request, HttpServletResponse response) {
-        TokenResponse tokenResponse = loginFacade.checkLogin(request);
-        jwtCookieManager.saveAccessTokenToCookie(response, tokenResponse.getAccessToken());
-        jwtCookieManager.saveRefreshTokenToCookie(response, tokenResponse.getRefreshToken());
+    public ResponseEntity<Void> login(@Valid @RequestBody LoginRequest loginRequest, HttpServletRequest request, HttpServletResponse response) {
+        TokenResponse tokenResponse = loginFacade.checkLogin(loginRequest);
+        jwtCookieManager.saveAccessTokenToCookie(request, response, tokenResponse.getAccessToken());
+        jwtCookieManager.saveRefreshTokenToCookie(request,response, tokenResponse.getRefreshToken());
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<ResponseCommonDTO> logout(@LoggedInUser Long userId, @RequestHeader(AUTHORIZATION_HEADER) String tokenHeader, HttpServletResponse response) {
+    public ResponseEntity<ResponseCommonDTO> logout(@LoggedInUser Long userId, @RequestHeader(AUTHORIZATION_HEADER) String tokenHeader, HttpServletRequest request, HttpServletResponse response) {
         String token = tokenHeader.replace("Bearer ", "");
         logOutFacade.logout(userId, token);
-        jwtCookieManager.clearAuthCookies(response);
+        jwtCookieManager.clearAuthCookies(request, response);
         return ResponseEntity.ok(new ResponseCommonDTO(true, "success logout"));
     }
 
@@ -70,7 +70,7 @@ public class AuthController {
         }
 
         String newAccessToken = reissueFacade.reissue(refreshToken);
-        jwtCookieManager.saveAccessTokenToCookie(response, newAccessToken);
+        jwtCookieManager.saveAccessTokenToCookie(request,response, newAccessToken);
 
         return new ResponseEntity<>(HttpStatus.OK);
     }
