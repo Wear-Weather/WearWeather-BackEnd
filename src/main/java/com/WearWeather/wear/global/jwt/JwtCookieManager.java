@@ -40,7 +40,7 @@ public class JwtCookieManager {
           .path("/")
           .httpOnly(true)
           .secure(!isLocal)  // 로컬이면 false, 운영이면 true
-          .sameSite(isLocal ? "Lax" : "Strict")  // 로컬은 Lax, 운영은 Strict
+          .sameSite(isLocal ? "Lax" : "None")  // 로컬은 Lax, 운영은 Strict
           .domain(isLocal ? LOCALHOST : DOMAIN) // 로컬이면 localhost, 운영이면 도메인 지정
           .maxAge(maxAge)
           .build();
@@ -59,12 +59,14 @@ public class JwtCookieManager {
         boolean isLocal = isLocalRequest(request);
         ResponseCookie accessTokenCookie = createCookie(ACCESS_TOKEN_COOKIE_NAME, accessToken, isLocal, ACCESS_TOKEN_EXPIRATION);
         response.addHeader("Set-Cookie", accessTokenCookie.toString());
+
     }
 
     public void saveRefreshTokenToCookie(HttpServletRequest request, HttpServletResponse response, String refreshToken) {
         boolean isLocal = isLocalRequest(request);
         ResponseCookie refreshTokenCookie = createCookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken, isLocal, REFRESH_TOKEN_EXPIRATION);
         response.addHeader("Set-Cookie", refreshTokenCookie.toString());
+
     }
 
     public void clearAuthCookies(HttpServletRequest request, HttpServletResponse response) {
