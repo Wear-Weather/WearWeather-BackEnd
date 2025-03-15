@@ -53,7 +53,7 @@ public class AuthController {
     }
 
     @PostMapping("/reissue")
-    public ResponseEntity<String> reissue(HttpServletRequest request) {
+    public ResponseEntity<Void> reissue(HttpServletRequest request, HttpServletResponse response) {
         Cookie[] cookies = request.getCookies();
         if (cookies == null) {
             throw new CustomException(ErrorCode.NOT_FOUND_COOKIE);
@@ -69,7 +69,10 @@ public class AuthController {
             throw new CustomException(ErrorCode.NOT_FOUND_REFRESH_TOKEN_IN_COOKIE);
         }
 
-        String newToken = reissueFacade.reissue(refreshToken);
-        return ResponseEntity.ok(newToken);
+        String newAccessToken = reissueFacade.reissue(refreshToken);
+        jwtCookieManager.saveAccessTokenToCookie(response, newAccessToken);
+
+        return new ResponseEntity<>(HttpStatus.OK);
     }
+
 }
