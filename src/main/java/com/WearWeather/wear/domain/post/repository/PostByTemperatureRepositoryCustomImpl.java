@@ -34,7 +34,6 @@ public class PostByTemperatureRepositoryCustomImpl implements PostByTemperatureR
                         qPost.temperature.between(rangeStart, rangeEnd),
                         qPost.id.notIn(invisiblePostIds)
                 )
-                .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .orderBy(qPost.createdAt.desc())
                 .fetch();
