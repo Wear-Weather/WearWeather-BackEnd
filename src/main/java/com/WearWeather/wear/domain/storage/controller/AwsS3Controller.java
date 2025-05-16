@@ -23,7 +23,7 @@ public class AwsS3Controller {
     private final PostImageService postImageService;
 
     @PostMapping("/post-image")
-    public ResponseEntity<ImageInfoResponse> upload(@RequestPart("file") MultipartFile multipartFile) {
+    public ResponseEntity<ImageInfoResponse> upload(@RequestPart(value = "file", required = false) MultipartFile multipartFile) {
         ImageInfoDto imageInfoDto = awsS3Service.upload(multipartFile, "post-image");
         Long postImageId = postImageService.createPostImage(multipartFile, imageInfoDto);
         return ResponseEntity.ok(ImageInfoResponse.of(postImageId, imageInfoDto));
