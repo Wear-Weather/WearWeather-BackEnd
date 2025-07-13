@@ -56,7 +56,7 @@ jobs:
       - name: 테스트 진행하기
         env:
           SPRING_PROFILES_ACTIVE: test
-        run: ./gradlew --info test
+        run: ./gradlew --info test -Djasypt.encryptor.password=${{ secrets.JASYPT_ENCRYPTOR_PASSWORD }}
 
       - name: 테스트 결과 나타내기
         uses: EnricoMi/publish-unit-test-result-action@v2
