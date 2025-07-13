@@ -31,7 +31,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
-@PropertySource("classpath:application-prod.yml")
 public class TokenProvider implements InitializingBean {
 
     private final Logger logger = LoggerFactory.getLogger(TokenProvider.class);

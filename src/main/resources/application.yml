@@ -1,12 +1,11 @@
 spring:
   application:
     name: wear
+  config:
+    import: classpath:common.yml
   profiles:
     active: prod
 
 server:
   servlet:
     context-path: /api/v1
-
-photo:
-  dir: ${java.io.tmpdir}
