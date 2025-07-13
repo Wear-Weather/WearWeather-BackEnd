@@ -87,15 +87,3 @@ tasks.withType(JavaCompile) {
 tasks.named('test') {
     useJUnitPlatform()
 }
-
-processResources.dependsOn('copySecret')
-
-tasks.register('copySecret', Copy) {
-    from 'BE-submodule'
-    include "application*.properties"
-    include "application*.yml"
-    into 'src/main/resources'
-    doLast {
-        println "Copied application properties files to src/main/resources"
-    }
-}
