@@ -56,6 +56,7 @@ jobs:
       - name: 테스트 진행하기
         env:
           SPRING_PROFILES_ACTIVE: test
+          JASYPT_ENCRYPTOR_PASSWORD: ${{ secrets.JASYPT_ENCRYPTOR_PASSWORD }}
         run: ./gradlew --info test
 
       - name: 테스트 결과 나타내기

@@ -72,6 +72,8 @@ dependencies {
     implementation "com.sksamuel.scrimage:scrimage-webp:4.0.32"
 
     implementation 'com.fasterxml.jackson.core:jackson-databind'
+
+    implementation 'com.github.ulisesbocchio:jasypt-spring-boot-starter:3.0.5'
 }
 
 def querydslSrcDir = 'src/main/generated'
@@ -84,16 +86,4 @@ tasks.withType(JavaCompile) {
 
 tasks.named('test') {
     useJUnitPlatform()
-}
-
-processResources.dependsOn('copySecret')
-
-tasks.register('copySecret', Copy) {
-    from 'BE-submodule'
-    include "application*.properties"
-    include "application*.yml"
-    into 'src/main/resources'
-    doLast {
-        println "Copied application properties files to src/main/resources"
-    }
 }

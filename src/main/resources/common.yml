@@ -1,0 +1,89 @@
+spring:
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+  data:
+    redis:
+      host: ENC(9ZxEvsrxCKHGDKmQ4pFCm9eyMhBg+xLT)
+      port: 6379
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ENC(jciFs22PhzP4lBMODw0XFda3R45zPKFqoT5nqsVWd9k=)
+    password: ENC(ZKqpsoB+kEVKXXrNTcRKv1HEX2znx1FmHZQMApz3Rdo=)
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+    auth-code-expiration-millis: 1800000
+  cache:
+    type: redis
+
+jwt:
+  header: Authorization
+  secret: ENC(gofBxQ3SZpVvoCPyHWpj5WL4LNZ1DGVh9pO398CXRELGU1WF92fP42eutUe1+Kf6rgvdpeBkXJnonMC4Y65B5HZSdtM0KxPCMDjb1q6n5oovUbu/T2hP6OreCMly/Y90tzTP7xO8BqhbnGG+T9wE88iFhWWuLUab19kOdiD7SMyLeNTjuicL0NfDm9+im8qM)
+  token-validity-in-seconds: 3600
+  refresh-token-validity-in-seconds: 86400
+
+oauth:
+  kakao:
+    url:
+      auth: https://kauth.kakao.com
+      api: https://kapi.kakao.com
+    client-id: ENC(s39dfnWGrONQFfUb+pxR7cVnFjAqbqzysqbGPpDGpHkQKT8DmG2ZmGSW/euD7HLv)
+    redirect-uri: https://lookattheweather.store/api/v1/oauth/kakao
+    admin-key: ENC(NsbFNP52vkCwFQEr3xrDBkb1MSPNz4QaAAbOH6N0Cme+ZhqTWCml3LlRJflQhSse)
+
+location:
+  api:
+    accessToken:
+      url: https://sgisapi.kostat.go.kr/OpenAPI3/auth/authentication.json
+    consumer-key: ENC(JXUscJ4x4rBzYhhZIY0p9IrE7eeXnil3kk2ih3M8ChU=)
+    consumer-secret: ENC(2r9s8/W5o+uu0KMaHnJnbTvSyj+FFxbOdxiTZ7QjxXA=)
+    base-url: https://sgisapi.kostat.go.kr/OpenAPI3/addr/stage.json
+
+kakao:
+  geo:
+    base-url: https://dapi.kakao.com/v2/local
+    api-key: ENC(GUZ73hG7uZIjKzH7cUKB3DmaodFGg8u14nOgsPrKjI/DPmkEWLpsfjZI9vAmm25s)
+    coord:
+      path: /geo/coord2regioncode.json
+    search:
+      path: /search/address.json
+
+weather:
+  api:
+    base-url: http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0
+    path-url: /getVilageFcst
+    service-key: ENC(Y/+1Y0nEBn/ta4NnYDkUXcxd4VY/RClmAXJ6IgrMqO5bAD5i0jrMYujFLAU5FeIO21DZkTvskjTzYH7NmFdmeUuf/wypoE5uR2xJhuAv4995wqVzJG+b5zdkFDuYMNEnfYb1LUJsA9A=)
+
+schedule:
+  like:
+    cron: 0 0 3 * * ?
+    use: false
+
+jasypt:
+  encryptor:
+    password: ${JASYPT_ENCRYPTOR_PASSWORD}
+
+cloud:
+  aws:
+    credentials:
+      access-key: ENC(dg+YZMgLhAO8SEBkoPuzwZrfks++GI0uAhxFEOwgSt8=)
+      secret-key: ENC(7/25IfLDHcZdwlg1G6bZ+SfMYHMvxGO2m7Flj9exFuEBOoeWOFzIp1rVp1IbS5GRRerdja+k2sE=)
+    region:
+      static: ap-northeast-2
+    s3:
+      bucket: ENC(nUpCEKz7QOM3FPB/idcTzOyY7keJIb3OPv+0bFb8LXA=)
+    stack:
+      auto: false
+
+photo:
+  dir: ${java.io.tmpdir}
