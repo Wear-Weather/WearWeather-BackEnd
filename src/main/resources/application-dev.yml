@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    url: ENC(57mqe+sicTFjtM7QsRuV7+GIhWUhBvY9VE4HYlZ4xIAEm3fyht51MMc+SgrasGbE)
+    username: ENC(MrFfIG3pbqaaHYcUDXWAo4zAqGxBkxhJ)
+    password: ENC(wy50yLHyaXLntHWcCeacL+eg4Ibw1o3J)
+  jpa:
+    hibernate:
+      ddl-auto: update
+    database-platform: org.hibernate.dialect.MySQLDialect
