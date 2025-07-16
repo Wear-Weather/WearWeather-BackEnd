@@ -4,7 +4,14 @@ spring:
   config:
     import: classpath:common.yml
   profiles:
-    active: prod
+    default: "local"
+    group:
+      local:
+        - common
+      dev:
+        - common
+      prod:
+        - common
 
 server:
   servlet:
