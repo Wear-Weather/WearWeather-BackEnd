@@ -1,10 +1,9 @@
-package com.WearWeather.wear.domain.mail;
+package com.WearWeather.wear.domain.mail.service;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import com.WearWeather.wear.domain.mail.service.MailService;
 import com.WearWeather.wear.domain.user.dto.request.RegisterUserRequest;
 import com.WearWeather.wear.domain.user.service.UserService;
 import com.WearWeather.wear.fixture.UserFixture;

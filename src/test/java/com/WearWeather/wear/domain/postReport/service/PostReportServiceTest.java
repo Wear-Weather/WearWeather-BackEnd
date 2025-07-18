@@ -1,4 +1,4 @@
-package com.WearWeather.wear.domain.postReport;
+package com.WearWeather.wear.domain.postReport.service;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.any;
@@ -11,7 +11,6 @@ import static org.mockito.Mockito.when;
 import com.WearWeather.wear.domain.post.service.PostValidationService;
 import com.WearWeather.wear.domain.postReport.entity.PostReport;
 import com.WearWeather.wear.domain.postReport.repository.PostReportRepository;
-import com.WearWeather.wear.domain.postReport.service.PostReportService;
 import com.WearWeather.wear.domain.user.service.UserService;
 import com.WearWeather.wear.global.exception.CustomException;
 import com.WearWeather.wear.global.exception.ErrorCode;
