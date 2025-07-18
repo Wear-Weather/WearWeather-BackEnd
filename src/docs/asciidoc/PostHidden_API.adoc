@@ -1,0 +1,13 @@
+= 게시글 숨김 처리 API 문서
+:toc: left
+:toclevels: 2
+:source-highlighter: highlightjs
+:snippets: build/generated-snippets
+
+[#hide-post]
+== 게시글 숨김 처리 API
+- 사용자가 특정 게시글을 숨깁니다. 숨긴 게시글은 더 이상 메인 피드에 노출되지 않습니다.
+- 요청 DTO: 없음 (PathVariable로 postId만 전달)
+- 응답 DTO: `ResponseCommonDTO`
+
+operation::post-hidden-controller-test/hide-post[snippets='path-parameters,http-request,http-response,response-fields']

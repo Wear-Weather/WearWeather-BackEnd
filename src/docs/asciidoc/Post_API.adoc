@@ -1,0 +1,77 @@
+= 게시글 API 문서
+:toc: left
+:toclevels: 2
+:source-highlighter: highlightjs
+:snippets: build/generated-snippets
+
+[#create-post]
+== 게시글 생성 API
+- 사용자가 게시글을 작성합니다.
+- 요청 DTO: `PostCreateRequest`
+- 응답 DTO: `PostCreateResponse`
+
+operation::post-controller-test/create[snippets='http-request,request-fields,http-response,response-fields']
+
+[#update-post]
+== 게시글 수정 API
+- 게시글 ID를 기준으로 게시글 내용을 수정합니다.
+- 요청 DTO: `PostUpdateRequest`
+- 응답 DTO: `ResponseCommonDTO`
+
+operation::post-controller-test/update[snippets='http-request,path-parameters,request-fields,http-response,response-fields']
+
+[#delete-post]
+== 게시글 삭제 API
+- 게시글 ID를 기준으로 게시글을 삭제합니다.
+- 요청 DTO: 없음
+- 응답 DTO: `ResponseCommonDTO`
+
+operation::post-controller-test/delete[snippets='http-request,path-parameters,http-response,response-fields']
+
+[#get-top-liked-posts]
+== 좋아요 많은 게시글 조회 API
+- 좋아요 수 기준으로 인기 게시글을 조회합니다.
+- 요청 DTO: 없음
+- 응답 DTO: `TopLikedPostsResponse`
+
+operation::post-controller-test/get-top-liked-posts[snippets='http-request,http-response,response-fields']
+
+[#get-post-detail]
+== 게시글 상세 조회 API
+- 게시글 ID를 기준으로 상세 정보를 조회합니다.
+- 요청 DTO: 없음
+- 응답 DTO: `PostDetailResponse`
+
+operation::post-controller-test/get-post-detail[snippets='http-request,path-parameters,http-response,response-fields']
+
+[#get-posts-by-location]
+== 위치 기반 게시글 조회 API
+- 시/군/구 위치를 기반으로 게시글을 조회합니다.
+- 요청 DTO: 없음 (Query Parameter 기반)
+- 응답 DTO: `PostsByLocationResponse`
+
+operation::post-controller-test/get-posts-by-location[snippets='http-request,query-parameters,http-response,response-fields']
+
+[#search-posts-by-filters]
+== 조건 기반 게시글 검색 API
+- 필터 조건(지역, 날씨, 온도, 계절 등)에 따라 게시글을 검색합니다.
+- 요청 DTO: `PostsByFiltersRequest`
+- 응답 DTO: `PostsByFiltersResponse`
+
+operation::post-controller-test/search-posts-by-filters[snippets='http-request,request-fields,http-response,response-fields']
+
+[#get-posts-by-temperature]
+== 온도 기반 게시글 조회 API
+- 특정 온도 조건에 맞는 게시글을 조회합니다.
+- 요청 DTO: 없음 (Query Parameter 기반)
+- 응답 DTO: `PostsByTemperatureResponse`
+
+operation::post-controller-test/get-posts-by-temperature[snippets='http-request,query-parameters,http-response,response-fields']
+
+[#get-posts-by-me]
+== 내가 작성한 게시글 조회 API
+- 로그인한 사용자가 작성한 게시글 목록을 조회합니다.
+- 요청 DTO: 없음 (Query Parameter 기반)
+- 응답 DTO: `PostsByMeResponse`
+
+operation::post-controller-test/get-posts-by-me[snippets='http-request,query-parameters,http-response,response-fields']

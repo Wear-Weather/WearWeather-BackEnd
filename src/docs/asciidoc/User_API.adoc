@@ -1,0 +1,69 @@
+= 사용자 관련 API 문서
+:toc: left
+:toclevels: 2
+:source-highlighter: highlightjs
+:snippets: build/generated-snippets
+
+[#signup-api]
+== 회원가입 API
+- 이메일, 비밀번호, 이름, 닉네임을 입력받아 회원가입을 진행합니다.
+- 요청 DTO: `RegisterUserRequest`
+- 응답 DTO: `ResponseCommonDTO`
+
+operation::user-controller-test/signup[snippets='http-request,request-fields,http-response,response-fields']
+
+[#check-duplicate-nickname]
+== 닉네임 중복 확인 API
+- 입력한 닉네임이 중복되는지 확인합니다.
+- 요청 DTO: 없음 (`PathVariable`)
+- 응답 DTO: `NicknameDuplicateCheckResponse`
+
+operation::user-controller-test/check-duplicate-nickname[snippets='path-parameters,http-request,http-response,response-fields']
+
+[#find-user-email]
+== 이메일 찾기 API
+- 이름과 닉네임을 기반으로 등록된 이메일을 조회합니다.
+- 요청 DTO: `FindUserEmailRequest`
+- 응답 DTO: `FindUserEmailResponse`
+
+operation::user-controller-test/find-user-email[snippets='http-request,request-fields,http-response,response-fields']
+
+[#find-user-password]
+== 비밀번호 찾기 API
+- 이메일, 이름, 닉네임을 기반으로 비밀번호 변경을 위한 사용자 ID를 조회합니다.
+- 요청 DTO: `FindUserPasswordRequest`
+- 응답 DTO: `UserIdForPasswordUpdateResponse`
+
+operation::user-controller-test/find-user-password[snippets='http-request,request-fields,http-response,response-fields']
+
+[#modify-user-password]
+== 비밀번호 변경 API
+- 사용자 ID와 새로운 비밀번호를 입력받아 비밀번호를 변경합니다.
+- 요청 DTO: `ModifyUserPasswordRequest`
+- 응답 DTO: `ResponseCommonDTO`
+
+operation::user-controller-test/modify_user_password[snippets='http-request,request-fields,http-response,response-fields']
+
+[#get-user-info]
+== 내 정보 조회 API
+- 현재 로그인한 사용자의 프로필 정보를 조회합니다.
+- 요청 DTO: 없음
+- 응답 DTO: `UserInfoResponse`
+
+operation::user-controller-test/get_user_info[snippets='http-request,http-response,response-fields']
+
+[#modify-user-info]
+== 내 정보 수정 API
+- 비밀번호와 닉네임을 수정합니다.
+- 요청 DTO: `ModifyUserInfoRequest`
+- 응답 DTO: `ResponseCommonDTO`
+
+operation::user-controller-test/modify_user_info[snippets='http-request,request-fields,http-response,response-fields']
+
+[#delete-user]
+== 회원 탈퇴 API
+- 사용자의 탈퇴 사유를 입력받아 계정을 삭제합니다.
+- 요청 DTO: 없음 (`@RequestParam`)
+- 응답 DTO: `ResponseCommonDTO`
+
+operation::user-controller-test/delete_user[snippets='query-parameters,http-request,http-response,response-fields']

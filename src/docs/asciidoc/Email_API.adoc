@@ -1,0 +1,21 @@
+= 이메일 인증 API 문서
+:toc: left
+:toclevels: 2
+:source-highlighter: highlightjs
+:snippets: build/generated-snippets
+
+[#send-verification]
+== 이메일 인증 요청 API
+- 사용자가 이메일을 입력하면 해당 주소로 인증 코드를 전송합니다.
+- 요청 DTO: `VerifyEmailRequest`
+- 응답 DTO: `ResponseCommonDTO`
+
+operation::email-controller-test/send_verification[snippets='http-request,request-fields,http-response,response-fields']
+
+[#verify-code]
+== 이메일 인증 코드 검증 API
+- 이메일로 전송된 인증 코드를 사용자가 입력하여 검증합니다.
+- 요청 DTO: `VerifyEmailAuthCodeRequest`
+- 응답 DTO: `ResponseCommonDTO`
+
+operation::email-controller-test/verify_code[snippets='http-request,request-fields,http-response,response-fields']

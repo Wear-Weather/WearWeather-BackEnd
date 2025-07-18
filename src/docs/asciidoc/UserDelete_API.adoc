@@ -1,0 +1,13 @@
+= 회원 탈퇴 관련 API 문서
+:toc: left
+:toclevels: 2
+:source-highlighter: highlightjs
+:snippets: build/generated-snippets
+
+[#get-delete-reasons]
+== 회원 탈퇴 사유 조회 API
+- 사용자가 회원 탈퇴 시 선택할 수 있는 사유 목록을 조회합니다.
+- 요청 DTO: 없음
+- 응답 DTO: `List<String>`
+
+operation::user-delete-controller-test/get_delete_reasons[snippets='http-request,http-response,response-fields']
