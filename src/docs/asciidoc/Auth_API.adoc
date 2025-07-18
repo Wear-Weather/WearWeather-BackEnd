@@ -1,0 +1,29 @@
+= 인증 API 문서
+:toc: left
+:toclevels: 2
+:source-highlighter: highlightjs
+:snippets: build/generated-snippets
+
+[#login-api]
+== 로그인 API
+- 사용자가 이메일과 비밀번호를 입력하여 로그인합니다.
+- 요청 DTO: `LoginRequest`
+- 응답 DTO: 없음 (쿠키에 토큰 전달)
+
+operation::auth-controller-test/login[snippets='http-request,request-fields,http-response']
+
+[#logout-api]
+== 로그아웃 API
+- 사용자가 로그아웃하면 서버에서 토큰을 무효화하고 쿠키를 제거합니다.
+- 요청 DTO: 없음
+- 응답 DTO: `ResponseCommonDTO`
+
+operation::auth-controller-test/logout[snippets='http-request,request-headers,http-response,response-fields']
+
+[#reissue-api]
+== 토큰 재발급 API
+- 만료된 Access Token이 감지되면, Refresh Token을 기반으로 새로운 Access Token을 발급합니다.
+- 요청 DTO: 없음 (RefreshToken은 쿠키에서 전달)
+- 응답 DTO: 없음 (쿠키에 새로운 Access Token 전달)
+
+operation::auth-controller-test/reissue[snippets='http-request,request-cookies,http-response']

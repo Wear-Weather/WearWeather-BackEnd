@@ -55,7 +55,7 @@ public class PostCreateRequest implements PostImageRequest, TaggableRequest {
 
     @NotNull(message = "이미지 리스트는 null일 수 없습니다.")
     @NotEmpty(message = "이미지 업로드는 필수입니다.")
-    private final List<@NotNull(message = "이미지 ID는 null일 수 없습니다.")
+    private  List<@NotNull(message = "이미지 ID는 null일 수 없습니다.")
                        @Positive(message = "이미지 ID는 양수여야 합니다.") Long> imageIds = new ArrayList<>();
 
     @JsonCreator
@@ -68,7 +68,8 @@ public class PostCreateRequest implements PostImageRequest, TaggableRequest {
         @JsonProperty("district") String district,
         @JsonProperty("weatherTagIds") Set<Long> weatherTagIds,
         @JsonProperty("temperatureTagIds") Set<Long> temperatureTagIds,
-        @JsonProperty("seasonTagId") Long seasonTagId
+        @JsonProperty("seasonTagId") Long seasonTagId,
+        @JsonProperty("imageIds") List<Long> imageIds
     ) {
         this.title = title;
         this.content = content;
@@ -79,6 +80,7 @@ public class PostCreateRequest implements PostImageRequest, TaggableRequest {
         this.weatherTagIds = weatherTagIds;
         this.temperatureTagIds = temperatureTagIds;
         this.seasonTagId = seasonTagId;
+        this.imageIds = imageIds;
     }
 
     public Post toEntity(Long userId,Location location) {

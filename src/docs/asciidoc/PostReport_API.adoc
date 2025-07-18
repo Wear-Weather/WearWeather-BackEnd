@@ -1,0 +1,13 @@
+= 게시글 신고 API 문서
+:toc: left
+:toclevels: 2
+:source-highlighter: highlightjs
+:snippets: build/generated-snippets
+
+[#report-post]
+== 게시글 신고 API
+- 사용자가 특정 게시글을 사유(reason)와 함께 신고합니다.
+- 요청 DTO: 없음 (PathVariable + @RequestParam으로 처리)
+- 응답 DTO: `ResponseCommonDTO`
+
+operation::post-report-controller-test/report-post[snippets='path-parameters,query-parameters,http-request,http-response,response-fields']

@@ -75,6 +75,7 @@ public class SecurityConfig {
             .requestMatchers(HttpMethod.GET, "/posts/tmp").permitAll()
 
             .requestMatchers("/h2-console/**").permitAll()
+            .requestMatchers("/docs/**").permitAll()
             .anyRequest().authenticated()
           )
 

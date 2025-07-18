@@ -1,0 +1,37 @@
+= 위치 API 문서
+:toc: left
+:toclevels: 2
+:source-highlighter: highlightjs
+:snippets: build/generated-snippets
+
+[#get-location-data]
+== 기본 위치 데이터 저장 API
+- 관리자용으로 기본 시/군/구 위치 데이터를 내부에 저장하는 API입니다.
+- 요청 DTO: 없음
+- 응답 DTO: 없음
+
+operation::location-controller-test/get-location-data[snippets='http-request']
+
+[#geocoding-location]
+== 좌표 기반 위치 조회 API
+- 경도와 위도를 기반으로 시/군/구 정보를 조회하는 API입니다.
+- 요청 DTO: 없음 (쿼리 파라미터 사용)
+- 응답 DTO: `GeocodingLocationResponse`
+
+operation::location-controller-test/geocoding-location[snippets='http-request,query-parameters,http-response,response-fields']
+
+[#search-location]
+== 주소 기반 위치 검색 API
+- 사용자가 주소를 입력하면 도시, 구, 좌표 등의 정보를 응답합니다.
+- 요청 DTO: 없음 (쿼리 파라미터 사용)
+- 응답 DTO: `SearchLocationResponse`
+
+operation::location-controller-test/search-location[snippets='http-request,query-parameters,http-response,response-fields']
+
+[#get-regions]
+== 전체 시/군/구 데이터 조회 API
+- 프로젝트에 저장된 모든 시와 군/구 정보를 조회하는 API입니다.
+- 요청 DTO: 없음
+- 응답 DTO: `RegionsResponse`
+
+operation::location-controller-test/get-regions[snippets='http-request,http-response,response-fields']

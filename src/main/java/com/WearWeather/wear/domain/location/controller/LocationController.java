@@ -7,6 +7,7 @@ import com.WearWeather.wear.domain.location.service.LocationService;
 import java.util.Collections;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
@@ -23,9 +24,10 @@ public class LocationController {
     }
 
     @GetMapping("/location")
-    public Mono<GeocodingLocationResponse> geocodingLocation(@RequestParam("longitude") double longitude,
-                                                             @RequestParam("latitude") double latitude){
-        return locationService.findLocationByGeoCoordApi(longitude, latitude);
+    public ResponseEntity<GeocodingLocationResponse> geocodingLocation(@RequestParam("longitude") double longitude,
+      @RequestParam("latitude") double latitude) {
+        GeocodingLocationResponse response = locationService.findLocationByGeoCoordApi(longitude, latitude).block();
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/location/search")

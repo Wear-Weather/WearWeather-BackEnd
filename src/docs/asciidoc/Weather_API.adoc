@@ -1,0 +1,29 @@
+= 날씨 관련 API 문서
+:toc: left
+:toclevels: 2
+:source-highlighter: highlightjs
+:snippets: build/generated-snippets
+
+[#get-weather-per-time]
+== 시간대별 날씨 조회 API
+- 위도와 경도를 기반으로 현재 날씨(기온, 설명 등)를 조회합니다.
+- 요청 DTO: 없음 (쿼리 파라미터 사용)
+- 응답 DTO: `WeatherPerTimeResponse`
+
+operation::weather-controller-test/get_weather_per_time[snippets='query-parameters,http-request,http-response,response-fields']
+
+[#get-weather-tmp]
+== 최저/최고 기온 조회 API
+- 위도와 경도를 기반으로 해당 지역의 최저/최고 기온을 조회합니다.
+- 요청 DTO: 없음 (쿼리 파라미터 사용)
+- 응답 DTO: `WeatherTmpResponse`
+
+operation::weather-controller-test/get_weather_tmp[snippets='query-parameters,http-request,http-response,response-fields']
+
+[#get-outfit-guide]
+== 옷차림 가이드 API
+- 기온(℃)에 따라 추천 옷차림을 제공합니다.
+- 요청 DTO: 없음 (쿼리 파라미터 사용)
+- 응답 DTO: `OutfitGuideResponse`
+
+operation::weather-controller-test/get_outfit_guide[snippets='query-parameters,http-request,http-response,response-fields']
