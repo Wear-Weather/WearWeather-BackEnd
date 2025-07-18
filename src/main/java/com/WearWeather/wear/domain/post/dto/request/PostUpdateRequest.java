@@ -46,7 +46,7 @@ public class PostUpdateRequest implements PostImageRequest, TaggableRequest {
     private final Long seasonTagId;
 
     @NotEmpty(message = "이미지 업로드는 필수입니다.")
-    private final List<Long> imageIds = new ArrayList<>();
+    private List<Long> imageIds = new ArrayList<>();
 
     @JsonCreator
     public PostUpdateRequest(
@@ -57,7 +57,8 @@ public class PostUpdateRequest implements PostImageRequest, TaggableRequest {
         @JsonProperty("gender") Gender gender,
         @JsonProperty("weatherTagIds") Set<Long> weatherTagIds,
         @JsonProperty("temperatureTagIds") Set<Long> temperatureTagIds,
-        @JsonProperty("seasonTagId") Long seasonTagId
+        @JsonProperty("seasonTagId") Long seasonTagId,
+        @JsonProperty("imageIds") List<Long> imageIds
     ) {
         this.title = title;
         this.content = content;
@@ -67,5 +68,6 @@ public class PostUpdateRequest implements PostImageRequest, TaggableRequest {
         this.weatherTagIds = weatherTagIds;
         this.temperatureTagIds = temperatureTagIds;
         this.seasonTagId = seasonTagId;
+        this.imageIds = imageIds;
     }
 }
